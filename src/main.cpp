@@ -16,10 +16,10 @@ int main()
      "rig", internal tension "sig", frame tension "tau" and lattice spacing
      "alpha".Define and initialize varia bles needed for the MC code.       */
   
-  int maxiter = 1e7;     
-  int DoF = 6400;        //total number of degrees of freedom
+  int maxiter = 1e6;     
+  int DoF = 6400;         //total number of degrees of freedom
   int N = sqrt(DoF);     //degrees of freedom per dimension
-  int nghost = 2;        //ghost points per boundary point
+  int nghost = 1;        //ghost points per boundary point
   
   double rig = 10.0;     //bending rigidity
   double sig = 0.5;      //internal tension
@@ -66,13 +66,9 @@ int main()
   std::uniform_real_distribution<double>  RandDouble(-epsilon,epsilon);
   
   std::string filename = "sampling.txt";
-  
-  /*----------------------------------------------------------------------*/
 
   /* 2) Initialize the height field hfield(i,j)                           */ 
   RectMesh hfield(N,N,nghost);
-  
-  /*----------------------------------------------------------------------*/
   
   /* 3) Calculate the projected membrane area "prj_area", the total area 
      "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
@@ -140,7 +136,6 @@ int main()
       /* 11) Sample                                                       */
       Sample(iter,filename,tot_energy,tau_energy,crv_energy,sig_energy,
 	     cor_energy,tot_area,prj_area,alpha,DoF);
-      
     }
 
   hfield.write("hfield.h5");

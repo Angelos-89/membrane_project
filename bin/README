@@ -1,0 +1,10 @@
+
+How to use the script:
+
+1) Make a directory where you want to run the program and cd into it.
+   For example: /home/angelos/Runs/Run1
+2) Execute the following: /home/angelos/GIT/membrane_project/bin/setup.csh
+3) You will end up inside /home/angelos/Runs/Run1/src
+4) Execute makefile
+5) Execute ./main.out
+

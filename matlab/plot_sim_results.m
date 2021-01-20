@@ -1,18 +1,13 @@
 %% import data
 height = h5read("hfield.h5","/RectMesh");
-% height2 = h5read("height_fast_way.h5","/Mesh2D");
-
-% hdiff = abs(height-height2); 
-
 sampling = importdata("sampling.txt");
 
-
-energy = sampling(:,8);
-area = sampling(:,1); 
+%% lists of data
+area = sampling(:,1);
 alpha = sampling(:,3);
+energy = sampling(:,8);
  
-% %% plot data
-
+%% plot data
 figure(1)
 surf(height)
 title("Membrane height field")

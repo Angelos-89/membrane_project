@@ -2,7 +2,7 @@
 export MC_WD=PWD        
 mkdir -p src
 cd src
-ln -s /home/angelos/GIT/MC_membrane/src/*.cpp .
-ln -s /home/angelos/GIT/MC_membrane/src/*.h .
-ln -s /home/angelos/GIT/MC_membrane/src/makefile.der_test .
-ln -s /home/angelos/GIT/MC_membrane/config/config.angelos .
+ln -s /home/angelos/GIT/membrane_project/src/*.cpp .
+ln -s /home/angelos/GIT/membrane_project/src/*.hpp .
+ln -s /home/angelos/GIT/membrane_project/src/makefile .
+ln -s /home/angelos/GIT/membrane_project/config/config.angelos .

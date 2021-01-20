@@ -11,6 +11,9 @@ std::mt19937 mt(rd());
 
 /*-------------------InitSurface---------------------------*/
 
+/* Initializes a RectMesh object with random values ranging
+from min to max. */
+
 void InitSurface(RectMesh& hfield,double min,double max)
 {
   std::uniform_real_distribution<double> UnifProb(min,max);
@@ -504,8 +507,8 @@ void GetNeighbors(RectMesh& field,Site site,
   int y = site.gety();
   
   
-  /* fill the list of neighbors needed for 
-     the local area calculation */
+  /* Fill the list of neighbors needed for 
+     the local area calculation. */
   
   neighbors_area[0] = site;
   
@@ -522,8 +525,11 @@ void GetNeighbors(RectMesh& field,Site site,
   neighbors_area[4] = site;
 
   /* Fill the list needed for 
-     the local correction energy */ 
-
+     the local correction energy.
+     The neighbors are located in
+     a cross with (x,y) 
+     in the center. */
+  
   site = init;
   neighbors_corr[0] = site;
   int k=1;
@@ -553,7 +559,10 @@ void GetNeighbors(RectMesh& field,Site site,
     }
   
   /* Fill the list needed for 
-     the local curvature energy */ 
+     the local curvature energy.
+     The neighbors form a block (tile) 
+     consisting of (2*nghost+1)^2
+     sites. */ 
 
   k=0;
   for(int j=y-nghost; j<=y+nghost; j++)
@@ -685,10 +694,6 @@ void ChangeLattice(RectMesh& hfield,int& move_counter,double& alpha,
       move_counter = 0;
     }
 }
-
-
-
-
 
 // void ReadTxt(const char filename[], std::vector<double> &data)
 // {
