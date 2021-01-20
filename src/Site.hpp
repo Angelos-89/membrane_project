@@ -1,0 +1,28 @@
+#ifndef SITE_HPP
+#define SITE_HPP
+
+#include <iostream>
+
+class Site
+{
+private:
+
+  int x;
+  int y;
+
+public:
+
+  Site(int xx=0, int yy=0) : x(xx), y(yy) {};
+  void set(int xx, int yy){ x = xx; y=yy;}
+  void print() const
+  {
+    std::cout << std::endl;
+    std::cout << "(" << x << "," << y << ")" << std::endl;
+    std::cout << std::endl;
+  }
+  int getx() const {return x;}
+  int gety() const {return y;}
+  
+};
+
+#endif

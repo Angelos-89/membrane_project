@@ -1,0 +1,15 @@
+Create a run director <rundir>
+mkdir <rundir>
+cd <rundir>
+source $MC/bin/setup.csh
+(if you are in csh or tcsh
+For bash Angelos will write the correct setup file)
+You end up inside the a src directory.
+Now choose a config file from the $MC/config directory
+Then run:
+ln -s $MC/config/config.dmdesk config.local
+If you want to test the calculation of derivatives:
+make der_test
+mv der_test ../
+cd ..
+./der_test.exe

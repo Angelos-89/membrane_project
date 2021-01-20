@@ -1,0 +1,10 @@
+# --- Configuration for Angelos' laptop.
+
+CC = /home/angelos/HDF5/bin/h5c++ 
+CFLAGS = -c -O3
+
+hdir_fftw3 = /usr/include
+ldir_fftw3 = /usr/lib       
+link_fftw3 = -lfftw3
+hdir_hdf5 = /home/angelos/HDF5/include
+
