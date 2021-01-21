@@ -1,3 +1,7 @@
+/* In the following, when paper1 is mentioned, we refer to the  paper 
+   "Monte Carlo study of the frame fluctuation and internal tensions of 
+   fluctuating membranes with fixed area" by Shiba et al. (2016). */
+
 #include <fstream>
 #include <iomanip>
 #include <random>
@@ -9,7 +13,7 @@
 std::random_device rd;
 std::mt19937 mt(rd());
 
-/*-------------------InitSurface---------------------------*/
+/*------------------ InitSurface ------------------------*/
 
 /* Initializes a RectMesh object with random values ranging
 from min to max. */
@@ -25,19 +29,20 @@ void InitSurface(RectMesh& hfield,double min,double max)
   GhostCopy(hfield);
 }
 
-/*----------------GhostCopy----------------*/
+/*---------------- GhostCopy ------------------*/
 
 /*This function implements periodic boundary
-  conditions by copying the first and last n 
+  conditions by copying the first and last nghost 
   rows and columns of a 2D mesh at the ghost 
-  zones of the same  mesh. n denotes the number 
-  of ghost points per side.
+  zones of the same  mesh. nghost denotes the 
+  number of ghost points per boundary point.
 
   Example:
 
   A 2D mesh defined as: RectMesh field(3,4,2);
-  with 3 columns, 4 rows and 2 ghost points 
-  is shown below before the GhostCopy.
+  with 3 columns, 4 rows and 2 ghost points per
+  boundary point, is shown below before the 
+  execution of GhostCopy.
 
   0    0    0    0    0    0    0    
   0    0    0    0    0    0    0    
@@ -82,9 +87,9 @@ void GhostCopy(RectMesh& mesh)
     }
 }
 
-/*------------------------Der----------------------------------*/
+/*-------------------------  Der ------------------------------*/
 
-/* This function calculates the gradient of a scalar field F(x,y) 
+/* This function calculates the gradient of a scalar field F(i,j) 
    at a given point, where i corresponds to the x-coordinate and 
    j to the y-coordinate. The pointer grad represents an 1D array 
    where grad[0] stores the partial derivative with respect to x 
@@ -124,16 +129,16 @@ void Der(RectMesh& mesh, Site site, double alpha, double grad[])
   
 }
 
-/*-------------------------Der2-------------------------*/
+/*-------------------------- Der2 ------------------------*/
 
 /* This function calculates the second order derivatives of 
-   a scalar field F(x,y) at a given point where j corresponds 
-   to the x-coordinate and i to the y-coordinate. The pointer 
-   hess represents the Hessian matrix as a 1D array where 
-   hess[0] stores Fxx, hess[1] stores Fxy, hess[2] stores Fyx 
-   and hess[3] stores Fyy. Central finite difference schemes 
-   are used to compute the derivatives. alpha is the lattice spacing.
-*/
+   a scalar field F(i,j) at a given point where i corresponds 
+   to the x-coordinate and j to the y-coordinate. The pointer 
+   hess represents the Hessian matrix stored as an 1D array 
+   where hess[0] = Fxx, hess[1] =  Fxy, hess[2] = Fyx 
+   and hess[3] = Fyy. Central finite difference schemes 
+   are used to compute the derivatives. 
+   alpha is the lattice spacing.                          */
 
 void Der2(RectMesh& mesh, Site site, double alpha, double hess[])
 {
@@ -176,17 +181,15 @@ void Der2(RectMesh& mesh, Site site, double alpha, double hess[])
     }
 }
 
-/*---------------------------SNodeArea----------------------------*/
+/*------------------------- SNodeArea ----------------------------*/
 
-/* This function calculates the local area corresponding to a node
-   represented by (i,j). We use equation (7) from the paper "Monte 
-   Carlo study of the frame fluctuation and internal tensions of 
-   fluctuating membranes with fixed area" by Shiba et al. (2016). 
+/* This function calculates the area corresponding to a single node
+   represented by (i,j). We use equation (7) from paper1. 
    That is, we  calculate the area of the four triangles that are 
-   formed by the value of the field at (i,j) and its nearest 
+   formed by the value of the field at (i,j) and its four nearest 
    neighbors and then devide by 2. Note however, that we do not 
-   multiply by 0.5 to find the area of the triangle, but multiply by 
-   0.25 at the end instead.                                       */
+   multiply by 0.5 to find the area of the triangle, but multiply 
+   by 0.25 at the end instead.                                    */
 
 double SNodeArea(RectMesh& field,Site site,double alpha)
 {
@@ -206,7 +209,10 @@ double SNodeArea(RectMesh& field,Site site,double alpha)
   return 0.25*(area1+area2+area3+area4);
 }
 
-/*-------------------------LocalArea----------------------------*/
+/*------------------------ LocalArea ---------------------------*/
+
+/* This function calculates the area that corresponds to a site
+   (i,j) and its four nearest neighbors as well.                */
 
 double LocalArea(RectMesh& hfield, Site neighbors[], double alpha)
 {
@@ -216,44 +222,42 @@ double LocalArea(RectMesh& hfield, Site neighbors[], double alpha)
   return area;  
 }
 
-/*---------------------------TotalArea------------------------*/
+/*--------------------------- TotalArea --------------------------*/
 
 /* This function calculates the total area of the surface that 
-   is represented by the values of a scalar field. The scalar 
-   field is represented by the class RectMesh and it is assumed 
-   to be periodic in both x and y. The step size in each 
-   direction is alpha.                                        */
+   is formed by a 2D scalar field. The scalar field is represented 
+   by a RectMesh object and it is assumed to be periodic in both 
+   x and y. The step size in each direction is alpha.             */
 
 double TotalArea(RectMesh& field,double alpha)
 {
   if (field.getnghost() == 0)
     {
-    std::cout << "TotalArea: The number of ghost points per side of the"
-      "RectMesh object must be at least 1! Exiting. \n"
-	      << std::endl;
-    exit(EXIT_FAILURE);
-  }
+      std::cout << "TotalArea: The number of ghost points per side of the"
+	"RectMesh object must be at least 1! Exiting. \n"
+		<< std::endl;
+      exit(EXIT_FAILURE);
+    }
   double total_area=0;
   Site site;
   for (int j=0; j<field.getrows(); j++)
     {
-    for (int i=0; i<field.getcols(); i++)
-      {
-      site.set(i,j);
-      total_area += SNodeArea(field,site,alpha);
+      for (int i=0; i<field.getcols(); i++)
+	{
+	  site.set(i,j);
+	  total_area += SNodeArea(field,site,alpha);
+	}
     }
-  }
   return total_area;
 }
 
-/*----------------------SNodeNormalZ----------------------*/
+/*--------------------- SNodeNormalZ ----------------------*/
 
 /* This function calculates the z coordinate of the unit 
-   normal vector at one point of the surface that is 
+   normal vector at a single point of the surface that is 
    represented by the RectMesh object hfield. alpha is the 
-   lattice spacing and site represents the point of the mesh 
-   at which the unit normal coordinate is calculated.
-*/
+   lattice spacing and site represents the point of the 
+   mesh at which the unit normal coordinate is calculated. */
 
 double SNodeNormalZ(RectMesh& hfield,Site site,double alpha)
 {
@@ -264,13 +268,12 @@ double SNodeNormalZ(RectMesh& hfield,Site site,double alpha)
   return (1. / sqrt(1. + pow(h_x,2) + pow(h_y,2)));
 };
 
-/*-------------------NormalZ-----------------*/
+/*------------------- NormalZ ------------------*/
 
 /* This function calculates the z coordinates 
-   of the unit normal vectors at each point of 
-   a surface represented by hfield. alpha is the 
-   lattice spacing. NormalZ calls LocalNormalZ 
-   for every point of the surface.           */
+   of the unit normal vectors at every point of 
+   the surface represented by hfield. alpha is 
+   the lattice spacing.                         */
 
 RectMesh NormalZ(RectMesh& hfield, double alpha)
 {
@@ -287,13 +290,13 @@ RectMesh NormalZ(RectMesh& hfield, double alpha)
   return normalz;
 };
 
-/*-----------------------SNodeCurvature------------------------------*/
+/*------------------------ SNodeCurvature ------------------------------*/
 
 /* This function calculates the local mean curvature, i.e., the mean 
    curvature H at a given point (i,j) in the Monge representaion. Here, 
    hfield is the surface represented by a RectMesh object. Note that the 
    GhostCopy function must be called before calling this function for 
-   boundary points.                                                  */
+   boundary points.                                                     */
 
 double SNodeCurvature(RectMesh& h,Site site,double alpha)
 {
@@ -315,11 +318,11 @@ double SNodeCurvature(RectMesh& h,Site site,double alpha)
   return curvature;
 }
 
-/*------------------------TotalCurvature------------------------*/
+/*----------------------- TotalCurvature --------------------------*/
 
-/* This function returns an Eigen Matrix with the mean curvature 
-   at each point of a surface that is represented by a RectMesh 
-   object.                                                      */
+/* This function returns a RectMesh object with the mean curvature 
+   of every point of a surface that is represented by the RectMesh 
+   object field.                                                   */
 
 RectMesh TotalCurvature(RectMesh& field,double alpha)
 {
@@ -336,15 +339,13 @@ RectMesh TotalCurvature(RectMesh& field,double alpha)
   return H;
 }
 
-/*----------------------SNodeCurvatureEnergy------------------------*/
+/*----------------------- SNodeCurvatureEnergy ------------------------*/
 
 /* This function calculates the curvature energy of a single site 
    due to its mean curvature H. This energy is the integrand of 
-   equation (3) found in the paper "Monte Carlo study of the frame 
-   fluctuation and internal tensions of fluctuating membranes with 
-   fixed area" by Shiba et al. (2016). Here, kk is the bending 
+   equation (3) found in paper1. Here, rig is the bending 
    rigidity and hfield the RectMesh instance representing the membrane 
-   in the Monge gauge.                                              */
+   in the Monge gauge.                                                 */
 
 double SNodeCurvatureEnergy(RectMesh& hfield,Site site,double alpha,double rig)
 {
@@ -353,7 +354,7 @@ double SNodeCurvatureEnergy(RectMesh& hfield,Site site,double alpha,double rig)
   return 0.5*rig*H*H*dA; 
 }
 
-/*----------------------LocalCurvatureEnergy------------------------*/
+/*---------------- LocalCurvatureEnergy -----------------------*/
 
 double LocalCurvatureEnergy(RectMesh& field,Site neighbors[],
 			    double alpha,double rig)
@@ -365,38 +366,45 @@ double LocalCurvatureEnergy(RectMesh& field,Site neighbors[],
   return energy;
 }
 
-/*-----------------------CurvatureEnergyTotal---------------------*/
+/*---------------------- CurvatureEnergyTotal --------------------*/
 
 /* This function calculates the total energy of the membrane due
-   to its curvature by summing up the contributions from each 
+   to its curvature by summing up the contributions from every 
    site. Again, hfield is the RectMesh object representing the
-   membrane height field and kk is the bending rigidity.          */
+   membrane height field and rig is the bending rigidity.         */
 
 double CurvatureEnergyTotal(RectMesh& hfield,double alpha,double rig)
 {
   double energy = 0;
   Site site;
   for(int j=0; j<hfield.getrows(); j++)   
-  {
-    for(int i=0; i<hfield.getcols(); i++){
-      site.set(i,j);
-      energy += SNodeCurvatureEnergy(hfield,site,alpha,rig);
+    {
+      for(int i=0; i<hfield.getcols(); i++){
+	site.set(i,j);
+	energy += SNodeCurvatureEnergy(hfield,site,alpha,rig);
+      }
     }
-  }
   return energy;
 }
 
-/*---------------------SNodeCorrectionEnergy-----------------------*/
+/*-------------------- SNodeCorrectionEnergy ----------------------*/
 
 /* This function calculates the correction in energy at a single 
-   node,due to the Monge gauge representation of the membrane.     */
+   node, due to the Monge gauge representation of the membrane. 
+   See paper1.                                                     */
 
 double SNodeCorrectionEnergy(RectMesh& hfield,Site site,double alpha)
 {
   return -log(SNodeNormalZ(hfield,site,alpha));
 }
 
-/*---------------------LocalCorrectionEnergy-----------------------*/
+/*-------------------- LocalCorrectionEnergy ----------------------*/
+
+/* This function calculates the correction energy by summing up the
+   contributions from every neighbor that affects the energy when
+   the site (i,j) is perturbed. This depends on the order of
+   the derivative scheme. The neighbors form a cross with (i,j) in
+   the center.                                                     */
 
 double LocalCorrectionEnergy(RectMesh& field,Site neighbors[],double alpha)
 {
@@ -410,13 +418,11 @@ double LocalCorrectionEnergy(RectMesh& field,Site neighbors[],double alpha)
 /*-------------------------CorrectionEnergyTotal------------------------------*/
 
 /* This function calculates the total correction in energy due to the Monge
-   gauge representation of the membrane. For details see  "Monte Carlo study 
-   of the frame fluctuation and internal tensions of fluctuating membranes with
-   fixed area" by Shiba et al. (2016). The correction term for the energy is
-   given by H_{coor} = -k_b*T*sum_{i,j}{ln(NormalZ(i,j))}, where k_b is
-   Boltzmann's constant, T the temperature and NormalZ the z coordinates of the 
-   unit normal vectors along the surface of the membrane. Note that we work in 
-   reduced units i.e., k_b*T=1.                                               */
+   gauge representation of the membrane. For details see paper1. The correction 
+   term for the energy is given by H_corr = -k_b*T*sum_{i,j}{ln(NormalZ(i,j))}, 
+   where k_b is Boltzmann's constant, T the temperature and NormalZ the z 
+   coordinates of the unit normal vectors along the surface of the membrane. 
+   Note that we work in reduced units i.e., k_b*T=1.                          */
 
 double CorrectionEnergyTotal(RectMesh& hfield, double alpha)
 {
@@ -425,7 +431,12 @@ double CorrectionEnergyTotal(RectMesh& hfield, double alpha)
   return -temp.sum();
 }
 
-/*---------------------------LocalEnergy----------------------------------*/
+/*-------------------------- LocalEnergy -------------------------------------*/
+
+/* This function calculates the local energy by summing up the contributions
+   of a block of nearest neighbors. The size of the block depends on the order
+   of the finite difference scheme. Contributions from all different energies
+   are taken into account.                                                    */
 
 double LocalEnergy(RectMesh& hfield,
 		   Site neighbors_area[],
@@ -441,7 +452,9 @@ double LocalEnergy(RectMesh& hfield,
   return tau_ener + crv_ener + sig_ener + cor_ener;
 }
 
-/*-----------------------TotalEnergy---------------------------*/
+/*--------------------- TotalEnergy -----------------------*/
+
+/* This function returns the total enegry of the membrane. */
 
 double TotalEnergy(RectMesh& hfield,double& tot_area,
 		   double& prj_area,double alpha,
@@ -454,7 +467,10 @@ double TotalEnergy(RectMesh& hfield,double& tot_area,
   return tau_ener + crv_ener + sig_ener + cor_ener;
 }
 
-/*--------------------------------CalculateTotal----------------------------*/
+/*-------------------------------- CalculateTotal --------------------------*/
+
+/* This function updates the total energy, total area and total projected
+   area of the membrane. It also updates the different energies involved.   */ 
 
 void CalculateTotal(RectMesh& hfield, double& tot_energy, double& tau_energy,
 		    double& crv_energy, double& sig_energy,
@@ -471,12 +487,12 @@ void CalculateTotal(RectMesh& hfield, double& tot_energy, double& tau_energy,
   tot_energy = tau_energy + crv_energy + sig_energy + cor_energy;
 }
 
-/*---------------------WhereIs----------------------*/
+/*---------------------- WhereIs ---------------------*/
 
 /* This function takes as arguments a site(i,j), the 
    columns, rows and ghost points of a RectMesh object 
    and returns an integer value that depends on 
-   whether it belongs to the boundary or the bulk.  */
+   whether it belongs to the boundary or the bulk.    */
 
 bool WhereIs(Site site, int cols, int rows, int nghost)
 {
@@ -484,15 +500,21 @@ bool WhereIs(Site site, int cols, int rows, int nghost)
   int j = site.gety();
   if (i>=cols || i<0 || j>=rows || j<0)
   {
-    std::cout << "WhereIs: It must hold that 0<i<cols and 0<j<rows."
+    std::cout << "WhereIs: It must hold that 0<=i<cols and 0<=j<rows."
       "Exiting." << std::endl;
     exit(EXIT_FAILURE);
   }
-  if (i<nghost || i>=cols-nghost || j<nghost || j>=rows-nghost) return 1;
-  else return 0;
+  if (i<nghost || i>=cols-nghost || j<nghost || j>=rows-nghost) return 1; //boundary point
+  else return 0; //bulk point
 }
 
-/*----------------GetNeighbors-------------*/
+/*------------------ GetNeighbors ---------------*/
+
+/* This function fills up three lists that 
+   contain the neighbors of a point (i,j) and
+   the point as well. These lists are needed
+   for the calculation of local area, local 
+   correcrion energy and local curvature energy. */
 
 void GetNeighbors(RectMesh& field,Site site,
 		  Site neighbors_area[],
@@ -576,14 +598,17 @@ void GetNeighbors(RectMesh& field,Site site,
     }
 }
 
-/*-------------PrintNeighbors--------------*/
+/*------------ PrintNeighbors -------------*/
 void PrintNeighbors(Site neighbors[],int len)
 {
   for(int i=0; i<len; i++)
     neighbors[i].print();
 }
 
-/*---------------Metropolis----------------*/
+/*-------------- Metropolis ----------------*/
+
+/* It returns 1 if the move is accepted and 
+   0 otherwise.                             */
 
 bool Metropolis(double dE)
 {
@@ -597,7 +622,11 @@ bool Metropolis(double dE)
   }
 }
 
-/*--------------------------AcceptOrdecline---------------------------*/
+/*------------------------- AcceptOrdecline -----------------------------*/
+
+/* This function updates the total energy and total area of the membrane
+   if a height trial move is accepted. Otherwise it returns the membrane
+   to its previous state.                                                */
 
 void AcceptOrDecline(RectMesh& hfield,Site site,bool accept,bool where,
 		     double& tot_area,double& tot_energy,double dAlocal,
@@ -617,7 +646,10 @@ void AcceptOrDecline(RectMesh& hfield,Site site,bool accept,bool where,
     }
 }
 
-/*---------------------------PrintAcceptance-------------------------*/
+/*-------------------------- PrintAcceptance ------------------------*/
+
+/* It prints the acceptance rations of both height and lattice size 
+   trial moves.                                                      */
 
 void PrintAcceptance(int maxiter, int accepted_moves,
 		     int lattice_moves, int lattice_changes)
@@ -631,7 +663,9 @@ void PrintAcceptance(int maxiter, int accepted_moves,
   std::cout << std::endl;
 }
 
-/*-----------------------Sample----------------------------------------*/
+/*--------------------------- Sample -------------------------*/
+
+/* Stores the data in a txt file.                             */
 
 void Sample(int& iter,std::string filename,double& tot_energy,
 	    double& tau_energy,double& crv_energy,
@@ -657,20 +691,25 @@ void Sample(int& iter,std::string filename,double& tot_energy,
     }
 }
 
-/*-------------------------ChangeLattice---------------------------*/
+/*------------------------- ChangeLattice ---------------------------*/
 
-void ChangeLattice(RectMesh& hfield,int& move_counter,double& alpha,
-		       double& prj_area,double& tot_area,int& DoF,
-		       double& tot_energy,double& tau_energy,
-		       double& crv_energy,double& sig_energy,
-		       double& cor_energy,double& rig,
-		       double& sig,double& tau,int& lattice_moves,
+/* It attemps a lattice size trial move and checks whether it is 
+   accepted or not. If it is, it updates everything, if not, it returns 
+   the membrane to its previous state.                                  */
+
+void ChangeLattice(RectMesh& hfield,double& min_change,double& max_change,
+		   int& move_counter,double& alpha,
+		   double& prj_area,double& tot_area,int& DoF,
+		   double& tot_energy,double& tau_energy,
+		   double& crv_energy,double& sig_energy,
+		   double& cor_energy,double& rig,
+		   double& sig,double& tau,int& lattice_moves,
 		   int& lattice_changes)
 {
   if(move_counter !=0 && move_counter % 5 == 0)
     {
       lattice_moves ++;
-      std::uniform_real_distribution<double>  RandDouble(0.98,1.02); 
+      std::uniform_real_distribution<double> RandDouble(min_change,max_change); 
       double old_alpha = alpha;
       double epsilon = RandDouble(mt);
       alpha *= epsilon;

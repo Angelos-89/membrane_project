@@ -1,5 +1,6 @@
-# --- configuration for DM's desktop.
+# Configuration for DM's desktop.
+
 CC = g++ -std=c++17
 CFLAGS = -c
 lib_dir = /home/dhruba/Library/lib
-hdir = /home/dhruba/Library/include/ #directory including external header files 
+hdir = /home/dhruba/Library/include/  

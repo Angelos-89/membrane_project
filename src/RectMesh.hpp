@@ -1,15 +1,17 @@
+/* A class representing a 2D scalar field defined on a 
+   rectangular uniform grid (mesh or lattice). */
+
 #ifndef RECTMESH_HPP
 #define RECTMESH_HPP
 
 #include <fftw3.h>
 #include "H5Cpp.h"
-
 using namespace H5;
 
 class RectMesh
 {
 private:
-
+  
   int cols_x;
   int rows_y;
   int nghost;

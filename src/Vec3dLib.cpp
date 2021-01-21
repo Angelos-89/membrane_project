@@ -1,6 +1,5 @@
 #include <iostream>
 #include <cmath>
-#include "Vec3d.hpp"
 #include "Vec3dLib.hpp"
 
 double Dot(const Vec3d& v, const Vec3d& w) 

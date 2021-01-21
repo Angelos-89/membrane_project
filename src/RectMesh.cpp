@@ -1,7 +1,8 @@
 #include <iostream>
+#include <iomanip>
+#include <cmath>
 #include <algorithm>
 #include <numeric>
-#include <cmath>
 #include "RectMesh.hpp"
 
 /*--------------------- Constructor -----------------------------*/
@@ -63,7 +64,7 @@ RectMesh::RectMesh(RectMesh&& tmp) noexcept
   //std::cout << "RectMesh move constructor called." << std::endl;
 }
 
-/*------- Copy assignment operator -------*/
+/*--------- Copy assignment operator -----------*/
 RectMesh& RectMesh::operator=(const RectMesh& rhs)
 { 
   if (this != &rhs)
@@ -132,7 +133,8 @@ void RectMesh::print() const
   for (int j = -nghost; j < row_end; j++)
     {
       for (int i = -nghost; i < col_end; i++)
-	std::cout << mesh [(i+nghost) + (j+nghost)*jump] << "\t";
+	std::cout << std::setprecision(9)
+		  << mesh [(i+nghost) + (j+nghost)*jump] << "\t";
       std::cout << std::endl;
     }
   std::cout <<std::endl;
@@ -142,7 +144,7 @@ void RectMesh::ln()
 {
   int len = (cols_x+2*nghost)*(rows_y+2*nghost);
   for(int i=0; i<len; i++)
-    mesh[i] = log(mesh[i]);
+    mesh[i] = log(mesh[i]); //maybe check if mesh[i] <= 0 
 }
 
 double RectMesh::sum() const
@@ -157,8 +159,8 @@ void RectMesh::write(H5std_string filename)
 {
   hsize_t dims[2];
   const int RANK = 2;
-  dims[0] = cols_x + 2*nghost;
-  dims[1] = rows_y + 2*nghost;
+  dims[0] = rows_y + 2*nghost; //slowest changing dimension
+  dims[1] = cols_x + 2*nghost; //fastest changing dimension
   H5File file(filename, H5F_ACC_TRUNC);
   DataSpace dataspace(RANK,dims);
   const H5std_string dataset_name("RectMesh");

@@ -4,28 +4,19 @@
 #include <random>
 #include "McmemLib.hpp"
 
+#include "PARAMS"
+
 std::random_device RD;
 std::mt19937 MT(RD()); 
 
 int main()
 {
-  
-  //auto start = std::chrono::steady_clock::now();
-  
+    
   /* 1) Set values for number of degrees of freedom "DoF", bending rigidity 
      "rig", internal tension "sig", frame tension "tau" and lattice spacing
-     "alpha".Define and initialize varia bles needed for the MC code.       */
+     "alpha".Define and initialize variables needed for the MC code.        */
   
-  int maxiter = 1e6;     
-  int DoF = 6400;         //total number of degrees of freedom
-  int N = sqrt(DoF);     //degrees of freedom per dimension
-  int nghost = 1;        //ghost points per boundary point
-  
-  double rig = 10.0;     //bending rigidity
-  double sig = 0.5;      //internal tension
-  double tau = 0.0;      //frame tension
-  double alpha = 1.0;    //lattice spacing
-  
+  int N = sqrt(DoF);        //degrees of freedom per dimension
   double prj_area = 0.0;
   double tot_area = 0.0;
   
@@ -42,7 +33,6 @@ int main()
 
   double dAlocal = 0.0;        //difference in local area
   double dElocal = 0.0;        //difference in local energy
-  double epsilon = 0.4;        //maximum possible height perturbation
   double perturb;              //value of the random perturbation
   
   bool where;                  //indicator of boundary or bulk point
@@ -73,6 +63,7 @@ int main()
   /* 3) Calculate the projected membrane area "prj_area", the total area 
      "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
      "cor_energy" and "tot_energy".                                       */
+
   CalculateTotal(hfield,tot_energy,tau_energy,crv_energy,
   		 sig_energy,cor_energy,tot_area,prj_area,
   		 DoF,alpha,rig,sig,tau);
@@ -84,7 +75,8 @@ int main()
       
       /* 4) Randomly choose a lattice site (i,j) and check whether it 
 	 belongs to the boundaries or to the bulk. Also find and store all
-	 its neighbor sites.                                              */
+	 its neighbors.                                                   */
+
       x = RandInt(MT);
       y = RandInt(MT);
       site.set(x,y);
@@ -98,7 +90,6 @@ int main()
 				     alpha,rig,sig,tau);
       local_area_pre = LocalArea(hfield,neighbors_area,alpha);
       
-      
       /* 6) Randomly perturbate the height of the chosen point.           */
       perturb = RandDouble(MT); 
       hfield(x,y) += perturb;
@@ -107,6 +98,7 @@ int main()
   	GhostCopy(hfield);
       
       /* 7) Calculate the new local energy and local area.                */
+
       local_energy_aft = LocalEnergy(hfield,neighbors_area,
 				     neighbors_corr,
 				     neighbors_ener,
@@ -115,18 +107,22 @@ int main()
       
       /* 8) Calculate the energy difference and check whether the 
   	 move is accepted or not.                                         */
+
       dAlocal = local_area_aft - local_area_pre;
       dElocal = local_energy_aft - local_energy_pre;
       accept  = Metropolis(dElocal);
       
       /* 9) If the move is accepted, update total area and energy.
   	 Otherwise return to previous state.                              */
+
       AcceptOrDecline(hfield,site,accept,where,tot_area,
 		      tot_energy,dAlocal,dElocal,accepted_moves,perturb);
       
       /* 10) After 5 MC steps, randomly change alpha, compute the 
 	 new projected area and update the total energy.                  */
-      ChangeLattice(hfield,move_counter,alpha,prj_area,
+
+      ChangeLattice(hfield,min_change,max_change,
+		    move_counter,alpha,prj_area,
       		    tot_area,DoF,tot_energy,
       		    tau_energy,crv_energy,
       		    sig_energy,cor_energy,
@@ -134,15 +130,16 @@ int main()
       		    lattice_changes);
       
       /* 11) Sample                                                       */
+
       Sample(iter,filename,tot_energy,tau_energy,crv_energy,sig_energy,
 	     cor_energy,tot_area,prj_area,alpha,DoF);
     }
 
+  /* 12) Write the final configuration and print acceptance ratios        */
+  
   hfield.write("hfield.h5");
-  PrintAcceptance(maxiter,accepted_moves,lattice_moves,lattice_changes);
+  PrintAcceptance(maxiter,accepted_moves,lattice_moves,lattice_changes); 
 
-  // auto end = std::chrono::steady_clock::now();
-  // std::chrono::duration<double> elapsed_seconds = end-start;
-  // std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n"; 
   return 0;
 }
+

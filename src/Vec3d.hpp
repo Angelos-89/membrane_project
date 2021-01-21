@@ -1,5 +1,5 @@
-/* This class represents a 3D mathematical (double) vector.
-   The implementations can be found in Vector3D.cpp. */
+/* This class represents a 3D mathematical vector. 
+   Its coefficients are of type double. */
 
 #ifndef VEC3D_HPP
 #define VEC3D_HPP
@@ -40,14 +40,12 @@ public:
   }
 
   /* Othe methods */
+  double X() const {return x;}
+  double Y() const {return y;}
+  double Z() const {return z;}
   void print() const
   {
     std::cout << "(" << x << "," << y << "," << z << ")" <<std::endl;
   }
-  double X() const {return x;}
-  double Y() const {return y;}
-  double Z() const {return z;}
-  
 };
-
 #endif 

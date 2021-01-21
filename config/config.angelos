@@ -1,4 +1,4 @@
-# --- Configuration for Angelos' laptop.
+# Configuration for Angelos' laptop.
 
 CC = /home/angelos/HDF5/bin/h5c++ 
 CFLAGS = -c -O3

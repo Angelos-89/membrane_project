@@ -1,5 +1,5 @@
-/* This header file contains all the functions 
-that have the class Vector3D as argument. */
+/* This header file contains all the functions that 
+   have objects of the class Vec3d as argument. */
 
 #ifndef VEC3DLIB_HPP
 #define VEC3DLIB_HPP

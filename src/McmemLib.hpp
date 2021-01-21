@@ -1,3 +1,8 @@
+/* This header file contains all the functions that are needed for the 
+   simulation of the membrane. From the calculation of the derivatives and the
+   local curvature of the membrane, to the updating of the energy and area and 
+   sampling. */
+
 #ifndef MCMEMLIB_HPP
 #define MCMEMLIB_HPP
 
@@ -51,7 +56,8 @@ void Sample(int& iter, std::string filename,double& tot_energy,
 	    double& sig_energy,double& cor_energy,
 	    double& tot_area,double& prj_area,
 	    double& alpha,int& DoF);
-void ChangeLattice(RectMesh& hfield,int& move_counter,double& alpha,
+void ChangeLattice(RectMesh& hfield,double& min_change,double& max_change,
+		   int& move_counter,double& alpha,
 		   double& prj_area,double& tot_area,int& DoF,
 		   double& tot_energy,double& tau_energy,
 		   double& crv_energy,double& sig_energy,

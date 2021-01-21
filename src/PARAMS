@@ -1,0 +1,10 @@
+int maxiter = 100;
+int DoF = 6400;
+int nghost = 1;
+double rig = 10.0;     //bending rigidity
+double sig = 0.5;      //internal tension
+double tau = 0.0;      //frame tension
+double alpha = 1.0;    //lattice spacing
+double epsilon = 0.4;        //maximum possible height perturbation
+double max_change = 0.98;    //min percentage of lattice size change
+double min_change = 1.02;    //max percentage of lattice size change
