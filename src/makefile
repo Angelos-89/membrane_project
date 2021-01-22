@@ -1,4 +1,4 @@
-include config.angelos
+include config.local
 
 objects = main.o  Vec3dLib.o RectMesh.o McmemLib.o
 

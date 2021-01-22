@@ -1,13 +1,14 @@
 
-Note, $MC corresponds to /home/angelos/GIT/membrane_project
+Note, $MC corresponds to the directory where the project is located.
+For example: /home/angelos/GIT/membrane_project
 
 1) Create a run directory <rundir>
 2) cd <rundir>
 3) Execute: source $MC/bin/setup.csh
-4) You end up inside the a src directory. Now choose a config file
-   from the $MC/config directory
+4) You end up inside the src directory. Now choose a config file
+   from the $MC/config directory.
 5) Then run:
-   ln -s $MC/config/config.angelos config.angelos
+   ln -s $MC/config/config.angelos config.local
 6) If you want to run:
    make -f makefile
    mv main ../
