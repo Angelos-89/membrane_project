@@ -42,7 +42,8 @@ public:
   double* getmemory() const {return mesh;}
   void ln();
   double sum() const;
-  void write(H5std_string filename);
+  void writeH5(H5std_string filename) const;
+  void readH5(const char filename[]);
   
 };
 #endif

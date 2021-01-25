@@ -137,7 +137,7 @@ int main()
 
   /* 12) Write the final configuration and print acceptance ratios        */
   
-  hfield.write("hfield.h5");
+  hfield.writeH5("hfield.h5");
   PrintAcceptance(maxiter,accepted_moves,lattice_moves,lattice_changes); 
 
   return 0;
