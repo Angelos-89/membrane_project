@@ -18,7 +18,7 @@ std::mt19937 mt(rd());
 /* Initializes a RectMesh object with random values ranging
 from min to max. */
 
-void InitSurface(RectMesh& hfield,double min,double max)
+void InitSurface(RectMesh& hfield,const double min,const double max)
 {
   std::uniform_real_distribution<double> UnifProb(min,max);
   for (int j=0; j<hfield.getrows(); j++)
@@ -97,7 +97,7 @@ void GhostCopy(RectMesh& mesh)
    Central finite difference schemes are used to compute the 
    derivatives. alpha is the lattice spacing.                  */
 
-void Der(RectMesh& mesh, Site site, double alpha, double grad[])
+void Der(const RectMesh& mesh, Site site, double alpha, double grad[])
 {
 
   int i = site.getx();
@@ -140,7 +140,7 @@ void Der(RectMesh& mesh, Site site, double alpha, double grad[])
    are used to compute the derivatives. 
    alpha is the lattice spacing.                          */
 
-void Der2(RectMesh& mesh, Site site, double alpha, double hess[])
+void Der2(const RectMesh& mesh, Site site, double alpha, double hess[])
 {
   
   int i = site.getx();
@@ -191,7 +191,7 @@ void Der2(RectMesh& mesh, Site site, double alpha, double hess[])
    multiply by 0.5 to find the area of the triangle, but multiply 
    by 0.25 at the end instead.                                    */
 
-double SNodeArea(RectMesh& field,Site site,double alpha)
+double SNodeArea(const RectMesh& field,Site site,double alpha)
 {
   int i = site.getx();
   int j = site.gety();
@@ -214,7 +214,7 @@ double SNodeArea(RectMesh& field,Site site,double alpha)
 /* This function calculates the area that corresponds to a site
    (i,j) and its four nearest neighbors as well.                */
 
-double LocalArea(RectMesh& hfield, Site neighbors[], double alpha)
+double LocalArea(const RectMesh& hfield, Site neighbors[], double alpha)
 {
   double area = 0;
   for (int n=0; n<5; n++)
@@ -229,15 +229,15 @@ double LocalArea(RectMesh& hfield, Site neighbors[], double alpha)
    by a RectMesh object and it is assumed to be periodic in both 
    x and y. The step size in each direction is alpha.             */
 
-double TotalArea(RectMesh& field,double alpha)
+double TotalArea(const RectMesh& field,double alpha)
 {
-  if (field.getnghost() == 0)
-    {
-      std::cout << "TotalArea: The number of ghost points per side of the"
-	"RectMesh object must be at least 1! Exiting. \n"
-		<< std::endl;
-      exit(EXIT_FAILURE);
-    }
+  // if (field.getnghost() == 0)
+  //   {
+  //     std::cout << "TotalArea: The number of ghost points per side of the"
+  // 	"RectMesh object must be at least 1! Exiting. \n"
+  // 		<< std::endl;
+  //     exit(EXIT_FAILURE);
+  //   }
   double total_area=0;
   Site site;
   for (int j=0; j<field.getrows(); j++)
@@ -259,7 +259,7 @@ double TotalArea(RectMesh& field,double alpha)
    lattice spacing and site represents the point of the 
    mesh at which the unit normal coordinate is calculated. */
 
-double SNodeNormalZ(RectMesh& hfield,Site site,double alpha)
+double SNodeNormalZ(const RectMesh& hfield,Site site,double alpha)
 {
   double grad[2]={};
   Der(hfield,site,alpha,grad);
@@ -275,7 +275,7 @@ double SNodeNormalZ(RectMesh& hfield,Site site,double alpha)
    the surface represented by hfield. alpha is 
    the lattice spacing.                         */
 
-RectMesh NormalZ(RectMesh& hfield, double alpha)
+RectMesh NormalZ(const RectMesh& hfield,double& alpha)
 {
   Site site;
   RectMesh normalz(hfield.getcols(),hfield.getrows(),0);
@@ -298,7 +298,7 @@ RectMesh NormalZ(RectMesh& hfield, double alpha)
    GhostCopy function must be called before calling this function for 
    boundary points.                                                     */
 
-double SNodeCurvature(RectMesh& h,Site site,double alpha)
+double SNodeCurvature(const RectMesh& h,Site site,double alpha)
 {
   double grad[2]={};
   Der(h,site,alpha,grad);
@@ -324,7 +324,7 @@ double SNodeCurvature(RectMesh& h,Site site,double alpha)
    of every point of a surface that is represented by the RectMesh 
    object field.                                                   */
 
-RectMesh TotalCurvature(RectMesh& field,double alpha)
+RectMesh TotalCurvature(const RectMesh& field,double& alpha)
 {
   Site site;
   RectMesh H(field.getcols(),field.getrows(),0);
@@ -347,7 +347,8 @@ RectMesh TotalCurvature(RectMesh& field,double alpha)
    rigidity and hfield the RectMesh instance representing the membrane 
    in the Monge gauge.                                                 */
 
-double SNodeCurvatureEnergy(RectMesh& hfield,Site site,double alpha,double rig)
+double SNodeCurvatureEnergy(const RectMesh& hfield,Site site,
+			    double alpha,const double rig)
 {
   double dA = SNodeArea(hfield,site,alpha);
   double H = SNodeCurvature(hfield,site,alpha);
@@ -356,8 +357,8 @@ double SNodeCurvatureEnergy(RectMesh& hfield,Site site,double alpha,double rig)
 
 /*---------------- LocalCurvatureEnergy -----------------------*/
 
-double LocalCurvatureEnergy(RectMesh& field,Site neighbors[],
-			    double alpha,double rig)
+double LocalCurvatureEnergy(const RectMesh& field,Site neighbors[],
+			    double alpha,const double rig)
 {
   int len = pow((2*field.getnghost()+1),2);
   double energy = 0;
@@ -373,7 +374,8 @@ double LocalCurvatureEnergy(RectMesh& field,Site neighbors[],
    site. Again, hfield is the RectMesh object representing the
    membrane height field and rig is the bending rigidity.         */
 
-double CurvatureEnergyTotal(RectMesh& hfield,double alpha,double rig)
+double CurvatureEnergyTotal(const RectMesh& hfield,
+			    double alpha,const double rig)
 {
   double energy = 0;
   Site site;
@@ -393,7 +395,7 @@ double CurvatureEnergyTotal(RectMesh& hfield,double alpha,double rig)
    node, due to the Monge gauge representation of the membrane. 
    See paper1.                                                     */
 
-double SNodeCorrectionEnergy(RectMesh& hfield,Site site,double alpha)
+double SNodeCorrectionEnergy(const RectMesh& hfield,Site site,double alpha)
 {
   return -log(SNodeNormalZ(hfield,site,alpha));
 }
@@ -406,7 +408,8 @@ double SNodeCorrectionEnergy(RectMesh& hfield,Site site,double alpha)
    the derivative scheme. The neighbors form a cross with (i,j) in
    the center.                                                     */
 
-double LocalCorrectionEnergy(RectMesh& field,Site neighbors[],double alpha)
+double LocalCorrectionEnergy(const RectMesh& field,
+			     Site neighbors[],double alpha)
 {
   int len = 4*field.getnghost()+1;
   double energy = 0;
@@ -424,7 +427,7 @@ double LocalCorrectionEnergy(RectMesh& field,Site neighbors[],double alpha)
    coordinates of the unit normal vectors along the surface of the membrane. 
    Note that we work in reduced units i.e., k_b*T=1.                          */
 
-double CorrectionEnergyTotal(RectMesh& hfield, double alpha)
+double CorrectionEnergyTotal(const RectMesh& hfield, double alpha)
 {
   RectMesh temp = NormalZ(hfield,alpha);
   temp.ln();
@@ -438,12 +441,12 @@ double CorrectionEnergyTotal(RectMesh& hfield, double alpha)
    of the finite difference scheme. Contributions from all different energies
    are taken into account.                                                    */
 
-double LocalEnergy(RectMesh& hfield,
+double LocalEnergy(const RectMesh& hfield,
 		   Site neighbors_area[],
 		   Site neighbors_corr[],
 		   Site neighbors_ener[],
-		   double alpha,double rig,
-		   double sig, double tau)
+		   double alpha,const double rig,
+		   const double sig,const double tau)
 {
   double tau_ener = -tau*alpha*alpha; 
   double crv_ener = LocalCurvatureEnergy(hfield,neighbors_ener,alpha,rig);
@@ -456,27 +459,27 @@ double LocalEnergy(RectMesh& hfield,
 
 /* This function returns the total enegry of the membrane. */
 
-double TotalEnergy(RectMesh& hfield,double& tot_area,
-		   double& prj_area,double alpha,
-		   double rig, double sig,double tau)
-{
-  double tau_ener = -tau*prj_area;
-  double crv_ener = CurvatureEnergyTotal(hfield,alpha,rig);
-  double sig_ener = sig*tot_area;
-  double cor_ener = CorrectionEnergyTotal(hfield,alpha);
-  return tau_ener + crv_ener + sig_ener + cor_ener;
-}
+// double TotalEnergy(RectMesh& hfield,double& tot_area,
+// 		   double& prj_area,double alpha,
+// 		   double rig, double sig,double tau)
+// {
+//   double tau_ener = -tau*prj_area;
+//   double crv_ener = CurvatureEnergyTotal(hfield,alpha,rig);
+//   double sig_ener = sig*tot_area;
+//   double cor_ener = CorrectionEnergyTotal(hfield,alpha);
+//   return tau_ener + crv_ener + sig_ener + cor_ener;
+// }
 
 /*-------------------------------- CalculateTotal --------------------------*/
 
 /* This function updates the total energy, total area and total projected
    area of the membrane. It also updates the different energies involved.   */ 
 
-void CalculateTotal(RectMesh& hfield, double& tot_energy, double& tau_energy,
-		    double& crv_energy, double& sig_energy,
+void CalculateTotal(const RectMesh& hfield,double& tot_energy,
+		    double& tau_energy,double& crv_energy,double& sig_energy,
 		    double& cor_energy, double& tot_area,
-		    double& prj_area, int& DoF, double& alpha,
-		    double& rig,double& sig, double& tau)
+		    double& prj_area,const int& DoF, double& alpha,
+		    const double& rig,const double& sig,const double& tau)
 {
   prj_area = (double)DoF*alpha*alpha;
   tot_area = TotalArea(hfield,alpha);
@@ -504,7 +507,8 @@ bool WhereIs(Site site, int cols, int rows, int nghost)
       "Exiting." << std::endl;
     exit(EXIT_FAILURE);
   }
-  if (i<nghost || i>=cols-nghost || j<nghost || j>=rows-nghost) return 1; //boundary point
+  if (i<nghost || i>=cols-nghost || j<nghost || j>=rows-nghost)
+    return 1; //boundary point
   else return 0; //bulk point
 }
 
@@ -516,7 +520,7 @@ bool WhereIs(Site site, int cols, int rows, int nghost)
    for the calculation of local area, local 
    correcrion energy and local curvature energy. */
 
-void GetNeighbors(RectMesh& field,Site site,
+void GetNeighbors(const RectMesh& field,Site site,
 		  Site neighbors_area[],
 		  Site neighbors_corr[],
 		  Site neighbors_ener[])
@@ -610,14 +614,14 @@ void PrintNeighbors(Site neighbors[],int len)
 /* It returns 1 if the move is accepted and 
    0 otherwise.                             */
 
-bool Metropolis(double dE)
+bool Metropolis(double& dElocal)
 {
-  if(dE < 0) return 1;
+  if(dElocal < 0) return 1;
   else
   {
     std::uniform_real_distribution<double> UnifProb(0,1);
     double r = UnifProb(mt);
-    if (r < exp(-dE)) return 1;
+    if (r < exp(-dElocal)) return 1;
     else return 0;
   }
 }
@@ -629,8 +633,8 @@ bool Metropolis(double dE)
    to its previous state.                                                */
 
 void AcceptOrDecline(RectMesh& hfield,Site site,bool accept,bool where,
-		     double& tot_area,double& tot_energy,double dAlocal,
-		     double dElocal,int& accepted_moves,double perturb)
+		     double& tot_area,double& tot_energy,double& dAlocal,
+		     double& dElocal,int& accepted_moves,double& perturb)
 {  
   if (accept == 1)
     {
@@ -651,7 +655,7 @@ void AcceptOrDecline(RectMesh& hfield,Site site,bool accept,bool where,
 /* It prints the acceptance rations of both height and lattice size 
    trial moves.                                                      */
 
-void PrintAcceptance(int maxiter, int accepted_moves,
+void PrintAcceptance(const int maxiter, int accepted_moves,
 		     int lattice_moves, int lattice_changes)
 {
   double accept_ratio = (double) accepted_moves/maxiter;
@@ -663,47 +667,20 @@ void PrintAcceptance(int maxiter, int accepted_moves,
   std::cout << std::endl;
 }
 
-/*--------------------------- Sample -------------------------*/
-
-/* Stores the data in a txt file.                             */
-
-void Sample(int& iter,std::string filename,double& tot_energy,
-	    double& tau_energy,double& crv_energy,
-	    double& sig_energy,double& cor_energy,
-	    double& tot_area,double& prj_area,
-	    double& alpha,int& DoF)
-{
-  if(iter%1000==0)
-    {
-      double DOF = (double) DoF;
-      std::ofstream file;
-      file.open(filename, std::ios::app);
-      file << std::setprecision(12) << tot_area/DOF     << "\t"
-	   << std::setprecision(12) << prj_area/DOF     << "\t"
-	   << std::setprecision(12) << alpha            << "\t"
-	   << std::setprecision(12) << tau_energy/DOF   << "\t"
-	   << std::setprecision(12) << crv_energy/DOF   << "\t"
-	   << std::setprecision(12) << sig_energy/DOF   << "\t"
-	   << std::setprecision(12) << cor_energy/DOF   << "\t"
-	   << std::setprecision(12) << tot_energy/DOF
-	   << std::endl;
-      file.close();
-    }
-}
-
 /*------------------------- ChangeLattice ---------------------------*/
 
 /* It attemps a lattice size trial move and checks whether it is 
    accepted or not. If it is, it updates everything, if not, it returns 
    the membrane to its previous state.                                  */
 
-void ChangeLattice(RectMesh& hfield,double& min_change,double& max_change,
+void ChangeLattice(const RectMesh& hfield,const double& min_change,
+		   const double& max_change,
 		   int& move_counter,double& alpha,
-		   double& prj_area,double& tot_area,int& DoF,
+		   double& prj_area,double& tot_area,const int& DoF,
 		   double& tot_energy,double& tau_energy,
 		   double& crv_energy,double& sig_energy,
-		   double& cor_energy,double& rig,
-		   double& sig,double& tau,int& lattice_moves,
+		   double& cor_energy,const double& rig,
+		   const double& sig,const double& tau,int& lattice_moves,
 		   int& lattice_changes)
 {
   if(move_counter !=0 && move_counter % 5 == 0)
@@ -733,6 +710,52 @@ void ChangeLattice(RectMesh& hfield,double& min_change,double& max_change,
       move_counter = 0;
     }
 }
+
+/*--------------------------- Sample -------------------------*/
+
+/* Stores the data in a txt file.                             */
+
+void Sample(int& iter,std::string filename,double& tot_energy,
+	    double& tau_energy,double& crv_energy,
+	    double& sig_energy,double& cor_energy,
+	    double& tot_area,double& prj_area,
+	    double& alpha,const int& DoF)
+{
+  if(iter%1000==0)
+    {
+      double DOF = (double) DoF;
+      std::ofstream file;
+      file.open(filename, std::ios::app);
+      file << std::setprecision(12) << tot_area/DOF     << "\t"
+	   << std::setprecision(12) << prj_area/DOF     << "\t"
+	   << std::setprecision(12) << alpha            << "\t"
+	   << std::setprecision(12) << tau_energy/DOF   << "\t"
+	   << std::setprecision(12) << crv_energy/DOF   << "\t"
+	   << std::setprecision(12) << sig_energy/DOF   << "\t"
+	   << std::setprecision(12) << cor_energy/DOF   << "\t"
+	   << std::setprecision(12) << tot_energy/DOF
+	   << std::endl;
+      file.close();
+    }
+}
+
+/*----------------------------- ReadTensions -----------------------------*/
+
+void ReadTensions(const char filename[],double& sig,double& tau)
+{
+  std::ifstream infile;
+  infile.open(filename);
+  if(!infile.is_open())
+    {
+      std::cout << "File is not open. Exiting." << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  while(!infile.eof())
+    infile >> sig >> tau;
+
+  infile.close();
+}
+
 
 // void ReadTxt(const char filename[], std::vector<double> &data)
 // {

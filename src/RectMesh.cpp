@@ -98,27 +98,27 @@ RectMesh& RectMesh::operator=(RectMesh&& tmp)
 }
 
 /*------------- Operator () overloading ---------*/
-void RectMesh::CheckIndex(int& i, int& j) const
-{
-  if ( i < -nghost || i >= cols_x+nghost ||
-       j < -nghost || j >= rows_y+nghost )
-    {
-      std::cout << "Index out of bounds. Exiting."
-		<< std::endl;
-      exit(EXIT_FAILURE);
-    }
-}
+// void RectMesh::CheckIndex(int& i, int& j) const
+// {
+//   if ( i < -nghost || i >= cols_x+nghost ||
+//        j < -nghost || j >= rows_y+nghost )
+//     {
+//       std::cout << "Index out of bounds. Exiting."
+// 		<< std::endl;
+//       exit(EXIT_FAILURE);
+//     }
+// }
 
 double& RectMesh::operator()(int i, int j) const
 {
-  CheckIndex(i,j);
+  //  CheckIndex(i,j);
   int jump = cols_x + 2*nghost;
   return mesh[ (i+nghost) + (j+nghost)*jump ];
 }
 
 double& RectMesh::operator()(int i, int j)
 {
-  CheckIndex(i,j);
+  //  CheckIndex(i,j);
   int jump = cols_x + 2*nghost;
   return mesh[ (i+nghost) + (j+nghost)*jump ];
 }

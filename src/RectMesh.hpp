@@ -30,7 +30,7 @@ public:
   RectMesh& operator=(RectMesh&& tmp);
 
   /* Operator () overloading */
-  void CheckIndex(int& i, int& j) const;
+  //  void CheckIndex(int& i, int& j) const;
   double& operator()(int i, int j) const;
   double& operator()(int i, int j);
 
