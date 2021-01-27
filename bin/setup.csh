@@ -4,4 +4,4 @@ cd src
 ln -s /home/angelos/GIT/membrane_project/src/*.cpp .
 ln -s /home/angelos/GIT/membrane_project/src/*.hpp .
 ln -s /home/angelos/GIT/membrane_project/src/makefile .
-ln -s /home/angelos/GIT/membrane_project/src/PARAMS .
+ln -s /home/angelos/GIT/membrane_project/src/tensions.txt .

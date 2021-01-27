@@ -4,10 +4,4 @@ How to use the script:
 1) Make a directory where you want to run the program <rundir> and cd into it.
 2) Execute the following: <project_dir>/bin/setup.csh
 3) You will end up inside <rundir>/src
-4) Choose a config file from <project_dir>/config and execute:
-   ln -s <project_dir>/config/config.angelos config.local
-5) make -f makefile
-6) mv main ../
-7) cd ..
-8) ./main
 
