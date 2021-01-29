@@ -39,7 +39,7 @@ public:
     return Vec3d{x/scalar, y/scalar, z/scalar};
   }
 
-  /* Othe methods */
+  /* Other methods */
   double X() const {return x;}
   double Y() const {return y;}
   double Z() const {return z;}

@@ -1,21 +1,20 @@
 include config.local
 
-objects = main.o  Vec3dLib.o RectMesh.o McmemLib.o
+objects = main.o Vec3dLib.o RectMesh.o McmemLib.o
 
-main : $(objects)
-	$(CC) -o main $(objects) -I$(hdir_hdf5) -I$(hdir_fftw3) -L$(ldir_fftw3) $(link_fftw3) 
+exe : $(objects)
+	$(CC) -o exe $(objects) -I$(HDF5.h_dir) -L$(HDF5.a_dir) -lhdf5_hl_cpp -lhdf5_cpp -lhdf5_hl -lhdf5 -lfftw3
 
-main.o : main.cpp Site.hpp RectMesh.hpp McmemLib.hpp
-	$(CC) $(CFLAGS) main.cpp -I$(hdir_hdf5)
+main.o : main.cpp
+	$(CC) $(CFLAGS) main.cpp -I$(HDF5.h_dir)
 
-Vec3dLib.o : Vec3dLib.cpp Vec3dLib.hpp
+Vec3dLib.o : Vec3dLib.cpp
 
-RectMesh.o : RectMesh.cpp RectMesh.hpp
-	$(CC) $(CFLAGS) RectMesh.cpp -I$(hdir_hdf5)
+RectMesh.o : RectMesh.cpp
+	$(CC) $(CFLAGS) RectMesh.cpp -I$(HDF5.h_dir)
 
-McmemLib.o : McmemLib.cpp 
-	$(CC) $(CFLAGS) McmemLib.cpp -I$(hdir_hdf5)
+McmemLib.o : McmemLib.cpp
+	$(CC) $(CFLAGS) McmemLib.cpp -I$(HDF5.h_dir)
 
 clean :
-	rm main $(objects)
-
+	rm exe $(objects)
