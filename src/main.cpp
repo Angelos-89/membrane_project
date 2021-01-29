@@ -1,21 +1,30 @@
 #include <mpi.h>
 #include <iomanip>
 #include <fstream>
-#include <chrono>
+#include <string>
 #include <random>
 #include "McmemLib.hpp"
 
 std::random_device RD;
 std::mt19937 MT(RD()); 
 
-int main()
+int main(int argc, char* argv[])
 {
 
-  /* 0) Read files with the values of internal and frame tensions.          */ 
+  /* 0) Initialize MPI and read files with the values of internal 
+        and frame tensions.                                                 */ 
+
+  int rank;
+  MPI_Init(&argc,&argv);
+  MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
   double s;                          
   double t;                        
-  ReadTensions("tensions.txt",s,t);
+  std::string input_filename = "input" + std::to_string(rank) + ".txt";
+  std::string output_filename = "sampling" + std::to_string(rank) + ".txt";
+  std::string hfield_filename = "hfield" + std::to_string(rank) + ".h5";
+  const char* cc = hfield_filename.c_str();
+  ReadTensions(input_filename,s,t);
 
   /* 1) Set values for number of degrees of freedom "DoF", bending rigidity 
      "rig" and lattice spacing "alpha". Define and initialize variables 
@@ -69,8 +78,6 @@ int main()
   std::uniform_int_distribution<int>      RandInt(0,N-1);  
   std::uniform_real_distribution<double>  RandDouble(-epsilon,epsilon);
  
-  std::string filename = "sampling.txt";
-
   /* 2) Initialize the height field hfield(i,j)                           */ 
 
   RectMesh hfield(N,N,nghost);
@@ -142,15 +149,16 @@ int main()
       
       /* 11) Sample                                                       */
 
-      Sample(iter,filename,tot_energy,tau_energy,crv_energy,sig_energy,
+      Sample(iter,output_filename,tot_energy,tau_energy,crv_energy,sig_energy,
   	     cor_energy,tot_area,prj_area,alpha,DoF);
       if (iter % (int) 1e5 == 0)
-  	hfield.writeH5("hfield.h5");
+  	hfield.writeH5(cc);
     }
 
   /* 12) Print acceptance ratios        */
   
   PrintAcceptance(maxiter,accepted_moves,lattice_moves,lattice_changes);
+  MPI_Finalize();
   return 0;
 }
 
