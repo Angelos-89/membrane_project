@@ -18,7 +18,7 @@ std::mt19937 mt(rd());
 /* Initializes a RectMesh object with random values ranging
 from min to max. */
 
-void InitSurface(RectMesh& hfield,const double min,const double max)
+void InitSurface(RectMesh& hfield,double min,double max)
 {
   std::uniform_real_distribution<double> UnifProb(min,max);
   for (int j=0; j<hfield.getrows(); j++)
@@ -214,7 +214,7 @@ double SNodeArea(const RectMesh& field,Site site,double alpha)
 /* This function calculates the area that corresponds to a site
    (i,j) and its four nearest neighbors as well.                */
 
-double LocalArea(const RectMesh& hfield, Site neighbors[], double alpha)
+double LocalArea(const RectMesh& hfield,Site neighbors[],double alpha)
 {
   double area = 0;
   for (int n=0; n<5; n++)
@@ -324,20 +324,20 @@ double SNodeCurvature(const RectMesh& h,Site site,double alpha)
    of every point of a surface that is represented by the RectMesh 
    object field.                                                   */
 
-RectMesh TotalCurvature(const RectMesh& field,double& alpha)
-{
-  Site site;
-  RectMesh H(field.getcols(),field.getrows(),0);
-  for (int j=0; j<field.getrows(); j++)
-    {
-      for (int i=0; i<field.getcols(); i++)
-	{
-	  site.set(i,j);
-	  H(i,j) = SNodeCurvature(field,site,alpha);
-	}
-    }
-  return H;
-}
+// RectMesh TotalCurvature(const RectMesh& field,double& alpha)
+// {
+//   Site site;
+//   RectMesh H(field.getcols(),field.getrows(),0);
+//   for (int j=0; j<field.getrows(); j++)
+//     {
+//       for (int i=0; i<field.getcols(); i++)
+// 	{
+// 	  site.set(i,j);
+// 	  H(i,j) = SNodeCurvature(field,site,alpha);
+// 	}
+//     }
+//   return H;
+// }
 
 /*----------------------- SNodeCurvatureEnergy ------------------------*/
 
@@ -429,6 +429,19 @@ double LocalCorrectionEnergy(const RectMesh& field,
 
 double CorrectionEnergyTotal(const RectMesh& hfield, double alpha)
 {
+  //edw giati na mhn kanw mia for kai kanw temp = NormalZ..?
+  // Site site;
+  // double sum = 0.0;
+  // for(int j=0; j<hfield.getrows(); j++)
+  //   {
+  //     for(int i=0; i<hfield.getcols(); i++)
+  // 	{
+  // 	  site.set(i,j);
+  // 	  sum += log(SNodeNormalZ(hfield,site,alpha));
+  // 	}
+  //   }
+  //return -sum;
+
   RectMesh temp = NormalZ(hfield,alpha);
   temp.ln();
   return -temp.sum();
@@ -475,11 +488,11 @@ double LocalEnergy(const RectMesh& hfield,
 /* This function updates the total energy, total area and total projected
    area of the membrane. It also updates the different energies involved.   */ 
 
-void CalculateTotal(const RectMesh& hfield,double& tot_energy,
+void CalculateTotal(const RectMesh& hfield,const int& DoF,const double& rig,
+		    const double& sig,const double& tau, double& tot_energy,
 		    double& tau_energy,double& crv_energy,double& sig_energy,
-		    double& cor_energy, double& tot_area,
-		    double& prj_area,const int& DoF, double& alpha,
-		    const double& rig,const double& sig,const double& tau)
+		    double& cor_energy,double& tot_area,
+		    double& prj_area,double& alpha)
 {
   prj_area = (double)DoF*alpha*alpha;
   tot_area = TotalArea(hfield,alpha);
@@ -507,9 +520,9 @@ bool WhereIs(Site site, int cols, int rows, int nghost)
       "Exiting." << std::endl;
     exit(EXIT_FAILURE);
   }
-  if (i<nghost || i>=cols-nghost || j<nghost || j>=rows-nghost)
-    return 1; //boundary point
-  else return 0; //bulk point
+  if (i<nghost || i>=cols-nghost || j<nghost || j>=rows-nghost) //boundary point
+    return 1;    
+  else return 0; 
 }
 
 /*------------------ GetNeighbors ---------------*/
@@ -531,7 +544,6 @@ void GetNeighbors(const RectMesh& field,Site site,
   int nghost = field.getnghost();
   int x = site.getx();
   int y = site.gety();
-  
   
   /* Fill the list of neighbors needed for 
      the local area calculation. */
@@ -674,13 +686,11 @@ void PrintAcceptance(const int maxiter, int accepted_moves,
    the membrane to its previous state.                                  */
 
 void ChangeLattice(const RectMesh& hfield,const double& min_change,
-		   const double& max_change,
-		   int& move_counter,double& alpha,
-		   double& prj_area,double& tot_area,const int& DoF,
-		   double& tot_energy,double& tau_energy,
-		   double& crv_energy,double& sig_energy,
-		   double& cor_energy,const double& rig,
-		   const double& sig,const double& tau,int& lattice_moves,
+		   const double& max_change,const int& DoF,const double& rig,
+		   const double& sig, const double& tau,double& prj_area,
+		   double& tot_area,double& tot_energy,double& tau_energy,
+		   double& crv_energy,double& sig_energy,double& cor_energy,
+		   double& alpha,int& move_counter,int& lattice_moves,
 		   int& lattice_changes)
 {
   if(move_counter !=0 && move_counter % 5 == 0)
@@ -693,9 +703,8 @@ void ChangeLattice(const RectMesh& hfield,const double& min_change,
       double old_prj_area = prj_area;
       double old_tot_area = tot_area;
       double old_energy = tot_energy;
-      CalculateTotal(hfield,tot_energy,tau_energy,crv_energy,
-		     sig_energy,cor_energy,tot_area,prj_area,DoF,
-		     alpha,rig,sig,tau);
+      CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
+		     sig_energy,cor_energy,tot_area,prj_area,alpha);
       double dE = tot_energy - old_energy; 
       bool accept = Metropolis(dE);
       if (accept == 1)
@@ -741,7 +750,7 @@ void Sample(int& iter,std::string filename,double& tot_energy,
 
 /*----------------------------- ReadTensions -----------------------------*/
 
-void ReadTensions(const char filename[],double& sig,double& tau)
+void ReadTensions(std::string filename,double& sig,double& tau)
 {
   std::ifstream infile;
   infile.open(filename);

@@ -12,19 +12,21 @@ int main()
 
   /* 0) Read files with the values of internal and frame tensions.          */ 
 
-  double sig;                           //internal tension
-  double tau;                           //frame tension
-  ReadTensions("tensions.txt",sig,tau);
-  
+  double s;                          
+  double t;                        
+  ReadTensions("tensions.txt",s,t);
+
   /* 1) Set values for number of degrees of freedom "DoF", bending rigidity 
      "rig" and lattice spacing "alpha". Define and initialize variables 
      needed for the MC code.                                                */
 
-  const int maxiter = 5*1e7;         //max no of iterations
+  const int maxiter = 1e3;         //max no of iterations
   const int DoF = 6400;              //number of degrees of freedom
   const int N = sqrt(DoF);           //DoF per dimension
   const int nghost = 2;              //ghost points per boundary point
   const double rig = 10.0;           //bending rigidity
+  const double sig = s;              //internal tension
+  const double tau = t;              //frame tension
   const double epsilon = 0.36;       //maximum possible height perturbation
   const double max_change = 0.98;    //min percentage of lattice size change
   const double min_change = 1.02;    //max percentage of lattice size change
@@ -76,9 +78,8 @@ int main()
      "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
      "cor_energy" and "tot_energy".                                       */
 
-  CalculateTotal(hfield,tot_energy,tau_energy,crv_energy,
-  		 sig_energy,cor_energy,tot_area,prj_area,
-  		 DoF,alpha,rig,sig,tau);
+  CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
+  		 sig_energy,cor_energy,tot_area,prj_area,alpha);
   
   /*---------------------------------MC-Loop------------------------------*/
   
@@ -133,13 +134,10 @@ int main()
       /* 10) After 5 MC steps, randomly change alpha, compute the 
   	 new projected area and update the total energy.                  */
 
-      ChangeLattice(hfield,min_change,max_change,
-  		    move_counter,alpha,prj_area,
-      		    tot_area,DoF,tot_energy,
-      		    tau_energy,crv_energy,
-      		    sig_energy,cor_energy,
-      		    rig,sig,tau,lattice_moves,
-      		    lattice_changes);
+      ChangeLattice(hfield,min_change,max_change,DoF,rig,sig,tau,prj_area,
+		    tot_area,tot_energy,tau_energy,crv_energy,sig_energy,
+		    cor_energy,alpha,move_counter,
+		    lattice_moves,lattice_changes);
       
       /* 11) Sample                                                       */
 
