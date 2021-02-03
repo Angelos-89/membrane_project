@@ -30,16 +30,16 @@ int main(int argc, char* argv[])
      "rig" and lattice spacing "alpha". Define and initialize variables 
      needed for the MC code.                                                */
 
-  const int maxiter = 1e3;         //max no of iterations
+  const int maxiter = 1e6;           //max no of iterations
   const int DoF = 6400;              //number of degrees of freedom
   const int N = sqrt(DoF);           //DoF per dimension
   const int nghost = 2;              //ghost points per boundary point
   const double rig = 10.0;           //bending rigidity
   const double sig = s;              //internal tension
   const double tau = t;              //frame tension
-  const double epsilon = 0.36;       //maximum possible height perturbation
-  const double max_change = 0.98;    //min percentage of lattice size change
-  const double min_change = 1.02;    //max percentage of lattice size change
+  const double epsilon = 0.14;       //maximum possible height perturbation
+  const double min_change = 0.97;    //min percentage of lattice size change
+  const double max_change = 1.04;    //max percentage of lattice size change
   double alpha = 1.0;                //lattice spacing (distance between 2 DoF)
   
   double prj_area = 0.0;
@@ -81,6 +81,7 @@ int main(int argc, char* argv[])
   /* 2) Initialize the height field hfield(i,j)                           */ 
 
   RectMesh hfield(N,N,nghost);
+  InitSurface(hfield,-0.1,+0.1);
   
   /* 3) Calculate the projected membrane area "prj_area", the total area 
      "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
