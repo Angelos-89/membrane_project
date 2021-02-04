@@ -4,8 +4,3 @@
 CC = /home/dhruba/Library/bin/h5c++
 CFLAGS = -c -O3
 
-ldir_fftw3 = /home/dhruba/Library/lib
-hdir_fftw3 = /home/dhruba/Library/include
-link_fftw3 = -lfftw3
-hdir_hdf5 = /home/dhruba/Library/include
-
