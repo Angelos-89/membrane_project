@@ -11,14 +11,15 @@ For example: /home/angelos/GIT/membrane_project
    ln -s $MC/config/config.angelos config.local
 6) If you want to run:
    make -f makefile
-   mv main ../
+   mv membrane.exe ../
    cd ..
 
-7) Create the tensions.txt with the values of sigma tensions and tau tension
-like the following example:
+7) Create the input files input0.txt,input1.txt,input2.txt and input3.txt
+with the values of sigma and tau tensions like the following example:
 
 0.5
 0.0
 
-8) Execute ./main
+8a) Execute mpirun -n 4 ./membrane.exe > console &
+8b) If you are running on server: nohup mpirun -n 4 ./membrane.exe > console &
 

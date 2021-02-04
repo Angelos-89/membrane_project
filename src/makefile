@@ -2,8 +2,8 @@ include config.local
 
 objects = main.o Vec3dLib.o RectMesh.o McmemLib.o
 
-exe : $(objects)
-	$(CC) -o exe $(objects) -I$(HDF5.h_dir) -L$(HDF5.a_dir) -lhdf5_hl_cpp -lhdf5_cpp -lhdf5_hl -lhdf5 -lfftw3
+membrane.exe : $(objects)
+	$(CC) -o membrane.exe $(objects) -I$(HDF5.h_dir) -L$(HDF5.a_dir) -lhdf5_hl_cpp -lhdf5_cpp -lhdf5_hl -lhdf5 -lfftw3
 
 main.o : main.cpp
 	$(CC) $(CFLAGS) main.cpp -I$(HDF5.h_dir)
@@ -17,4 +17,4 @@ McmemLib.o : McmemLib.cpp
 	$(CC) $(CFLAGS) McmemLib.cpp -I$(HDF5.h_dir)
 
 clean :
-	rm exe $(objects)
+	rm membrane.exe $(objects)
