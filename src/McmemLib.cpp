@@ -671,12 +671,10 @@ void PrintAcceptance(const int maxiter, int accepted_moves,
 		     int lattice_moves, int lattice_changes)
 {
   double accept_ratio = (double) accepted_moves/maxiter;
-  double lattice_moves_ratio = (double) lattice_changes/lattice_moves;
-  std::cout << std::endl; 
+  double lattice_moves_ratio = (double) lattice_changes/lattice_moves; 
   std::cout << "Height move acceptance ratio: " << accept_ratio << "\n"
 	    << "Lattice spacing move acceptance ratio: "
 	    << lattice_moves_ratio << std::endl;
-  std::cout << std::endl;
 }
 
 /*------------------------- ChangeLattice ---------------------------*/

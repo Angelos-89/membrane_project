@@ -26,20 +26,24 @@ int main(int argc, char* argv[])
   const char* cc = hfield_filename.c_str();
   ReadTensions(input_filename,s,t);
 
+  std::cout << "Simulation " << rank+1 << ":\n";
+  std::cout << "Input file read.\ntau = " << std::setprecision(3) << t
+	    << "\nsigma = " << std::setprecision(6) << s << std::endl;  
+  
   /* 1) Set values for number of degrees of freedom "DoF", bending rigidity 
      "rig" and lattice spacing "alpha". Define and initialize variables 
      needed for the MC code.                                                */
 
-  const int maxiter = 1e6;           //max no of iterations
+  const int maxiter = 1e3;           //max no of iterations
   const int DoF = 6400;              //number of degrees of freedom
   const int N = sqrt(DoF);           //DoF per dimension
   const int nghost = 2;              //ghost points per boundary point
   const double rig = 10.0;           //bending rigidity
   const double sig = s;              //internal tension
   const double tau = t;              //frame tension
-  const double epsilon = 0.14;       //maximum possible height perturbation
-  const double min_change = 0.97;    //min percentage of lattice size change
-  const double max_change = 1.04;    //max percentage of lattice size change
+  const double epsilon = 0.34;       //maximum possible height perturbation
+  const double min_change = 0.98;    //min percentage of lattice size change
+  const double max_change = 1.02;    //max percentage of lattice size change
   double alpha = 1.0;                //lattice spacing (distance between 2 DoF)
   
   double prj_area = 0.0;
@@ -77,18 +81,29 @@ int main(int argc, char* argv[])
   
   std::uniform_int_distribution<int>      RandInt(0,N-1);  
   std::uniform_real_distribution<double>  RandDouble(-epsilon,epsilon);
- 
+
+  std::cout << "All variables defined.\n";
+  std::cout << "----------------------" << std::endl;
+  
   /* 2) Initialize the height field hfield(i,j)                           */ 
 
   RectMesh hfield(N,N,nghost);
   InitSurface(hfield,-0.1,+0.1);
+  std::cout << "Simulation " << rank+1 <<":\n";
+  std::cout << "Height field initialized.\n";
   
   /* 3) Calculate the projected membrane area "prj_area", the total area 
      "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
      "cor_energy" and "tot_energy".                                       */
 
+  std::cout << "Calculating total quantities of initial configuration.\n"
+    "------------------------------------------------------" << std::endl;
+  
   CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
   		 sig_energy,cor_energy,tot_area,prj_area,alpha);
+
+  std::cout << "Simulation " << rank+1 << ": Calculations complete."
+    "Monte Carlo loop initiated...\n";
   
   /*---------------------------------MC-Loop------------------------------*/
   
@@ -156,8 +171,10 @@ int main(int argc, char* argv[])
   	hfield.writeH5(cc);
     }
 
-  /* 12) Print acceptance ratios        */
-  
+  /* 12) Print acceptance ratios                                          */
+
+  std::cout <<"--------------------------------------------" << std::endl;
+  std::cout << "Simulation " << rank+1 << " finished sucessfully." << std::endl;
   PrintAcceptance(maxiter,accepted_moves,lattice_moves,lattice_changes);
   MPI_Finalize();
   return 0;
