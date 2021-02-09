@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
      "rig" and lattice spacing "alpha". Define and initialize variables 
      needed for the MC code.                                                */
 
-  const int maxiter = 1e3;           //max no of iterations
+  const int maxiter = 1e8;           //max no of iterations
   const int DoF = 6400;              //number of degrees of freedom
   const int N = sqrt(DoF);           //DoF per dimension
   const int nghost = 2;              //ghost points per boundary point

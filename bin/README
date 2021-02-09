@@ -2,6 +2,9 @@
 How to use the script:
 
 1) Make a directory where you want to run the program <rundir> and cd into it.
-2) Execute the following: <project_dir>/bin/setup.csh
+2) Execute the following:
+   source <project_dir>/bin/setup.sh (or maybe .csh)
 3) You will end up inside <rundir>/src
+
+
 
