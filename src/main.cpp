@@ -15,9 +15,11 @@ int main(int argc, char* argv[])
         and frame tensions.                                                 */ 
 
   int rank;
+  std::cout << "Initiating MPI" << std::endl;
   MPI_Init(&argc,&argv);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-
+  std::cout << "Initiating MPI: DONE" << std::endl;
+  
   double s;                          
   double t;                        
   std::string input_filename = "input" + std::to_string(rank) + ".txt";
