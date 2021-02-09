@@ -9,6 +9,7 @@ main.o : main.cpp
 	$(CC) $(CFLAGS) main.cpp -I$(HDF5.h_dir)
 
 Vec3dLib.o : Vec3dLib.cpp
+	$(CC) $(CFLAGS) Vec3dLib.cpp
 
 RectMesh.o : RectMesh.cpp
 	$(CC) $(CFLAGS) RectMesh.cpp -I$(HDF5.h_dir)
