@@ -625,7 +625,7 @@ void PrintNeighbors(Site neighbors[],int len)
 /* It returns 1 if the move is accepted and 
    0 otherwise.                             */
 
-bool Metropolis(double& dElocal)
+bool Metropolis(double& dElocal )
 {
   if(dElocal < 0) return 1;
   else
@@ -761,6 +761,25 @@ void Sample(int& iter,std::string filename,double& tot_energy,
     }
 }
 
+/*----------------------------- ReadInput -----------------------------*/
+
+void ReadInputs(std::string filename,std::vector<double>& input)
+{
+  std::ifstream infile;
+  infile.open(filename);
+  if(!infile.is_open())
+    {
+      std::cout << "File is not open. Exiting." << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  int ii = 0;
+  while(!infile.eof()){
+    std::cout << "Reading input from file "<< ii <<"\n";
+    infile >> input[ii];
+    ii = ii+1;
+  }
+  infile.close();
+}
 /*----------------------------- ReadTensions -----------------------------*/
 
 void ReadTensions(std::string filename,double& sig,double& tau)

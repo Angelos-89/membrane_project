@@ -71,6 +71,7 @@ void Sample(int& iter, std::string filename,double& tot_energy,
 	    double& tot_area,double& prj_area,
 	    double& alpha,const int& DoF);
 void ReadTensions(std::string filename,double& sig,double& tau);
+void ReadInputs(std::string filename,std::vector<double>& input);
 
 
 // void ReadTxt(const char filename, std::vector<double> &data);

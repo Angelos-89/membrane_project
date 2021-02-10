@@ -20,15 +20,22 @@ int main(int argc, char* argv[])
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
   std::cout << "Initiating MPI: DONE" << std::endl;
   
-  double s;                          
-  double t;                        
   std::string input_filename = "input" + std::to_string(rank) + ".txt";
   std::string output_filename = "sampling" + std::to_string(rank) + ".txt";
   std::string hfield_filename = "hfield" + std::to_string(rank) + ".h5";
   const char* cc = hfield_filename.c_str();
-  ReadTensions(input_filename,s,t);
-
-  std::cout << "Simulation " << rank+1 << ":\n";
+//  ReadTensions(input_filename,s,t);
+  double Ea = 0;
+  double s = 0.52;
+  double t = 0.5;
+  std::vector<double> input;
+  ReadInputs(input_filename, input);
+  s = input[0];
+  t = input[1];
+  if (input.size() > 1){ 
+     double Ea = input[2]; 
+  }
+   std::cout << "Simulation " << rank+1 << ":\n";
   std::cout << "Input file read.\ntau = " << std::setprecision(3) << t
 	    << "\nsigma = " << std::setprecision(6) << s << std::endl;  
   
@@ -47,6 +54,10 @@ int main(int argc, char* argv[])
   const double min_change = 0.98;    //min percentage of lattice size change
   const double max_change = 1.02;    //max percentage of lattice size change
   double alpha = 1.0;                //lattice spacing (distance between 2 DoF)
+  double Eactive = Ea;                // Active energy, zero by default
+/* If you set the Eactive to non-zero values the membrane is no longer is
+ * equilibrium. The value can be both positive or negative. See Kumar &
+ * Dasgupta PRE 102, 2020 */  
   
   double prj_area = 0.0;
   double tot_area = 0.0;
@@ -149,7 +160,9 @@ int main(int argc, char* argv[])
 
       dAlocal = local_area_aft - local_area_pre;
       dElocal = local_energy_aft - local_energy_pre;
+      dElocal = dElocal + Eactive;
       accept  = Metropolis(dElocal);
+      /* If we are solving for an equilibrium membrane the Eactive is zero */
       
       /* 9) If the move is accepted, update total area and energy.
   	 Otherwise return to previous state.                              */
