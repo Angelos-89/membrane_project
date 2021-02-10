@@ -1,0 +1,6 @@
+To reproduce the results of Shiba et al Soft Matter paper. 
+The input file contains
+sigma = 0.51
+tau = 0.5 
+Note that \sigma >  \tau (strictly greater than)
+must be satisfied. 

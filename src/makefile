@@ -18,4 +18,4 @@ McmemLib.o : McmemLib.cpp
 	$(CC) $(CFLAGS) McmemLib.cpp -I$(HDF5.h_dir)
 
 clean :
-	rm membrane.exe $(objects)
+	rm  -f membrane.exe $(objects)

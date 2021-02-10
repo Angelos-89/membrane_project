@@ -12,7 +12,6 @@
 
 std::random_device rd;
 std::mt19937 mt(rd());
-
 /*------------------ InitSurface ------------------------*/
 
 /* Initializes a RectMesh object with random values ranging
@@ -728,12 +727,28 @@ void Sample(int& iter,std::string filename,double& tot_energy,
 	    double& tot_area,double& prj_area,
 	    double& alpha,const int& DoF)
 {
+  if (iter == 0){
+      std::ofstream file;
+      file.open(filename, std::ios::app);
+      file << "%%\b" << "iter"   <<"\t" 
+	   << "total_area"       << "\t"
+	   << "prj_area"         << "\t"
+	   << "alpha"            << "\t"
+	   << "tau*prj_area"     << "\t"
+	   << "curv_energy"      << "\t"
+	   << "sigma*total_area" << "\t"
+	   << "entropic_corn"    << "\t"
+	   << "tot_energy"
+	   << std::endl;
+      file.close();
+  }
   if(iter%1000==0)
     {
       double DOF = (double) DoF;
       std::ofstream file;
       file.open(filename, std::ios::app);
-      file << std::setprecision(12) << tot_area/DOF     << "\t"
+      file                            <<  iter            <<"\t" 
+	    << std::setprecision(12) << tot_area/DOF     << "\t"
 	   << std::setprecision(12) << prj_area/DOF     << "\t"
 	   << std::setprecision(12) << alpha            << "\t"
 	   << std::setprecision(12) << tau_energy/DOF   << "\t"
