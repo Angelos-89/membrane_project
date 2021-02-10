@@ -1,6 +1,6 @@
 %% import data
-samples = LoadSamples("sampling6.txt");
-height  = h5read("hfield6.h5","/RectMesh");
+samples = LoadSamples("sampling.txt");
+height  = h5read("hfield.h5","/RectMesh");
 height  = inner(height,2);
 
 %% lists of data
