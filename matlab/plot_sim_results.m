@@ -1,6 +1,6 @@
 %% import data
-samples = LoadSamples("sampling0.txt");
-height  = h5read("hfield0.h5","/RectMesh");
+samples = LoadSamples("sampling6.txt");
+height  = h5read("hfield6.h5","/RectMesh");
 height  = inner(height,2);
 
 %% lists of data
@@ -38,11 +38,22 @@ ylabel("alpha (a_0)");
 %% calculate means and stds and plot histograms
 begin = 2*1e4;
 
+hdata = height(:) - mean(height(:));
+hdata_mean = mean(hdata);
+hdata_std = std(hdata);
+hdata_pd = normpdf(hdata,hdata_mean,hdata_std)/100;
+figure(5)
+histfit(hdata)
+title("Height field values");
+xlabel("Height (a_0)");
+ylabel("Occurances");
+grid on
+
 area = area(begin:end);
 area_mean = mean(area);
 area_std = std(area);
 area_pd = normpdf(area,area_mean,area_std)/100;
-figure(5)
+figure(6)
 histfit(area)
 title("Area per degrees of freedom");
 xlabel("Area per degrees of freedom (a_0^2/N^2)");
@@ -53,7 +64,7 @@ alpha = alpha(begin:end);
 alpha_mean = mean(alpha);
 alpha_std = std(alpha);
 alpha_pd = normpdf(alpha,alpha_mean,alpha_std)/100;
-figure(6)
+figure(7)
 histfit(alpha);
 title("Lattice spacing");
 xlabel("Lattice spacing (a_0)");
@@ -64,7 +75,7 @@ energy = energy(begin:end);
 energy_mean = mean(energy);
 energy_std = std(energy);
 energy_pd = normpdf(energy,energy_mean,energy_std)/100;
-figure(7)
+figure(8)
 histfit(energy)
 title("Energy per degrees of freedom");
 xlabel("Energy per degree of freedom (k_bT/N^2)");
