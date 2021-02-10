@@ -11,7 +11,9 @@
 #include <vector>
 #include <string>
 
-void InitSurface(RectMesh& hfield,const double min,const double max);
+void InitPinning(std::vector<Site>& pinned_sites,int N,double pn_prcn);
+void InitSurface(RectMesh& hfield,const double min,const double max,
+		 std::vector<Site>& pinned_sites);
 void GhostCopy(RectMesh& mesh);
 void Der(const RectMesh& mesh, Site site, double alpha, double grad[]);
 void Der2(const RectMesh& mesh, Site site, double alpha, double hess[]);

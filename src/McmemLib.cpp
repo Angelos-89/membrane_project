@@ -13,12 +13,34 @@
 std::random_device rd;
 std::mt19937 mt(rd());
 
+/*---------------------------- InitPinning ------------------------*/
+
+/* Given the percentage of the total DoF that will be pinned, it 
+   fills the vector with all the pinned sites. N = sqrt(DoF)       */
+
+
+void InitPinning(std::vector<Site>& pinned_sites,int N,double pn_prcn)
+{
+  std::uniform_int_distribution<int> RandInt(0,N-1);
+  Site site;
+  int x,y;
+  int len = pow(N,2)*pn_prcn;
+  for (int i=0;i<len;i++)
+    {
+      x = RandInt(mt);
+      y = RandInt(mt);
+      site.set(x,y);
+      pinned_sites.push_back(site);
+    }
+}
+
 /*------------------ InitSurface ------------------------*/
 
 /* Initializes a RectMesh object with random values ranging
 from min to max. */
 
-void InitSurface(RectMesh& hfield,double min,double max)
+void InitSurface(RectMesh& hfield,double min,double max,
+		 std::vector<Site>& pinned_sites)
 {
   std::uniform_real_distribution<double> UnifProb(min,max);
   for (int j=0; j<hfield.getrows(); j++)
@@ -26,6 +48,13 @@ void InitSurface(RectMesh& hfield,double min,double max)
     for (int i=0; i<hfield.getcols(); i++)
       hfield(i,j) = UnifProb(mt);
   }
+  int x,y;
+  for (int i=0; i<pinned_sites.size(); i++)
+    {
+      x = pinned_sites[i].getx();
+      y = pinned_sites[i].gety();
+      hfield(x,y) = 0;
+    }
   GhostCopy(hfield);
 }
 

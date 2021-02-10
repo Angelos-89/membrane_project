@@ -1,4 +1,5 @@
 #include <mpi.h>
+#include <vector>
 #include <iomanip>
 #include <fstream>
 #include <string>
@@ -34,7 +35,7 @@ int main(int argc, char* argv[])
      "rig" and lattice spacing "alpha". Define and initialize variables 
      needed for the MC code.                                                */
 
-  const int maxiter = 1e8;           //max no of iterations
+  const int maxiter = 1e3;           //max no of iterations
   const int DoF = 6400;              //number of degrees of freedom
   const int N = sqrt(DoF);           //DoF per dimension
   const int nghost = 2;              //ghost points per boundary point
@@ -44,6 +45,7 @@ int main(int argc, char* argv[])
   const double epsilon = 0.34;       //maximum possible height perturbation
   const double min_change = 0.98;    //min percentage of lattice size change
   const double max_change = 1.02;    //max percentage of lattice size change
+  const double pn_prcn = 0.05;       //percentage of the total DoF to be pinned
   double alpha = 1.0;                //lattice spacing (distance between 2 DoF)
   
   double prj_area = 0.0;
@@ -70,6 +72,7 @@ int main(int argc, char* argv[])
   int lattice_moves = 0;
   int move_counter = 0;         
 
+  Site site;
   int x,y;
   int len_area = 5; 
   int len_corr = 4*nghost+1;
@@ -77,105 +80,107 @@ int main(int argc, char* argv[])
   Site neighbors_area[len_area] = {};
   Site neighbors_corr[len_corr] = {};
   Site neighbors_ener[len_ener] = {};
-  Site site;
+  std::vector<Site> pinned_sites= {};
   
   std::uniform_int_distribution<int>      RandInt(0,N-1);  
   std::uniform_real_distribution<double>  RandDouble(-epsilon,epsilon);
 
   std::cout << "All variables defined.\n";
   std::cout << "----------------------" << std::endl;
-  
-  /* 2) Initialize the height field hfield(i,j)                           */ 
 
+  /* 2) Initialize pinning and the height field hfield(i,j)                 */
+
+  std::cout << "Simulation " << rank+1 << ": Initialzing height field"
+    "& pinning\n";
   RectMesh hfield(N,N,nghost);
-  InitSurface(hfield,-0.1,+0.1);
-  std::cout << "Simulation " << rank+1 <<":\n";
-  std::cout << "Height field initialized.\n";
+  InitPinning(pinned_sites,N,pn_prcn);
+  InitSurface(hfield,-0.1,+0.1,pinned_sites);
+  std::cout << "Height field with pinning initialized.\n";
   
-  /* 3) Calculate the projected membrane area "prj_area", the total area 
-     "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
-     "cor_energy" and "tot_energy".                                       */
+  // /* 3) Calculate the projected membrane area "prj_area", the total area 
+  //    "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
+  //    "cor_energy" and "tot_energy".                                       */
 
-  std::cout << "Calculating total quantities of initial configuration.\n"
-    "------------------------------------------------------" << std::endl;
+  // std::cout << "Calculating total quantities of initial configuration.\n"
+  //   "------------------------------------------------------" << std::endl;
   
-  CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
-  		 sig_energy,cor_energy,tot_area,prj_area,alpha);
+  // CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
+  // 		 sig_energy,cor_energy,tot_area,prj_area,alpha);
 
-  std::cout << "Simulation " << rank+1 << ": Calculations complete."
-    "Monte Carlo loop initiated...\n";
+  // std::cout << "Simulation " << rank+1 << ": Calculations complete."
+  //   "Monte Carlo loop initiated...\n";
   
-  /*---------------------------------MC-Loop------------------------------*/
+  // /*---------------------------------MC-Loop------------------------------*/
   
-  for (int iter=0; iter<maxiter; iter++)
-    {
+  // for (int iter=0; iter<maxiter; iter++)
+  //   {
       
-      /* 4) Randomly choose a lattice site (i,j) and check whether it 
-  	 belongs to the boundaries or to the bulk. Also find and store all
-  	 its neighbors.                                                   */
+  //     /* 4) Randomly choose a lattice site (i,j) and check whether it 
+  // 	 belongs to the boundaries or to the bulk. Also find and store all
+  // 	 its neighbors.                                                   */
 
-      x = RandInt(MT);
-      y = RandInt(MT);
-      site.set(x,y);
-      GetNeighbors(hfield,site,neighbors_area,neighbors_corr,neighbors_ener);
-      where = WhereIs(site,N,N,nghost);
+  //     x = RandInt(MT);
+  //     y = RandInt(MT);
+  //     site.set(x,y);
+  //     GetNeighbors(hfield,site,neighbors_area,neighbors_corr,neighbors_ener);
+  //     where = WhereIs(site,N,N,nghost);
 
-      /* 5) Calculate the local area and energy of that point.            */
-      local_energy_pre = LocalEnergy(hfield,neighbors_area,
-  				     neighbors_corr,
-  				     neighbors_ener,
-  				     alpha,rig,sig,tau);
-      local_area_pre = LocalArea(hfield,neighbors_area,alpha);
+  //     /* 5) Calculate the local area and energy of that point.            */
+  //     local_energy_pre = LocalEnergy(hfield,neighbors_area,
+  // 				     neighbors_corr,
+  // 				     neighbors_ener,
+  // 				     alpha,rig,sig,tau);
+  //     local_area_pre = LocalArea(hfield,neighbors_area,alpha);
       
-      /* 6) Randomly perturbate the height of the chosen point.           */
-      perturb = RandDouble(MT); 
-      hfield(x,y) += perturb;
-      move_counter ++;
-      if(where==1)
-  	GhostCopy(hfield);
+  //     /* 6) Randomly perturbate the height of the chosen point.           */
+  //     perturb = RandDouble(MT); 
+  //     hfield(x,y) += perturb;
+  //     move_counter ++;
+  //     if(where==1)
+  // 	GhostCopy(hfield);
       
-      /* 7) Calculate the new local energy and local area.                */
+  //     /* 7) Calculate the new local energy and local area.                */
 
-      local_energy_aft = LocalEnergy(hfield,neighbors_area,
-  				     neighbors_corr,
-  				     neighbors_ener,
-  				     alpha,rig,sig,tau);
-      local_area_aft = LocalArea(hfield,neighbors_area,alpha);
+  //     local_energy_aft = LocalEnergy(hfield,neighbors_area,
+  // 				     neighbors_corr,
+  // 				     neighbors_ener,
+  // 				     alpha,rig,sig,tau);
+  //     local_area_aft = LocalArea(hfield,neighbors_area,alpha);
       
-      /* 8) Calculate the energy difference and check whether the 
-  	 move is accepted or not.                                         */
+  //     /* 8) Calculate the energy difference and check whether the 
+  // 	 move is accepted or not.                                         */
 
-      dAlocal = local_area_aft - local_area_pre;
-      dElocal = local_energy_aft - local_energy_pre;
-      accept  = Metropolis(dElocal);
+  //     dAlocal = local_area_aft - local_area_pre;
+  //     dElocal = local_energy_aft - local_energy_pre;
+  //     accept  = Metropolis(dElocal);
       
-      /* 9) If the move is accepted, update total area and energy.
-  	 Otherwise return to previous state.                              */
+  //     /* 9) If the move is accepted, update total area and energy.
+  // 	 Otherwise return to previous state.                              */
 
-      AcceptOrDecline(hfield,site,accept,where,tot_area,
-  		      tot_energy,dAlocal,dElocal,accepted_moves,perturb);
+  //     AcceptOrDecline(hfield,site,accept,where,tot_area,
+  // 		      tot_energy,dAlocal,dElocal,accepted_moves,perturb);
       
-      /* 10) After 5 MC steps, randomly change alpha, compute the 
-  	 new projected area and update the total energy.                  */
+  //     /* 10) After 5 MC steps, randomly change alpha, compute the 
+  // 	 new projected area and update the total energy.                  */
 
-      ChangeLattice(hfield,min_change,max_change,DoF,rig,sig,tau,prj_area,
-		    tot_area,tot_energy,tau_energy,crv_energy,sig_energy,
-		    cor_energy,alpha,move_counter,
-		    lattice_moves,lattice_changes);
+  //     ChangeLattice(hfield,min_change,max_change,DoF,rig,sig,tau,prj_area,
+  // 		    tot_area,tot_energy,tau_energy,crv_energy,sig_energy,
+  // 		    cor_energy,alpha,move_counter,
+  // 		    lattice_moves,lattice_changes);
       
-      /* 11) Sample                                                       */
+  //     /* 11) Sample                                                       */
 
-      Sample(iter,output_filename,tot_energy,tau_energy,crv_energy,sig_energy,
-  	     cor_energy,tot_area,prj_area,alpha,DoF);
-      if (iter % (int) 1e5 == 0)
-  	hfield.writeH5(cc);
-    }
+  //     Sample(iter,output_filename,tot_energy,tau_energy,crv_energy,sig_energy,
+  // 	     cor_energy,tot_area,prj_area,alpha,DoF);
+  //     if (iter % (int) 1e5 == 0)
+  // 	hfield.writeH5(cc);
+  //   }
 
-  /* 12) Print acceptance ratios                                          */
+  // /* 12) Print acceptance ratios                                          */
 
-  std::cout <<"--------------------------------------------" << std::endl;
-  std::cout << "Simulation " << rank+1 << " finished sucessfully." << std::endl;
-  PrintAcceptance(maxiter,accepted_moves,lattice_moves,lattice_changes);
+  // std::cout <<"--------------------------------------------" << std::endl;
+  // std::cout << "Simulation " << rank+1 << " finished sucessfully." << std::endl;
+  // PrintAcceptance(maxiter,accepted_moves,lattice_moves,lattice_changes);
   MPI_Finalize();
   return 0;
 }
