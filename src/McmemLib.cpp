@@ -772,12 +772,9 @@ void ReadInputs(std::string filename,std::vector<double>& input)
       std::cout << "File is not open. Exiting." << std::endl;
       exit(EXIT_FAILURE);
     }
-  int ii = 0;
-  while(!infile.eof()){
-    std::cout << "Reading input from file "<< ii <<"\n";
-    infile >> input[ii];
-    ii = ii+1;
-  }
+  double in;
+  while(file >> in)
+    input.push_back(in);
   infile.close();
 }
 /*----------------------------- ReadTensions -----------------------------*/
