@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
      needed for the MC code.                                                */
 
   const int maxiter = 10;           //max no of iterations
-  const int DoF = 16;                //number of degrees of freedom
+  const int DoF = 64;                //number of degrees of freedom
   const int N = sqrt(DoF);           //DoF per dimension
   const int nghost = 2;              //ghost points per boundary point
   const double rig = 10.0;           //bending rigidity
@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
   Site neighbors_area[len_area] = {};
   Site neighbors_corr[len_corr] = {};
   Site neighbors_ener[len_ener] = {};
-  std::vector<Site> pinned_sites= {};
+  std::vector<Site> pinned_sites;
   
   std::uniform_int_distribution<int>      RandInt(0,N-1);  
   std::uniform_real_distribution<double>  RandDouble(-epsilon,epsilon);
@@ -87,9 +87,10 @@ int main(int argc, char* argv[])
   /* 2) Initialize pinning and the height field hfield(i,j)                 */
 
   RectMesh hfield(N,N,nghost);
-  InitPinning(pinned_sites,N,pn_prcn);
-  for (int i=0; i<pinned_sites.size(); i++)
-    pinned_sites[i].print();
+  pinned_sites = InitPinning(N,pn_prcn);
+  for (int i=0; i<pinned_sites.size(); i++){
+    std::cout << i<<std::endl; pinned_sites[i].print();
+  }
   InitSurface(hfield,-0.1,+0.1,pinned_sites);
   
   /* 3) Calculate the projected membrane area "prj_area", the total area 
@@ -172,7 +173,7 @@ int main(int argc, char* argv[])
   /* 12) Print acceptance ratios                                          */
 
   PrintAcceptance(maxiter,accepted_moves,lattice_moves,lattice_changes);
-  std::cout << pin_energy/(double)DoF << std::endl;
+
   MPI_Finalize();
   return 0;
 }

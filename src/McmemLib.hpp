@@ -11,7 +11,7 @@
 #include <vector>
 #include <string>
 
-void InitPinning(std::vector<Site>& pinned_sites,int N,double pn_prcn);
+std::vector<Site> InitPinning(int N,double pn_prcn);
 void InitSurface(RectMesh& hfield,const double min,const double max,
 		 std::vector<Site>& pinned_sites);
 void GhostCopy(RectMesh& mesh);

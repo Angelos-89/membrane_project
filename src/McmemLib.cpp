@@ -19,22 +19,32 @@ std::mt19937 mt(rd());
 /* Given the percentage of the total DoF that will be pinned, it 
    fills the vector with all the pinned sites. N = sqrt(DoF)       */
 
-
-void InitPinning(std::vector<Site>& pinned_sites,int N,double pn_prcn)
+std::vector<Site> InitPinning(int N,double pn_prcn)
 {
-  std::uniform_int_distribution<int> RandInt(0,N-1);
+  int len = pow(N,2)*pn_prcn;
+  if ( len <=0 )
+    {
+      std::cout << "InitPinning: Length of vector must be greater than zero"
+		<< std::endl;
+      exit(EXIT_FAILURE);
+    }
+
+  Site to_erase(-2*N,-2*N);
   Site site;
   int x,y;
-  int len = pow(N,2)*pn_prcn;
-  for (int i=0; i<len; i++)
+  std::vector<Site> vec = {}; vec.push_back(to_erase);
+  
+  while (vec.size() < len+1)
     {
+      std::uniform_int_distribution<int> RandInt(0,N-1);
       x = RandInt(mt);
       y = RandInt(mt);
       site.set(x,y);
-      //if not already in there then add
-      
-      pinned_sites.push_back(site);
+      if ( std::find(vec.begin(), vec.end(),(const Site) site) == vec.end() )
+	vec.push_back(site);
     }
+  vec.erase (vec.begin());
+  return vec;  
 }
 
 /*------------------ InitSurface ------------------------*/
@@ -589,8 +599,6 @@ bool WhereIs(Site site, int cols, int rows, int nghost)
 
 bool Ispinned(Site site,std::vector<Site>& pinned_sites)
 {
-  for (int i=0; i<pinned_sites.size(); i++)
-    pinned_sites[i].print();
   //Site res = std::find(pinned_sites.begin(),pinned_sites.end(),site);
   //res.print();
   return 1;
