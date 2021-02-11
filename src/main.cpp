@@ -15,30 +15,24 @@ int main(int argc, char* argv[])
         and frame tensions.                                                 */ 
 
   int rank;
-  std::cout << "Initiating MPI" << std::endl;
   MPI_Init(&argc,&argv);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-  std::cout << "Initiating MPI: DONE" << std::endl;
-  
+    
   double s;                          
   double t;                        
-  std::string input_filename = "input" + std::to_string(rank) + ".txt";
-  std::string output_filename = "sampling" + std::to_string(rank) + ".txt";
-  std::string hfield_filename = "hfield" + std::to_string(rank) + ".h5";
+  std::string input_filename = "input_" + std::to_string(rank) + ".txt";
+  std::string output_filename = "sampling_" + std::to_string(rank) + ".txt";
+  std::string hfield_filename = "hfield_" + std::to_string(rank) + ".h5";
   const char* cc = hfield_filename.c_str();
-  ReadTensions(input_filename,s,t);
+  ReadInput(input_filename,s,t);
 
-  std::cout << "Simulation " << rank+1 << ":\n";
-  std::cout << "Input file read.\ntau = " << std::setprecision(3) << t
-	    << "\nsigma = " << std::setprecision(6) << s << std::endl;  
-  
   /* 1) Set values for number of degrees of freedom "DoF", bending rigidity 
      "rig" and lattice spacing "alpha". Define and initialize variables 
      needed for the MC code.                                                */
 
   const int maxiter = 1e3;           //max no of iterations
-  const int DoF = 6400;              //number of degrees of freedom
-  const int N = sqrt(DoF);           //DoF per dimension
+  const int N = 80;                  //DoF per dimension
+  const int DoF = N*N;               //number of degrees of freedom
   const int nghost = 2;              //ghost points per boundary point
   const double rig = 10.0;           //bending rigidity
   const double sig = s;              //internal tension
@@ -47,6 +41,9 @@ int main(int argc, char* argv[])
   const double min_change = 0.98;    //min percentage of lattice size change
   const double max_change = 1.02;    //max percentage of lattice size change
   double alpha = 1.0;                //lattice spacing (distance between 2 DoF)
+
+  OutputParams(maxiter,N,DoF,nghost,rig,sig,tau,epsilon,
+	       min_change,max_change,alpha,rank);
   
   double prj_area = 0.0;
   double tot_area = 0.0;
@@ -84,29 +81,18 @@ int main(int argc, char* argv[])
   std::uniform_int_distribution<int>      RandInt(0,N-1);  
   std::uniform_real_distribution<double>  RandDouble(-epsilon,epsilon);
 
-  std::cout << "All variables defined.\n";
-  std::cout << "----------------------" << std::endl;
-  
   /* 2) Initialize the height field hfield(i,j)                           */ 
 
   RectMesh hfield(N,N,nghost);
   InitSurface(hfield,-0.1,+0.1);
-  std::cout << "Simulation " << rank+1 <<":\n";
-  std::cout << "Height field initialized.\n";
   
   /* 3) Calculate the projected membrane area "prj_area", the total area 
      "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
      "cor_energy" and "tot_energy".                                       */
-
-  std::cout << "Calculating total quantities of initial configuration.\n"
-    "------------------------------------------------------" << std::endl;
   
   CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
   		 sig_energy,cor_energy,tot_area,prj_area,alpha);
 
-  std::cout << "Simulation " << rank+1 << ": Calculations complete."
-    "Monte Carlo loop initiated...\n";
-  
   /*---------------------------------MC-Loop------------------------------*/
   
   for (int iter=0; iter<maxiter; iter++)
@@ -167,18 +153,19 @@ int main(int argc, char* argv[])
       
       /* 11) Sample                                                       */
 
-      Sample(iter,output_filename,tot_energy,tau_energy,crv_energy,sig_energy,
+      Sample(iter,maxiter,output_filename,tot_energy,
+	     tau_energy,crv_energy,sig_energy,
   	     cor_energy,tot_area,prj_area,alpha,DoF);
+
       if (iter % (int) 1e5 == 0)
   	hfield.writeH5(cc);
     }
 
   /* 12) Print acceptance ratios                                          */
 
-  std::cout <<"--------------------------------------------" << std::endl;
-  std::cout << "Simulation " << rank+1 << " finished sucessfully." << std::endl;
-  PrintAcceptance(maxiter,accepted_moves,lattice_moves,lattice_changes);
+  PrintAcceptance(maxiter,accepted_moves,lattice_moves,lattice_changes,rank);
   MPI_Finalize();
+
   return 0;
 }
 

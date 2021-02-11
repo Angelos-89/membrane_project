@@ -11,6 +11,11 @@
 #include <vector>
 #include <string>
 
+void OutputParams(const int maxiter,const int N,const int DoF,
+		  const int nghost,const double rig,const double sig,
+		  const double tau,const double epsilon,
+		  const double min_change,const double max_change,
+		  double alpha,int rank);
 void InitSurface(RectMesh& hfield,const double min,const double max);
 void GhostCopy(RectMesh& mesh);
 void Der(const RectMesh& mesh, Site site, double alpha, double grad[]);
@@ -56,7 +61,7 @@ void AcceptOrDecline(RectMesh& hfield,Site site,bool accept,
 		     double& dAlocal,double& dElocal,
 		     int& accepted_moves,double& perturb);
 void PrintAcceptance(const int maxiter, int accepted_moves,
-		     int lattice_moves, int lattice_changes);
+		     int lattice_moves, int lattice_changes, int rank);
 
 void ChangeLattice(const RectMesh& hfield,const double& min_change,
 		   const double& max_change,const int& DoF,const double& rig,
@@ -65,12 +70,13 @@ void ChangeLattice(const RectMesh& hfield,const double& min_change,
 		   double& crv_energy,double& sig_energy,double& cor_energy,
 		   double& alpha,int& move_counter,int& lattice_moves,
 		   int& lattice_changes);
-void Sample(int& iter, std::string filename,double& tot_energy,
+void Sample(int& iter,const int& maxiter,std::string filename,
+	    double& tot_energy,
 	    double& tau_energy,double& crv_energy,
 	    double& sig_energy,double& cor_energy,
 	    double& tot_area,double& prj_area,
 	    double& alpha,const int& DoF);
-void ReadTensions(std::string filename,double& sig,double& tau);
+void ReadInput(std::string filename,double& sig,double& tau);
 
 
 // void ReadTxt(const char filename, std::vector<double> &data);

@@ -1,12 +1,13 @@
 %% import data
-samples = LoadSamples("sampling.txt");
-height  = h5read("hfield.h5","/RectMesh");
+datastruct = importdata("sampling0.txt");
+samples = LoadSamples(datastruct);
+height  = h5read("hfield0.h5","/RectMesh");
 height  = inner(height,2);
 
 %% lists of data
-area   = samples(:,1);
-alpha  = samples(:,3);
-energy = samples(:,8);
+area   = samples(:,2);
+alpha  = samples(:,4);
+energy = samples(:,9);
  
 %% plot data
 figure(1)
@@ -83,8 +84,8 @@ ylabel("Occurances");
 grid on
 
 %% define functions
-function samples = LoadSamples(filename)
-samples = importdata(filename); 
+function samples = LoadSamples(struct)
+    samples = struct.data; 
     if length(samples(:,1)) < 1e4
         error("Samples must be more than 1e4. Exiting.")
     end

@@ -2,6 +2,7 @@
    "Monte Carlo study of the frame fluctuation and internal tensions of 
    fluctuating membranes with fixed area" by Shiba et al. (2016). */
 
+#include <sstream>
 #include <fstream>
 #include <iomanip>
 #include <random>
@@ -12,6 +13,52 @@
 
 std::random_device rd;
 std::mt19937 mt(rd());
+
+/*------------------------- OutputParams ---------------------------*/
+
+/* Prints the parameters of the specific run to the 
+   console and writes them to a .txt file                           */
+
+void OutputParams(const int maxiter,const int N,const int DoF,
+		  const int nghost,const double rig,const double sig,
+		  const double tau,const double epsilon,
+		  const double min_change,const double max_change,
+		  double alpha,int rank)
+{
+  std::stringstream strm; 
+  strm << "Run "                              << rank+1 << " parameters: \n-----------------\n"
+       << "Maxiter: "                         << maxiter                 <<"\n"
+       << "Grid Size: "                       << N << "x" << N           <<"\n"
+       << "DoF: "                             << DoF                     <<"\n"
+       << "Ghost points per boundary point: " << nghost                  <<"\n"
+       << "Bending rigidity: "                << rig        << " (k_bT)" <<"\n"
+       << "Internal tension: "                << sig        << " (k_bT)" <<"\n"
+       << "Frame tension: "                   << tau        << " (k_bT)" <<"\n"
+       << "Max height perturbation: "         << epsilon    << " (a_0)"  <<"\n"
+       << "Min change in lattice spacing: "   << min_change << "%"       <<"\n"
+       << "Max change in lattice spacing: "   << max_change << "%"       <<"\n"
+       << "Initial lattice spacing: "         << alpha      << " (a_0)" 
+       << "\n------------------------------------\n\n";
+  std::cout << strm.str();
+
+  /* Now damp to a file */
+  std::ofstream file;
+  std::string filename = "PARAMS_" + std::to_string(rank) + ".txt";
+  file.open(filename);
+  file << "Maxiter: "                         << maxiter                 <<"\n"
+       << "Grid Size: "                       << N                       <<"\n"
+       << "DoF: "                             << DoF                     <<"\n"
+       << "Ghost points per boundary point: " << nghost                  <<"\n"
+       << "Bending rigidity: "                << rig        << " (k_bT)" <<"\n"
+       << "Internal tension: "                << sig        << " (k_bT)" <<"\n"
+       << "Frame tension: "                   << tau        << " (k_bT)" <<"\n"
+       << "Max height perturbation: "         << epsilon    << " (a_0)"  <<"\n"
+       << "Min change in lattice spacing: "   << min_change << "%"       <<"\n"
+       << "Max change in lattice spacing: "   << max_change << "%"       <<"\n"
+       << "Initial lattice spacing: "         << alpha      << " (a_0)"  <<"\n";
+  file.close();
+}
+
 /*------------------ InitSurface ------------------------*/
 
 /* Initializes a RectMesh object with random values ranging
@@ -620,10 +667,10 @@ void PrintNeighbors(Site neighbors[],int len)
     neighbors[i].print();
 }
 
-/*-------------- Metropolis ----------------*/
+/*------------------- Metropolis ----------------------*/
 
 /* It returns 1 if the move is accepted and 
-   0 otherwise.                             */
+   0 otherwise according to the Boltzmann criterion.   */
 
 bool Metropolis(double& dElocal)
 {
@@ -667,13 +714,25 @@ void AcceptOrDecline(RectMesh& hfield,Site site,bool accept,bool where,
    trial moves.                                                      */
 
 void PrintAcceptance(const int maxiter, int accepted_moves,
-		     int lattice_moves, int lattice_changes)
+		     int lattice_moves, int lattice_changes,int rank)
 {
   double accept_ratio = (double) accepted_moves/maxiter;
   double lattice_moves_ratio = (double) lattice_changes/lattice_moves; 
-  std::cout << "Height move acceptance ratio: " << accept_ratio << "\n"
-	    << "Lattice spacing move acceptance ratio: "
-	    << lattice_moves_ratio << std::endl;
+  std::stringstream stream; 
+  stream << "Simulation " << rank+1 << " is finished: \n-------------------------\n"
+	 << "Height move ratio: " << accept_ratio << "\n"
+	 << "Lattice spacing move ratio: "
+	 << lattice_moves_ratio << "\n--------------------------------------------\n";
+  std::cout << stream.str();
+
+  /*Now damp to a file*/ 
+  std::ofstream file;
+  std::string filename = "ACCEPTANCES_" + std::to_string(rank) + ".txt";
+  file.open(filename);
+  file << "Simulation No: " << rank+1 << "\n"
+       << "Height moves ratio: " << accept_ratio << "\n"
+       << "Lattice spacing moves ratio: " << lattice_moves_ratio << "\n";
+  file.close();  
 }
 
 /*------------------------- ChangeLattice ---------------------------*/
@@ -721,41 +780,42 @@ void ChangeLattice(const RectMesh& hfield,const double& min_change,
 
 /* Stores the data in a txt file.                             */
 
-void Sample(int& iter,std::string filename,double& tot_energy,
-	    double& tau_energy,double& crv_energy,
-	    double& sig_energy,double& cor_energy,
-	    double& tot_area,double& prj_area,
-	    double& alpha,const int& DoF)
+void Sample(int& iter,const int& maxiter, std::string filename,
+	    double& tot_energy,double& tau_energy,
+	    double& crv_energy,double& sig_energy,
+	    double& cor_energy,double& tot_area,
+	    double& prj_area,double& alpha,const int& DoF)
 {
-  if (iter == 0){
+  if (iter == 0)
+    {
       std::ofstream file;
       file.open(filename, std::ios::app);
-      file << "%%\b" << "iter"   <<"\t" 
+      file << "%%\b" << "iter"   << "\t" 
 	   << "total_area"       << "\t"
 	   << "prj_area"         << "\t"
 	   << "alpha"            << "\t"
 	   << "tau*prj_area"     << "\t"
 	   << "curv_energy"      << "\t"
 	   << "sigma*total_area" << "\t"
-	   << "entropic_corn"    << "\t"
+	   << "entropic_corr"    << "\t"
 	   << "tot_energy"
 	   << std::endl;
       file.close();
   }
-  if(iter%1000==0)
+  if(iter%1000==0 || iter == maxiter-1)
     {
       double DOF = (double) DoF;
       std::ofstream file;
       file.open(filename, std::ios::app);
-      file                            <<  iter            <<"\t" 
-	    << std::setprecision(12) << tot_area/DOF     << "\t"
-	   << std::setprecision(12) << prj_area/DOF     << "\t"
-	   << std::setprecision(12) << alpha            << "\t"
-	   << std::setprecision(12) << tau_energy/DOF   << "\t"
-	   << std::setprecision(12) << crv_energy/DOF   << "\t"
-	   << std::setprecision(12) << sig_energy/DOF   << "\t"
-	   << std::setprecision(12) << cor_energy/DOF   << "\t"
-	   << std::setprecision(12) << tot_energy/DOF
+      file <<  iter << "\t" 
+	   << std::setprecision(6) << tot_area/DOF     << "\t"
+	   << std::setprecision(6) << prj_area/DOF     << "\t"
+	   << std::setprecision(6) << alpha            << "\t"
+	   << std::setprecision(6) << tau_energy/DOF   << "\t"
+	   << std::setprecision(6) << crv_energy/DOF   << "\t"
+	   << std::setprecision(6) << sig_energy/DOF   << "\t"
+	   << std::setprecision(6) << cor_energy/DOF   << "\t"
+	   << std::setprecision(6) << tot_energy/DOF
 	   << std::endl;
       file.close();
     }
@@ -763,7 +823,7 @@ void Sample(int& iter,std::string filename,double& tot_energy,
 
 /*----------------------------- ReadTensions -----------------------------*/
 
-void ReadTensions(std::string filename,double& sig,double& tau)
+void ReadInput(std::string filename,double& sig,double& tau)
 {
   std::ifstream infile;
   infile.open(filename);
