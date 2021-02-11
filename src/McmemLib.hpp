@@ -34,6 +34,8 @@ double SNodeCorrectionEnergy(const RectMesh& field,Site site,double alpha);
 double LocalCorrectionEnergy(const RectMesh& field,
 			     const Site neighbors[],double alpha);
 double CorrectionEnergyTotal(const RectMesh& field, double alpha);
+double PinningEnergyTotal(const RectMesh& hfield,
+			  std::vector<Site>& pinned_sites,double& pot_strength);
 double LocalEnergy(const RectMesh& hfield,
 		   Site neighbors_area[],
 		   Site neighbors_corr[],
@@ -43,12 +45,14 @@ double LocalEnergy(const RectMesh& hfield,
 // double TotalEnergy(RectMesh& hfield,double& total_area,
 // 		   double& prj_area,double alpha,
 // 		   double rig, double sig, double tau);
-void CalculateTotal(const RectMesh& field,const int& DoF,const double& rig,
-		    const double& sig,const double& tau, double& tot_energy,
+void CalculateTotal(const RectMesh& hfield,const int& DoF,const double& rig,
+		    const double& sig,const double& tau,double& tot_energy,
 		    double& tau_energy,double& crv_energy,double& sig_energy,
-		    double& cor_energy,double& tot_area,
-		    double& prj_area,double& alpha);
+		    double& cor_energy,double& pin_energy,double& tot_area,
+		    double& prj_area,double& alpha,
+		    std::vector<Site>& pinned_sites,double& pot_strength);
 bool WhereIs(Site site,int cols,int rows,int nghost);
+bool Ispinned(Site site,std::vector<Site>& pinned_sites);
 void GetNeighbors(const RectMesh& field,Site site,Site neighbors_area[],
 		  Site neighbors_corr[],Site neighbors_ener[]);
 void PrintNeighbors(Site neighbors[],int len);
@@ -65,12 +69,13 @@ void ChangeLattice(const RectMesh& hfield,const double& min_change,
 		   const double& sig, const double& tau,double& prj_area,
 		   double& tot_area,double& tot_energy,double& tau_energy,
 		   double& crv_energy,double& sig_energy,double& cor_energy,
-		   double& alpha,int& move_counter,int& lattice_moves,
-		   int& lattice_changes);
+		   double& pin_energy,double& alpha,int& move_counter,
+		   int& lattice_moves,int& lattice_changes,
+		   std::vector<Site>& pinned_sites,double& pot_strength);
 void Sample(int& iter, std::string filename,double& tot_energy,
 	    double& tau_energy,double& crv_energy,
 	    double& sig_energy,double& cor_energy,
-	    double& tot_area,double& prj_area,
+	    double& pin_energy,double& tot_area,double& prj_area,
 	    double& alpha,const int& DoF);
 void ReadTensions(std::string filename,double& sig,double& tau);
 

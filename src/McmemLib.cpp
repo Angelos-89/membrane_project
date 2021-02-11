@@ -2,6 +2,7 @@
    "Monte Carlo study of the frame fluctuation and internal tensions of 
    fluctuating membranes with fixed area" by Shiba et al. (2016). */
 
+#include <algorithm>
 #include <fstream>
 #include <iomanip>
 #include <random>
@@ -25,11 +26,13 @@ void InitPinning(std::vector<Site>& pinned_sites,int N,double pn_prcn)
   Site site;
   int x,y;
   int len = pow(N,2)*pn_prcn;
-  for (int i=0;i<len;i++)
+  for (int i=0; i<len; i++)
     {
       x = RandInt(mt);
       y = RandInt(mt);
       site.set(x,y);
+      //if not already in there then add
+      
       pinned_sites.push_back(site);
     }
 }
@@ -48,6 +51,8 @@ void InitSurface(RectMesh& hfield,double min,double max,
     for (int i=0; i<hfield.getcols(); i++)
       hfield(i,j) = UnifProb(mt);
   }
+  
+  /* Pinning */
   int x,y;
   for (int i=0; i<pinned_sites.size(); i++)
     {
@@ -476,6 +481,29 @@ double CorrectionEnergyTotal(const RectMesh& hfield, double alpha)
   return -temp.sum();
 }
 
+/*------------------------- PinningEnergyTotal --------------------------*/
+
+/* Calculates the total energy due to the harmonic oscillator potential
+   at each pinned site.                                                  */
+
+double PinningEnergyTotal(const RectMesh& hfield,
+			  std::vector<Site>& pinned_sites,
+			  double& pot_strength)
+{
+  double energy = 0;
+  int x,y;
+  double h;
+  for (int i=0; i<pinned_sites.size(); i++)
+    {
+      x = pinned_sites[i].getx();
+      y = pinned_sites[i].gety();
+      h = hfield(x,y);
+      energy += h*h;
+    }
+  energy *= 0.5*pot_strength;
+  return energy;
+}
+
 /*-------------------------- LocalEnergy -------------------------------------*/
 
 /* This function calculates the local energy by summing up the contributions
@@ -518,10 +546,11 @@ double LocalEnergy(const RectMesh& hfield,
    area of the membrane. It also updates the different energies involved.   */ 
 
 void CalculateTotal(const RectMesh& hfield,const int& DoF,const double& rig,
-		    const double& sig,const double& tau, double& tot_energy,
+		    const double& sig,const double& tau,double& tot_energy,
 		    double& tau_energy,double& crv_energy,double& sig_energy,
-		    double& cor_energy,double& tot_area,
-		    double& prj_area,double& alpha)
+		    double& cor_energy,double& pin_energy,double& tot_area,
+		    double& prj_area,double& alpha,
+		    std::vector<Site>& pinned_sites,double& pot_strength)
 {
   prj_area = (double)DoF*alpha*alpha;
   tot_area = TotalArea(hfield,alpha);
@@ -529,7 +558,9 @@ void CalculateTotal(const RectMesh& hfield,const int& DoF,const double& rig,
   crv_energy = CurvatureEnergyTotal(hfield,alpha,rig);
   sig_energy = sig*tot_area;
   cor_energy = CorrectionEnergyTotal(hfield,alpha);
+  pin_energy = PinningEnergyTotal(hfield,pinned_sites,pot_strength);
   tot_energy = tau_energy + crv_energy + sig_energy + cor_energy;
+
 }
 
 /*---------------------- WhereIs ---------------------*/
@@ -552,6 +583,17 @@ bool WhereIs(Site site, int cols, int rows, int nghost)
   if (i<nghost || i>=cols-nghost || j<nghost || j>=rows-nghost) //boundary point
     return 1;    
   else return 0; 
+}
+
+/*-------------------- Ispinned ----------------------*/
+
+bool Ispinned(Site site,std::vector<Site>& pinned_sites)
+{
+  for (int i=0; i<pinned_sites.size(); i++)
+    pinned_sites[i].print();
+  //Site res = std::find(pinned_sites.begin(),pinned_sites.end(),site);
+  //res.print();
+  return 1;
 }
 
 /*------------------ GetNeighbors ---------------*/
@@ -717,8 +759,9 @@ void ChangeLattice(const RectMesh& hfield,const double& min_change,
 		   const double& sig, const double& tau,double& prj_area,
 		   double& tot_area,double& tot_energy,double& tau_energy,
 		   double& crv_energy,double& sig_energy,double& cor_energy,
-		   double& alpha,int& move_counter,int& lattice_moves,
-		   int& lattice_changes)
+		   double& pin_energy,double& alpha,int& move_counter,
+		   int& lattice_moves,int& lattice_changes,
+		   std::vector<Site>& pinned_sites,double& pot_strength)
 {
   if(move_counter !=0 && move_counter % 5 == 0)
     {
@@ -731,7 +774,8 @@ void ChangeLattice(const RectMesh& hfield,const double& min_change,
       double old_tot_area = tot_area;
       double old_energy = tot_energy;
       CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
-		     sig_energy,cor_energy,tot_area,prj_area,alpha);
+		     sig_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,
+		     pinned_sites,pot_strength);
       double dE = tot_energy - old_energy; 
       bool accept = Metropolis(dE);
       if (accept == 1)
@@ -754,22 +798,23 @@ void ChangeLattice(const RectMesh& hfield,const double& min_change,
 void Sample(int& iter,std::string filename,double& tot_energy,
 	    double& tau_energy,double& crv_energy,
 	    double& sig_energy,double& cor_energy,
-	    double& tot_area,double& prj_area,
-	    double& alpha,const int& DoF)
+	    double& pin_energy,double& tot_area,
+	    double& prj_area,double& alpha,const int& DoF)
 {
   if(iter%1000==0)
     {
       double DOF = (double) DoF;
       std::ofstream file;
       file.open(filename, std::ios::app);
-      file << std::setprecision(12) << tot_area/DOF     << "\t"
-	   << std::setprecision(12) << prj_area/DOF     << "\t"
-	   << std::setprecision(12) << alpha            << "\t"
-	   << std::setprecision(12) << tau_energy/DOF   << "\t"
-	   << std::setprecision(12) << crv_energy/DOF   << "\t"
-	   << std::setprecision(12) << sig_energy/DOF   << "\t"
-	   << std::setprecision(12) << cor_energy/DOF   << "\t"
-	   << std::setprecision(12) << tot_energy/DOF
+      file << std::setprecision(6) << tot_area/DOF     << "\t"
+	   << std::setprecision(6) << prj_area/DOF     << "\t"
+	   << std::setprecision(6) << alpha            << "\t"
+	   << std::setprecision(6) << tau_energy/DOF   << "\t"
+	   << std::setprecision(6) << crv_energy/DOF   << "\t"
+	   << std::setprecision(6) << sig_energy/DOF   << "\t"
+	   << std::setprecision(6) << cor_energy/DOF   << "\t"
+	   << std::setprecision(6) << pin_energy/DOF   << "\t"
+	   << std::setprecision(6) << tot_energy/DOF
 	   << std::endl;
       file.close();
     }
