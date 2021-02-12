@@ -19,6 +19,22 @@ int main(int argc, char* argv[])
   MPI_Init(&argc,&argv);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
   std::cout << "Initiating MPI: DONE" << std::endl;
+/* parameters, some of these are overwritten after reading input files */
+  int miter = 1e3;
+  const int DoF = 6400;              //number of degrees of freedom
+  const int N = sqrt(DoF);           //DoF per dimension
+  const int nghost = 2;              //ghost points per boundary point
+  const double rig = 10.0;           //bending rigidity
+  double s = 0.52;
+  double t = 0.5;
+  const double epsilon = 0.34;       //maximum possible height perturbation
+  const double min_change = 0.98;    //min percentage of lattice size change
+  const double max_change = 1.02;    //max percentage of lattice size change
+  double alpha = 1.0;                //lattice spacing (distance between 2 DoF)
+  double Eactive = 0.;                // Active energy, zero by default
+/* If you set the Eactive to non-zero values the membrane is no longer is
+ * equilibrium. The value can be both positive or negative. See Kumar &
+ * Dasgupta PRE 102, 2020 */  
   
   std::string input_filename = "input" + std::to_string(rank) + ".txt";
   std::string output_filename = "sampling" + std::to_string(rank) + ".txt";
@@ -26,8 +42,6 @@ int main(int argc, char* argv[])
   const char* cc = hfield_filename.c_str();
 //  ReadTensions(input_filename,s,t);
   double Ea = 0;
-  double s = 0.52;
-  double t = 0.5;
   std::vector<double> input;
   ReadInputs(input_filename, input);
   s = input[0];
@@ -39,26 +53,18 @@ int main(int argc, char* argv[])
      double Ea = input[2]; 
      std::cout << "Eactive = " << std::setprecision(3) << Ea <<"\n"; 
   }
-  
+  if (input.size() > 2){ 
+     int miter = int(input[3]); 
+     std::cout << "max iterations = " <<  miter <<"\n"; 
+  }
+  const double sig = s;              //internal tension
+  const double tau = t;              //frame tension
+  Eactive = Ea;  
+  const int maxiter = miter;           //max no of iterations
   /* 1) Set values for number of degrees of freedom "DoF", bending rigidity 
      "rig" and lattice spacing "alpha". Define and initialize variables 
      needed for the MC code.                                                */
 
-  const int maxiter = 1e3;           //max no of iterations
-  const int DoF = 6400;              //number of degrees of freedom
-  const int N = sqrt(DoF);           //DoF per dimension
-  const int nghost = 2;              //ghost points per boundary point
-  const double rig = 10.0;           //bending rigidity
-  const double sig = s;              //internal tension
-  const double tau = t;              //frame tension
-  const double epsilon = 0.34;       //maximum possible height perturbation
-  const double min_change = 0.98;    //min percentage of lattice size change
-  const double max_change = 1.02;    //max percentage of lattice size change
-  double alpha = 1.0;                //lattice spacing (distance between 2 DoF)
-  double Eactive = Ea;                // Active energy, zero by default
-/* If you set the Eactive to non-zero values the membrane is no longer is
- * equilibrium. The value can be both positive or negative. See Kumar &
- * Dasgupta PRE 102, 2020 */  
   
   double prj_area = 0.0;
   double tot_area = 0.0;
