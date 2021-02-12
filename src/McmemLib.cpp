@@ -26,7 +26,8 @@ void OutputParams(const int maxiter,const int N,const int DoF,
 		  double alpha,int rank)
 {
   std::stringstream strm; 
-  strm << "Run "                              << rank+1 << " parameters: \n-----------------\n"
+  strm << "Run "                              << rank+1
+       << " parameters: \n-----------------\n"
        << "Maxiter: "                         << maxiter                 <<"\n"
        << "Grid Size: "                       << N << "x" << N           <<"\n"
        << "DoF: "                             << DoF                     <<"\n"
@@ -41,7 +42,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
        << "\n------------------------------------\n\n";
   std::cout << strm.str();
 
-  /* Now damp to a file */
+  /* Now write to a file */
   std::ofstream file;
   std::string filename = "PARAMS_" + std::to_string(rank) + ".txt";
   file.open(filename);
@@ -476,6 +477,7 @@ double LocalCorrectionEnergy(const RectMesh& field,
 double CorrectionEnergyTotal(const RectMesh& hfield, double alpha)
 {
   //edw giati na mhn kanw mia for kai kanw temp = NormalZ..?
+
   // Site site;
   // double sum = 0.0;
   // for(int j=0; j<hfield.getrows(); j++)
@@ -719,10 +721,12 @@ void PrintAcceptance(const int maxiter, int accepted_moves,
   double accept_ratio = (double) accepted_moves/maxiter;
   double lattice_moves_ratio = (double) lattice_changes/lattice_moves; 
   std::stringstream stream; 
-  stream << "Simulation " << rank+1 << " is finished: \n-------------------------\n"
+  stream << "Simulation " << rank+1
+	 << " is finished: \n-------------------------\n"
 	 << "Height move ratio: " << accept_ratio << "\n"
 	 << "Lattice spacing move ratio: "
-	 << lattice_moves_ratio << "\n--------------------------------------------\n";
+	 << lattice_moves_ratio
+	 << "\n--------------------------------------------\n";
   std::cout << stream.str();
 
   /*Now damp to a file*/ 
@@ -821,7 +825,7 @@ void Sample(int& iter,const int& maxiter, std::string filename,
     }
 }
 
-/*----------------------------- ReadTensions -----------------------------*/
+/*----------------------------- ReadInput -----------------------------*/
 
 void ReadInput(std::string filename,double& sig,double& tau)
 {
