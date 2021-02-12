@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
     
   double s;                          
   double t;                        
-  std::string input_filename = "input_" + std::to_string(rank) + ".txt";
+  std::string input_filename  = "input_" + std::to_string(rank) + ".txt";
   std::string output_filename = "sampling_" + std::to_string(rank) + ".txt";
   std::string hfield_filename = "hfield_" + std::to_string(rank) + ".h5";
   const char* cc = hfield_filename.c_str();
@@ -109,6 +109,7 @@ int main(int argc, char* argv[])
       where = WhereIs(site,N,N,nghost);
 
       /* 5) Calculate the local area and energy of that point.            */
+
       local_energy_pre = LocalEnergy(hfield,neighbors_area,
   				     neighbors_corr,
   				     neighbors_ener,
@@ -116,6 +117,7 @@ int main(int argc, char* argv[])
       local_area_pre = LocalArea(hfield,neighbors_area,alpha);
       
       /* 6) Randomly perturbate the height of the chosen point.           */
+
       perturb = RandDouble(MT); 
       hfield(x,y) += perturb;
       move_counter ++;
@@ -161,11 +163,11 @@ int main(int argc, char* argv[])
   	hfield.writeH5(cc);
     }
 
-  /* 12) Print acceptance ratios                                          */
+  /* 12) Print acceptance ratios and finish                               */
 
   PrintAcceptance(maxiter,accepted_moves,lattice_moves,lattice_changes,rank);
-  MPI_Finalize();
 
+  MPI_Finalize();
   return 0;
 }
 
