@@ -32,12 +32,13 @@ int main(int argc, char* argv[])
   ReadInputs(input_filename, input);
   s = input[0];
   t = input[1];
-  if (input.size() > 1){ 
-     double Ea = input[2]; 
-  }
-   std::cout << "Simulation " << rank+1 << ":\n";
+  std::cout << "Simulation " << rank+1 << ":\n";
   std::cout << "Input file read.\ntau = " << std::setprecision(3) << t
 	    << "\nsigma = " << std::setprecision(6) << s << std::endl;  
+  if (input.size() > 1){ 
+     double Ea = input[2]; 
+     std::cout << "Eactive = " << std::setprecision(3) << Ea <<"\n"; 
+  }
   
   /* 1) Set values for number of degrees of freedom "DoF", bending rigidity 
      "rig" and lattice spacing "alpha". Define and initialize variables 

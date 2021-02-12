@@ -773,7 +773,7 @@ void ReadInputs(std::string filename,std::vector<double>& input)
       exit(EXIT_FAILURE);
     }
   double in;
-  while(file >> in)
+  while(infile >> in)
     input.push_back(in);
   infile.close();
 }
