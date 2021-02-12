@@ -19,7 +19,7 @@ std::mt19937 mt(rd());
 /* Given the percentage of the total DoF that will be pinned, it 
    fills the vector with all the pinned sites. N = sqrt(DoF)       */
 
-std::vector<Site> InitPinning(int N,double pn_prcn)
+std::vector<Site> InitPinning(int N,double pn_prcn) // USE STD::UNORDERED_SET
 {
   int len = pow(N,2)*pn_prcn;
   if ( len <=0 )
@@ -40,7 +40,7 @@ std::vector<Site> InitPinning(int N,double pn_prcn)
       x = RandInt(mt);
       y = RandInt(mt);
       site.set(x,y);
-      if ( std::find(vec.begin(), vec.end(),(const Site) site) == vec.end() )
+      if ( std::find(vec.begin(),vec.end(),site) == vec.end() )
 	vec.push_back(site);
     }
   vec.erase (vec.begin());
