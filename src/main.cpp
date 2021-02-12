@@ -35,32 +35,33 @@ int main(int argc, char* argv[])
 /* If you set the Eactive to non-zero values the membrane is no longer is
  * equilibrium. The value can be both positive or negative. See Kumar &
  * Dasgupta PRE 102, 2020 */  
-  
+  double Ea = 0.; 
   std::string input_filename = "input" + std::to_string(rank) + ".txt";
   std::string output_filename = "sampling" + std::to_string(rank) + ".txt";
   std::string hfield_filename = "hfield" + std::to_string(rank) + ".h5";
   const char* cc = hfield_filename.c_str();
 //  ReadTensions(input_filename,s,t);
-  double Ea = 0;
   std::vector<double> input;
   ReadInputs(input_filename, input);
   s = input[0];
   t = input[1];
   std::cout << "Simulation " << rank+1 << ":\n";
-  std::cout << "Input file read.\ntau = " << std::setprecision(3) << t
-	    << "\nsigma = " << std::setprecision(6) << s << std::endl;  
   if (input.size() > 1){ 
-     double Ea = input[2]; 
+     Ea = input[2]; 
      std::cout << "Eactive = " << std::setprecision(3) << Ea <<"\n"; 
   }
   if (input.size() > 2){ 
-     int miter = int(input[3]); 
-     std::cout << "max iterations = " <<  miter <<"\n"; 
+     miter = int(input[3]); 
+     std::cout << "read miter = " <<  miter <<"\n"; 
   }
   const double sig = s;              //internal tension
   const double tau = t;              //frame tension
   Eactive = Ea;  
   const int maxiter = miter;           //max no of iterations
+  std::cout << "Input file read.\ntau = " << std::setprecision(3) << tau
+	    << "\nsigma = " << std::setprecision(6) << sig << std::endl;  
+  std::cout << "Eactive = " << std::setprecision(3) << Eactive <<"\n"; 
+  std::cout << "max iterations = " <<  maxiter <<"\n"; 
   /* 1) Set values for number of degrees of freedom "DoF", bending rigidity 
      "rig" and lattice spacing "alpha". Define and initialize variables 
      needed for the MC code.                                                */
