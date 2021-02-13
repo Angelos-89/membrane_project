@@ -17,30 +17,30 @@ int main(int argc, char* argv[])
   int rank;
   MPI_Init(&argc,&argv);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-    
-  double s;                          
-  double t;                        
+
+  int maxit;
+  double e,s,t,minchange,maxchange;
   std::string input_filename  = "input_" + std::to_string(rank) + ".txt";
   std::string output_filename = "sampling_" + std::to_string(rank) + ".txt";
   std::string hfield_filename = "hfield_" + std::to_string(rank) + ".h5";
   const char* cc = hfield_filename.c_str();
-  ReadInput(input_filename,s,t);
+  ReadInput(input_filename,maxit,s,t,e,minchange,maxchange);
 
   /* 1) Set values for number of degrees of freedom "DoF", bending rigidity 
      "rig" and lattice spacing "alpha". Define and initialize variables 
      needed for the MC code.                                                */
 
-  const int maxiter = 1e3;           //max no of iterations
-  const int N = 80;                  //DoF per dimension
-  const int DoF = N*N;               //number of degrees of freedom
-  const int nghost = 2;              //ghost points per boundary point
-  const double rig = 10.0;           //bending rigidity
-  const double sig = s;              //internal tension
-  const double tau = t;              //frame tension
-  const double epsilon = 0.34;       //maximum possible height perturbation
-  const double min_change = 0.98;    //min percentage of lattice size change
-  const double max_change = 1.02;    //max percentage of lattice size change
-  double alpha = 1.0;                //lattice spacing (distance between 2 DoF)
+  const int maxiter = maxit;           //max no of iterations
+  const int N = 80;                    //DoF per dimension
+  const int DoF = N*N;                 //number of degrees of freedom
+  const int nghost = 2;                //ghost points per boundary point
+  const double rig = 10.0;             //bending rigidity
+  const double sig = s;                //internal tension
+  const double tau = t;                //frame tension
+  const double epsilon = e;            //maximum possible height perturbation
+  const double min_change = minchange; //min percentage of lattice size change
+  const double max_change = maxchange; //max percentage of lattice size change
+  double alpha = 1.0;                  //lattice spacing(distance between 2 DoF)
 
   OutputParams(maxiter,N,DoF,nghost,rig,sig,tau,epsilon,
 	       min_change,max_change,alpha,rank);

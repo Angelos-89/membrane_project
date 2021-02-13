@@ -1,7 +1,7 @@
 %% import data
-datastruct = importdata("sampling0.txt");
+datastruct = importdata("sampling_0.txt");
 samples = LoadSamples(datastruct);
-height  = h5read("hfield0.h5","/RectMesh");
+height  = h5read("hfield_0.h5","/RectMesh");
 height  = inner(height,2);
 
 %% lists of data

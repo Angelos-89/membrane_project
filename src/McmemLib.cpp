@@ -825,9 +825,10 @@ void Sample(int& iter,const int& maxiter, std::string filename,
     }
 }
 
-/*----------------------------- ReadInput -----------------------------*/
+/*------------------------------ ReadInput -----------------------------*/
 
-void ReadInput(std::string filename,double& sig,double& tau)
+void ReadInput(std::string filename,int& maxiter,double& sig,double& tau,
+	       double& epsilon,double& min_change,double& max_change)
 {
   std::ifstream infile;
   infile.open(filename);
@@ -837,7 +838,7 @@ void ReadInput(std::string filename,double& sig,double& tau)
       exit(EXIT_FAILURE);
     }
   while(!infile.eof())
-    infile >> sig >> tau;
+    infile >> maxiter >> sig >> tau >> epsilon >> min_change >> max_change;
 
   infile.close();
 }

@@ -76,8 +76,8 @@ void Sample(int& iter,const int& maxiter,std::string filename,
 	    double& sig_energy,double& cor_energy,
 	    double& tot_area,double& prj_area,
 	    double& alpha,const int& DoF);
-void ReadInput(std::string filename,double& sig,double& tau);
-
+void ReadInput(std::string filename,int& maxiter,double& sig,double& tau,
+	       double& epsilon,double& min_change,double& max_change);
 
 // void ReadTxt(const char filename, std::vector<double> &data);
 // void ReadTxtInt(const char filename[], std::vector<int> &data);
