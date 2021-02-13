@@ -11,6 +11,20 @@
 #include "Vec3dLib.hpp"
 #include "McmemLib.hpp"
 
+namespace std
+{
+  template <>
+  struct hash<Site>
+  {
+    size_t operator()( const Site& p ) const
+    {
+      return((53 + std::hash<int>()(p.getx()))*53
+	         + std::hash<int>()(p.gety()));
+    }
+  }; 
+}
+
+
 std::random_device rd;
 std::mt19937 mt(rd());
 
@@ -19,38 +33,37 @@ std::mt19937 mt(rd());
 /* Given the percentage of the total DoF that will be pinned, it 
    fills the vector with all the pinned sites. N = sqrt(DoF)       */
 
-std::vector<Site> InitPinning(int N,double pn_prcn) // USE STD::UNORDERED_SET
+std::unordered_set<Site> InitPinning(int N,double pn_prcn) 
 {
   int len = pow(N,2)*pn_prcn;
   if ( len <=0 )
     {
-      std::cout << "InitPinning: Length of vector must be greater than zero"
+      std::cout << "InitPinning: Length of vector must be greater than zero."
+	"Exiting."
 		<< std::endl;
       exit(EXIT_FAILURE);
     }
-
-  Site to_erase(-2*N,-2*N);
+  
   Site site;
   int x,y;
-  std::vector<Site> vec = {}; vec.push_back(to_erase);
+  std::unordered_set<Site> set = {}; 
   
-  while (vec.size() < len+1)
+  while (set.size() < len)
     {
       std::uniform_int_distribution<int> RandInt(0,N-1);
       x = RandInt(mt);
       y = RandInt(mt);
       site.set(x,y);
-      if ( std::find(vec.begin(),vec.end(),site) == vec.end() )
-	vec.push_back(site);
+      set.insert(site);
     }
-  vec.erase (vec.begin());
-  return vec;  
+  return set;  
 }
 
-/*------------------ InitSurface ------------------------*/
+/*------------------- InitSurface --------------------------*/
 
 /* Initializes a RectMesh object with random values ranging
-from min to max. */
+   from min to max. Furthermore, it sets the sites contained
+   inside the vector to zero.                               */
 
 void InitSurface(RectMesh& hfield,double min,double max,
 		 std::vector<Site>& pinned_sites)
@@ -532,7 +545,8 @@ double LocalEnergy(const RectMesh& hfield,
   double crv_ener = LocalCurvatureEnergy(hfield,neighbors_ener,alpha,rig);
   double sig_ener = sig*LocalArea(hfield,neighbors_area,alpha);
   double cor_ener = LocalCorrectionEnergy(hfield,neighbors_corr,alpha);
-  return tau_ener + crv_ener + sig_ener + cor_ener;
+  //double pin_energy = LocalPinEnergy();
+  return tau_ener + crv_ener + sig_ener + cor_ener; // + pin_energy;
 }
 
 /*--------------------- TotalEnergy -----------------------*/
@@ -570,7 +584,6 @@ void CalculateTotal(const RectMesh& hfield,const int& DoF,const double& rig,
   cor_energy = CorrectionEnergyTotal(hfield,alpha);
   pin_energy = PinningEnergyTotal(hfield,pinned_sites,pot_strength);
   tot_energy = tau_energy + crv_energy + sig_energy + cor_energy;
-
 }
 
 /*---------------------- WhereIs ---------------------*/
@@ -776,8 +789,8 @@ void ChangeLattice(const RectMesh& hfield,const double& min_change,
       lattice_moves ++;
       std::uniform_real_distribution<double> RandDouble(min_change,max_change); 
       double old_alpha = alpha;
-      double epsilon = RandDouble(mt);
-      alpha *= epsilon;
+      double percentage = RandDouble(mt);
+      alpha *= percentage;
       double old_prj_area = prj_area;
       double old_tot_area = tot_area;
       double old_energy = tot_energy;

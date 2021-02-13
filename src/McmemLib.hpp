@@ -6,12 +6,13 @@
 #ifndef MCMEMLIB_HPP
 #define MCMEMLIB_HPP
 
+#include <unordered_set>
 #include "Site.hpp"
 #include "RectMesh.hpp"
 #include <vector>
 #include <string>
 
-std::vector<Site> InitPinning(int N,double pn_prcn);
+std::unordered_set<Site> InitPinning(int N,double pn_prcn);
 void InitSurface(RectMesh& hfield,const double min,const double max,
 		 std::vector<Site>& pinned_sites);
 void GhostCopy(RectMesh& mesh);
