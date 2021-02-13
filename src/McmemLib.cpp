@@ -24,7 +24,6 @@ namespace std
   }; 
 }
 
-
 std::random_device rd;
 std::mt19937 mt(rd());
 
@@ -36,10 +35,10 @@ std::mt19937 mt(rd());
 std::unordered_set<Site> InitPinning(int N,double pn_prcn) 
 {
   int len = pow(N,2)*pn_prcn;
-  if ( len <=0 )
+  if ( len < 0 )
     {
-      std::cout << "InitPinning: Length of vector must be greater than zero."
-	"Exiting."
+      std::cout << "InitPinning: Length of vector must be greater or equal "
+	"to zero. Exiting."
 		<< std::endl;
       exit(EXIT_FAILURE);
     }
@@ -66,7 +65,7 @@ std::unordered_set<Site> InitPinning(int N,double pn_prcn)
    inside the vector to zero.                               */
 
 void InitSurface(RectMesh& hfield,double min,double max,
-		 std::vector<Site>& pinned_sites)
+		 std::unordered_set<Site>& pinned_sites)
 {
   std::uniform_real_distribution<double> UnifProb(min,max);
   for (int j=0; j<hfield.getrows(); j++)
@@ -77,10 +76,10 @@ void InitSurface(RectMesh& hfield,double min,double max,
   
   /* Pinning */
   int x,y;
-  for (int i=0; i<pinned_sites.size(); i++)
+  for (auto it = pinned_sites.begin(); it != pinned_sites.end(); ++it)
     {
-      x = pinned_sites[i].getx();
-      y = pinned_sites[i].gety();
+      x = (*it).getx();
+      y = (*it).gety();
       hfield(x,y) = 0;
     }
   GhostCopy(hfield);
@@ -475,6 +474,17 @@ double LocalCorrectionEnergy(const RectMesh& field,
   return energy;
 }
 
+/*----------------------------- LocalPinEnergy --------------------------------*/
+
+double LocalPinEnergy(const RectMesh& hfield,Site& site,
+		      const double& pot_strength,const double& h0)
+{
+  int x = site.getx();
+  int y = site.gety();
+  double h = hfield(x,y);
+  return 0.5 * pot_strength * pow((h-h0),2);
+}
+  
 /*-------------------------CorrectionEnergyTotal------------------------------*/
 
 /* This function calculates the total correction in energy due to the Monge
@@ -510,18 +520,18 @@ double CorrectionEnergyTotal(const RectMesh& hfield, double alpha)
    at each pinned site.                                                  */
 
 double PinningEnergyTotal(const RectMesh& hfield,
-			  std::vector<Site>& pinned_sites,
-			  double& pot_strength)
+			  std::unordered_set<Site>& pinned_sites,
+			  const double& pot_strength,const double& h0)
 {
   double energy = 0;
   int x,y;
   double h;
-  for (int i=0; i<pinned_sites.size(); i++)
+  for (auto it = pinned_sites.begin(); it != pinned_sites.end(); it++)
     {
-      x = pinned_sites[i].getx();
-      y = pinned_sites[i].gety();
+      x = (*it).getx();
+      y = (*it).gety();
       h = hfield(x,y);
-      energy += h*h;
+      energy += pow((h-h0),2);
     }
   energy *= 0.5*pot_strength;
   return energy;
@@ -539,14 +549,20 @@ double LocalEnergy(const RectMesh& hfield,
 		   Site neighbors_corr[],
 		   Site neighbors_ener[],
 		   double alpha,const double rig,
-		   const double sig,const double tau)
+		   const double sig,const double tau,
+		   const double& pot_strength,const double& h0,bool pin)
 {
   double tau_ener = -tau*alpha*alpha; 
   double crv_ener = LocalCurvatureEnergy(hfield,neighbors_ener,alpha,rig);
   double sig_ener = sig*LocalArea(hfield,neighbors_area,alpha);
   double cor_ener = LocalCorrectionEnergy(hfield,neighbors_corr,alpha);
-  //double pin_energy = LocalPinEnergy();
-  return tau_ener + crv_ener + sig_ener + cor_ener; // + pin_energy;
+  double pin_energy = 0;
+  if (pin)
+    {
+      Site site; site = neighbors_area[0];
+      pin_energy = LocalPinEnergy(hfield,site,pot_strength,h0);
+    }
+  return tau_ener + crv_ener + sig_ener + cor_ener + pin_energy;
 }
 
 /*--------------------- TotalEnergy -----------------------*/
@@ -574,7 +590,8 @@ void CalculateTotal(const RectMesh& hfield,const int& DoF,const double& rig,
 		    double& tau_energy,double& crv_energy,double& sig_energy,
 		    double& cor_energy,double& pin_energy,double& tot_area,
 		    double& prj_area,double& alpha,
-		    std::vector<Site>& pinned_sites,double& pot_strength)
+		    std::unordered_set<Site>& pinned_sites,
+		    const double& pot_strength,const double& h0)
 {
   prj_area = (double)DoF*alpha*alpha;
   tot_area = TotalArea(hfield,alpha);
@@ -582,7 +599,7 @@ void CalculateTotal(const RectMesh& hfield,const int& DoF,const double& rig,
   crv_energy = CurvatureEnergyTotal(hfield,alpha,rig);
   sig_energy = sig*tot_area;
   cor_energy = CorrectionEnergyTotal(hfield,alpha);
-  pin_energy = PinningEnergyTotal(hfield,pinned_sites,pot_strength);
+  pin_energy = PinningEnergyTotal(hfield,pinned_sites,pot_strength,h0);
   tot_energy = tau_energy + crv_energy + sig_energy + cor_energy;
 }
 
@@ -608,13 +625,15 @@ bool WhereIs(Site site, int cols, int rows, int nghost)
   else return 0; 
 }
 
-/*-------------------- Ispinned ----------------------*/
+/*------------------------- Ispinned ------------------------*/
 
-bool Ispinned(Site site,std::vector<Site>& pinned_sites)
+bool Ispinned(Site site,std::unordered_set<Site>& pinned_sites)
 {
-  //Site res = std::find(pinned_sites.begin(),pinned_sites.end(),site);
-  //res.print();
-  return 1;
+  auto search = pinned_sites.find(site);
+  if (search != pinned_sites.end()) 
+    return 1;
+  else 
+    return 0;
 }
 
 /*------------------ GetNeighbors ---------------*/
@@ -782,7 +801,8 @@ void ChangeLattice(const RectMesh& hfield,const double& min_change,
 		   double& crv_energy,double& sig_energy,double& cor_energy,
 		   double& pin_energy,double& alpha,int& move_counter,
 		   int& lattice_moves,int& lattice_changes,
-		   std::vector<Site>& pinned_sites,double& pot_strength)
+		   std::unordered_set<Site>& pinned_sites,
+		   const double& pot_strength,const double& h0)
 {
   if(move_counter !=0 && move_counter % 5 == 0)
     {
@@ -796,7 +816,7 @@ void ChangeLattice(const RectMesh& hfield,const double& min_change,
       double old_energy = tot_energy;
       CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
 		     sig_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,
-		     pinned_sites,pot_strength);
+		     pinned_sites,pot_strength,h0);
       double dE = tot_energy - old_energy; 
       bool accept = Metropolis(dE);
       if (accept == 1)

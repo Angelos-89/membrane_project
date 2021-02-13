@@ -14,7 +14,7 @@
 
 std::unordered_set<Site> InitPinning(int N,double pn_prcn);
 void InitSurface(RectMesh& hfield,const double min,const double max,
-		 std::vector<Site>& pinned_sites);
+		 std::unordered_set<Site>& pinned_sites);
 void GhostCopy(RectMesh& mesh);
 void Der(const RectMesh& mesh, Site site, double alpha, double grad[]);
 void Der2(const RectMesh& mesh, Site site, double alpha, double hess[]);
@@ -34,15 +34,19 @@ double CurvatureEnergyTotal(const RectMesh& field,
 double SNodeCorrectionEnergy(const RectMesh& field,Site site,double alpha);
 double LocalCorrectionEnergy(const RectMesh& field,
 			     const Site neighbors[],double alpha);
-double CorrectionEnergyTotal(const RectMesh& field, double alpha);
+double LocalPinEnergy(const RectMesh& hfield,Site& site,
+		      const double& pot_strength,const double& h0);
+double CorrectionEnergyTotal(const RectMesh& field,double alpha);
 double PinningEnergyTotal(const RectMesh& hfield,
-			  std::vector<Site>& pinned_sites,double& pot_strength);
+			  std::unordered_set<Site>& pinned_sites,
+			  double& pot_strength,double h0);
 double LocalEnergy(const RectMesh& hfield,
 		   Site neighbors_area[],
 		   Site neighbors_corr[],
 		   Site neighbors_ener[],
 		   double alpha,const double rig,
-		   const double sig,const double tau);
+		   const double sig,const double tau,
+		   const double& pot_strength,const double& h0,bool pin);
 // double TotalEnergy(RectMesh& hfield,double& total_area,
 // 		   double& prj_area,double alpha,
 // 		   double rig, double sig, double tau);
@@ -51,9 +55,10 @@ void CalculateTotal(const RectMesh& hfield,const int& DoF,const double& rig,
 		    double& tau_energy,double& crv_energy,double& sig_energy,
 		    double& cor_energy,double& pin_energy,double& tot_area,
 		    double& prj_area,double& alpha,
-		    std::vector<Site>& pinned_sites,double& pot_strength);
+		    std::unordered_set<Site>& pinned_sites,
+		    const double& pot_strength,const double& h0);
 bool WhereIs(Site site,int cols,int rows,int nghost);
-bool Ispinned(Site site,std::vector<Site>& pinned_sites);
+bool Ispinned(Site site,std::unordered_set<Site>& pinned_sites);
 void GetNeighbors(const RectMesh& field,Site site,Site neighbors_area[],
 		  Site neighbors_corr[],Site neighbors_ener[]);
 void PrintNeighbors(Site neighbors[],int len);
@@ -64,7 +69,6 @@ void AcceptOrDecline(RectMesh& hfield,Site site,bool accept,
 		     int& accepted_moves,double& perturb);
 void PrintAcceptance(const int maxiter, int accepted_moves,
 		     int lattice_moves, int lattice_changes);
-
 void ChangeLattice(const RectMesh& hfield,const double& min_change,
 		   const double& max_change,const int& DoF,const double& rig,
 		   const double& sig, const double& tau,double& prj_area,
@@ -72,7 +76,8 @@ void ChangeLattice(const RectMesh& hfield,const double& min_change,
 		   double& crv_energy,double& sig_energy,double& cor_energy,
 		   double& pin_energy,double& alpha,int& move_counter,
 		   int& lattice_moves,int& lattice_changes,
-		   std::vector<Site>& pinned_sites,double& pot_strength);
+		   std::unordered_set<Site>& pinned_sites,
+		   const double& pot_strength,const double& h0);
 void Sample(int& iter, std::string filename,double& tot_energy,
 	    double& tau_energy,double& crv_energy,
 	    double& sig_energy,double& cor_energy,
