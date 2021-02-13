@@ -1,5 +1,4 @@
-#!/bin/bash
-export MC_WD=PWD        
+#!/bin/bash       
 mkdir -p src
 cd src
 ln -s $MC_HOME/src/*.cpp .
