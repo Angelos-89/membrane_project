@@ -103,6 +103,9 @@ int main(int argc, char* argv[])
   std::uniform_int_distribution<int>      RandInt(0,N-1);  
   std::uniform_real_distribution<double>  RandDouble(-epsilon,epsilon);
 
+/* Add shift in Energy in metropolis to implement "activity" */
+  AddShift(Eactive);
+
   std::cout << "All variables defined.\n";
   std::cout << "----------------------" << std::endl;
   
@@ -168,7 +171,7 @@ int main(int argc, char* argv[])
 
       dAlocal = local_area_aft - local_area_pre;
       dElocal = local_energy_aft - local_energy_pre;
-      dElocal = dElocal + Eactive;
+ //     dElocal = dElocal + Eactive;
       accept  = Metropolis(dElocal);
       /* If we are solving for an equilibrium membrane the Eactive is zero */
       

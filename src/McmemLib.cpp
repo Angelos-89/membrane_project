@@ -12,6 +12,7 @@
 
 std::random_device rd;
 std::mt19937 mt(rd());
+static double ShiftInEnergy = 0.;
 /*------------------ InitSurface ------------------------*/
 
 /* Initializes a RectMesh object with random values ranging
@@ -621,12 +622,17 @@ void PrintNeighbors(Site neighbors[],int len)
 }
 
 /*-------------- Metropolis ----------------*/
+void AddShift(double& dE){
+  ShiftInEnergy = dE;
+}
+/*-------------- Metropolis ----------------*/
 
 /* It returns 1 if the move is accepted and 
    0 otherwise.                             */
 
 bool Metropolis(double& dElocal )
 {
+  dElocal = dElocal + ShiftInEnergy;
   if(dElocal < 0) return 1;
   else
   {
