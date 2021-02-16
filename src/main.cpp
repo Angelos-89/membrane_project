@@ -32,8 +32,8 @@ int main(int argc, char* argv[])
   MPI_Init(&argc,&argv);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
-  double s;                          
-  double t;                        
+  double s; // to store the internal tension               
+  double t; // to store the frame tension
   std::string input_filename  = "input"    + std::to_string(rank) + ".txt";
   std::string output_filename = "sampling" + std::to_string(rank) + ".txt";
   std::string hfield_filename = "hfield"   + std::to_string(rank) + ".h5";
@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
      "rig" and lattice spacing "alpha". Define and initialize variables 
      needed for the MC code.                                                */
 
-  const int maxiter = 1e8;           //max no of iterations
+  const int maxiter = 1e6;           //max no of iterations
   const int N = 80;                  //DoF per dimension
   const int DoF = N*N;               //Number of degrees of freedom
   const int nghost = 2;              //ghost points per boundary point
@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
   const double min_change = 0.98;    //min percentage of lattice size change
   const double max_change = 1.02;    //max percentage of lattice size change
   double alpha = 1.0;                //lattice spacing (distance between 2 DoF)
-  const double pn_prcn = 0.1;        //percentage of the total DoF to be pinned
+  const double pn_prcn = 0.0;        //percentage of the total DoF to be pinned
   const double pot_strength = 14000; //strength of the pinning potential
   const double h0 = 0;               //equilibrium position of pinned sites
   
@@ -101,8 +101,8 @@ int main(int argc, char* argv[])
   /* 2) Initialize pinning and the height field hfield(i,j)                 */
 
   RectMesh hfield(N,N,nghost);
-  pinned_sites = InitPinning(N,pn_prcn);
-  InitSurface(hfield,-0.1,+0.1,pinned_sites);
+  pinned_sites = InitPinning(N,pn_prcn);      //store pinned sites to a set
+  InitSurface(hfield,-0.1,+0.1,pinned_sites); //initialize a random surface
   
   /* 3) Calculate the projected membrane area "prj_area", the total area 
      "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
@@ -118,8 +118,8 @@ int main(int argc, char* argv[])
     {
       
       /* 4) Randomly choose a lattice site (i,j) and check whether it 
-  	 belongs to the boundaries or to the bulk. Also find and store all
-  	 its neighbors.                                                   */
+  	 belongs to the boundaries or to the bulk, and if it is a pinned
+	 site. Also find and store all its neighbors.                     */
 
       x = RandInt(MT);
       y = RandInt(MT);
@@ -176,8 +176,9 @@ int main(int argc, char* argv[])
       
       /* 11) Sample                                                       */
 
-      Sample(iter,output_filename,tot_energy,tau_energy,crv_energy,sig_energy,
-  	     cor_energy,pin_energy,tot_area,prj_area,alpha,DoF);
+      Sample(iter,output_filename,tot_energy,tau_energy,crv_energy,
+	     sig_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,DoF);
+
       if (iter % (int) 1e5 == 0)
   	hfield.writeH5(cc);
     }

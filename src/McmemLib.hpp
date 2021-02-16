@@ -58,7 +58,7 @@ void CalculateTotal(const RectMesh& hfield,const int& DoF,const double& rig,
 		    std::unordered_set<Site>& pinned_sites,
 		    const double& pot_strength,const double& h0);
 bool WhereIs(Site site,int cols,int rows,int nghost);
-bool Ispinned(Site site,std::unordered_set<Site>& pinned_sites);
+bool Ispinned(Site& site,std::unordered_set<Site>& pinned_sites);
 void GetNeighbors(const RectMesh& field,Site site,Site neighbors_area[],
 		  Site neighbors_corr[],Site neighbors_ener[]);
 void PrintNeighbors(Site neighbors[],int len);

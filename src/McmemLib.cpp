@@ -494,7 +494,7 @@ double LocalPinEnergy(const RectMesh& hfield,Site& site,
    coordinates of the unit normal vectors along the surface of the membrane. 
    Note that we work in reduced units i.e., k_b*T=1.                          */
 
-double CorrectionEnergyTotal(const RectMesh& hfield, double alpha)
+double CorrectionEnergyTotal(const RectMesh& hfield,double alpha)
 {
   //edw giati na mhn kanw mia for kai kanw temp = NormalZ..?
   // Site site;
@@ -627,7 +627,7 @@ bool WhereIs(Site site, int cols, int rows, int nghost)
 
 /*------------------------- Ispinned ------------------------*/
 
-bool Ispinned(Site site,std::unordered_set<Site>& pinned_sites)
+bool Ispinned(Site& site,std::unordered_set<Site>& pinned_sites)
 {
   auto search = pinned_sites.find(site);
   if (search != pinned_sites.end()) 
