@@ -74,9 +74,9 @@ grid on
 %% define functions
 function samples = LoadSamples(filename)
 samples = importdata(filename); 
-%     if length(samples(:,1)) < 1e4
-%         error("Samples must be more than 1e4. Exiting.")
-%     end
+    if length(samples(:,1)) < 1e4
+        error("Samples must be more than 1e4. Exiting.")
+    end
 end
 
 function field = inner(hfield,nghost)

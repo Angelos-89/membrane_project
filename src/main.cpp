@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
      "rig" and lattice spacing "alpha". Define and initialize variables 
      needed for the MC code.                                                */
 
-  const int maxiter = 1e6;           //max no of iterations
+  const int maxiter = 1e8;           //max no of iterations
   const int N = 80;                  //DoF per dimension
   const int DoF = N*N;               //Number of degrees of freedom
   const int nghost = 2;              //ghost points per boundary point
@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
   const double min_change = 0.98;    //min percentage of lattice size change
   const double max_change = 1.02;    //max percentage of lattice size change
   double alpha = 1.0;                //lattice spacing (distance between 2 DoF)
-  const double pn_prcn = 0.0;        //percentage of the total DoF to be pinned
+  const double pn_prcn = 0.1;        //percentage of the total DoF to be pinned
   const double pot_strength = 14000; //strength of the pinning potential
   const double h0 = 0;               //equilibrium position of pinned sites
   
