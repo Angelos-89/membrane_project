@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
       
       /* 11) Sample                                                       */
 
-      Sample(iter,maxiter,output_filename,tot_energy,
+      Sample(iter,accepted_moves,lattice_changes,output_filename,tot_energy,
 	     tau_energy,crv_energy,sig_energy,
   	     cor_energy,tot_area,prj_area,alpha,DoF);
 

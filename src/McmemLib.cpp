@@ -784,7 +784,8 @@ void ChangeLattice(const RectMesh& hfield,const double& min_change,
 
 /* Stores the data in a txt file.                             */
 
-void Sample(int& iter,const int& maxiter, std::string filename,
+void Sample(int& iter,int& accepted_moves,
+	    int& lattice_changes,std::string filename,
 	    double& tot_energy,double& tau_energy,
 	    double& crv_energy,double& sig_energy,
 	    double& cor_energy,double& tot_area,
@@ -806,7 +807,7 @@ void Sample(int& iter,const int& maxiter, std::string filename,
 	   << std::endl;
       file.close();
   }
-  if(iter%1000==0 || iter == maxiter-1)
+  if(accepted_moves % 100 == 0 || lattice_changes % 100 == 0)
     {
       double DOF = (double) DoF;
       std::ofstream file;
