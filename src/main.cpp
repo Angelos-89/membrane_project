@@ -18,13 +18,13 @@ int main(int argc, char* argv[])
   MPI_Init(&argc,&argv);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
-  int maxit;
-  double e,s,t,minchange,maxchange;
-  std::string input_filename  = "input_" + std::to_string(rank) + ".txt";
+  int acc_samples;
+  double maxit,e,s,t,minchange,maxchange;
+  std::string input_filename  = "input_"    + std::to_string(rank) + ".txt";
   std::string output_filename = "sampling_" + std::to_string(rank) + ".txt";
-  std::string hfield_filename = "hfield_" + std::to_string(rank) + ".h5";
+  std::string hfield_filename = "hfield_"   + std::to_string(rank) + ".h5";
   const char* cc = hfield_filename.c_str();
-  ReadInput(input_filename,maxit,s,t,e,minchange,maxchange);
+  ReadInput(input_filename,maxit,s,t,e,minchange,maxchange,acc_samples);
 
   /* 1) Set values for number of degrees of freedom "DoF", bending rigidity 
      "rig" and lattice spacing "alpha". Define and initialize variables 
@@ -41,9 +41,10 @@ int main(int argc, char* argv[])
   const double min_change = minchange; //min percentage of lattice size change
   const double max_change = maxchange; //max percentage of lattice size change
   double alpha = 1.0;                  //lattice spacing(distance between 2 DoF)
-
+  int sample_every = acc_samples;      //sample when acc_samples are accepted
+  
   OutputParams(maxiter,N,DoF,nghost,rig,sig,tau,epsilon,
-	       min_change,max_change,alpha,rank);
+	       min_change,max_change,alpha,sample_every,rank);
   
   double prj_area = 0.0;
   double tot_area = 0.0;
@@ -68,7 +69,7 @@ int main(int argc, char* argv[])
   int accepted_moves = 0;
   int lattice_moves = 0;
   int move_counter = 0;         
-
+  
   int x,y;
   int len_area = 5; 
   int len_corr = 4*nghost+1;
@@ -155,7 +156,8 @@ int main(int argc, char* argv[])
       
       /* 11) Sample                                                       */
 
-      Sample(iter,accepted_moves,lattice_changes,output_filename,tot_energy,
+      Sample(iter,sample_every,accepted_moves,lattice_changes,
+	     output_filename,tot_energy,
 	     tau_energy,crv_energy,sig_energy,
   	     cor_energy,tot_area,prj_area,alpha,DoF);
 

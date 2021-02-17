@@ -23,7 +23,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
 		  const int nghost,const double rig,const double sig,
 		  const double tau,const double epsilon,
 		  const double min_change,const double max_change,
-		  double alpha,int rank)
+		  double alpha,int sample_every,int rank)
 {
   std::stringstream strm; 
   strm << "Run "                              << rank+1
@@ -38,7 +38,8 @@ void OutputParams(const int maxiter,const int N,const int DoF,
        << "Max height perturbation: "         << epsilon    << " (a_0)"  <<"\n"
        << "Min change in lattice spacing: "   << min_change << "%"       <<"\n"
        << "Max change in lattice spacing: "   << max_change << "%"       <<"\n"
-       << "Initial lattice spacing: "         << alpha      << " (a_0)" 
+       << "Initial lattice spacing: "         << alpha      << " (a_0)"  <<"\n"
+       << "Sample every: "                    <<sample_every<< " accepted moves"
        << "\n------------------------------------\n\n";
   std::cout << strm.str();
 
@@ -784,7 +785,7 @@ void ChangeLattice(const RectMesh& hfield,const double& min_change,
 
 /* Stores the data in a txt file.                             */
 
-void Sample(int& iter,int& accepted_moves,
+void Sample(int& iter,int& sample_every,int& accepted_moves,
 	    int& lattice_changes,std::string filename,
 	    double& tot_energy,double& tau_energy,
 	    double& crv_energy,double& sig_energy,
@@ -807,7 +808,7 @@ void Sample(int& iter,int& accepted_moves,
 	   << std::endl;
       file.close();
   }
-  if(accepted_moves % 100 == 0 || lattice_changes % 100 == 0)
+  if(accepted_moves % sample_every == 0 || lattice_changes % sample_every == 0)
     {
       double DOF = (double) DoF;
       std::ofstream file;
@@ -828,8 +829,9 @@ void Sample(int& iter,int& accepted_moves,
 
 /*------------------------------ ReadInput -----------------------------*/
 
-void ReadInput(std::string filename,int& maxiter,double& sig,double& tau,
-	       double& epsilon,double& min_change,double& max_change)
+void ReadInput(std::string filename,double& maxiter,double& sig,double& tau,
+	       double& epsilon,double& min_change,double& max_change,
+	       int& acc_samples)
 {
   std::ifstream infile;
   infile.open(filename);
@@ -839,7 +841,8 @@ void ReadInput(std::string filename,int& maxiter,double& sig,double& tau,
       exit(EXIT_FAILURE);
     }
   while(!infile.eof())
-    infile >> maxiter >> sig >> tau >> epsilon >> min_change >> max_change;
+    infile >> maxiter >> sig >> tau >> epsilon >> min_change >> max_change
+	   >> m_samples;
 
   infile.close();
 }
