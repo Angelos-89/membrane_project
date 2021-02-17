@@ -842,7 +842,7 @@ void ReadInput(std::string filename,double& maxiter,double& sig,double& tau,
     }
   while(!infile.eof())
     infile >> maxiter >> sig >> tau >> epsilon >> min_change >> max_change
-	   >> m_samples;
+	   >> acc_samples;
 
   infile.close();
 }
