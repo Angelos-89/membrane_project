@@ -819,7 +819,7 @@ void Sample(int& iter,int& sample_every,
 	file.close();
     }
 
-  if( (lattice_changes != 0) && (lattice_changes % sample_every == 0) )
+  if( lattice_changes == sample_every )
     {
       double DOF = (double) DoF;
       std::ofstream file;
@@ -831,8 +831,10 @@ void Sample(int& iter,int& sample_every,
 	   << std::setprecision(6) << tau_energy/DOF   << "\t"
 	   << std::setprecision(6) << crv_energy/DOF   << "\t"
 	   << std::setprecision(6) << sig_energy/DOF   << "\t"
-	   << std::setprecision(6) << cor_energy/DOF   << "\t"				   << std::setprecision(6) << tot_energy/DOF   << "\n";
-	file.close();
+	   << std::setprecision(6) << cor_energy/DOF   << "\t"
+	   << std::setprecision(6) << tot_energy/DOF   << "\n";
+      file.close();
+      sample_every += sample_every;
     }
 }
 
