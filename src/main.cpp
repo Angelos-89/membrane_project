@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 
   
   OutputParams(maxiter,N,DoF,nghost,rig,sig,tau,epsilon,
-	       min_change,max_change,alpha,sample_every,pn_prcn,rank);
+	       min_change,max_change,alpha,pn_prcn,sample_every,rank);
   
   double prj_area = 0.0;
   double tot_area = 0.0;
