@@ -12,7 +12,7 @@
 #include <vector>
 #include <string>
 
-
+void PrepareSamplingFiles(std::string filename);
 void OutputParams(const int maxiter,const int N,const int DoF,
 		  const int nghost,const double rig,const double sig,
 		  const double tau,const double epsilon,
@@ -72,21 +72,20 @@ bool Metropolis(double& dElocal);
 void AcceptOrDecline(RectMesh& hfield,Site site,bool accept,
 		     bool where,double& tot_area,double& tot_energy,
 		     double& dAlocal,double& dElocal,
-		     int& accepted_moves,double& perturb);
-void PrintAcceptance(const int maxiter, int accepted_moves,
+		     int& height_moves,double& perturb);
+void PrintAcceptance(const int maxiter, int height_moves,
 		     int lattice_moves, int lattice_changes, int rank);
 bool ChangeLattice(const RectMesh& hfield,const double& min_change,
 		   const double& max_change,const int& DoF,const double& rig,
 		   const double& sig, const double& tau,double& prj_area,
 		   double& tot_area,double& tot_energy,double& tau_energy,
 		   double& crv_energy,double& sig_energy,double& cor_energy,
-		   double& pin_energy,double& alpha,int& move_counter,
+		   double& pin_energy,double& alpha,
 		   int& lattice_moves,int& lattice_changes,
 		   std::unordered_set<Site>& pinned_sites,
 		   const double& pot_strength,const double& h0);
-void Sample(int& iter,int& move_counter,std::string filename,
-	    double& tot_energy,double& tau_energy,
-	    double& crv_energy,double& sig_energy,
+void Sample(int& iter,int& total_moves,std::string filename,
+	    double& tot_energy,double& crv_energy,
 	    double& cor_energy,double& pin_energy,double& tot_area,
 	    double& prj_area,double& alpha,const int& DoF);
 void ReadInput(std::string filename,double& maxiter,double& sig,double& tau,

@@ -808,11 +808,11 @@ bool Metropolis(double& dElocal)
 
 void AcceptOrDecline(RectMesh& hfield,Site site,bool accept,bool where,
 		     double& tot_area,double& tot_energy,double& dAlocal,
-		     double& dElocal,int& accepted_moves,double& perturb)
+		     double& dElocal,int& height_changes,double& perturb)
 {  
   if (accept == 1)
     {
-      accepted_moves ++;
+      height_changes ++;
       tot_energy += dElocal;
       tot_area += dAlocal;
     }
@@ -829,10 +829,10 @@ void AcceptOrDecline(RectMesh& hfield,Site site,bool accept,bool where,
 /* It prints the acceptance rations of both height and lattice size 
    trial moves.                                                      */
 
-void PrintAcceptance(const int maxiter, int accepted_moves,
+void PrintAcceptance(const int maxiter, int height_changes,
 		     int lattice_moves, int lattice_changes,int rank)
 {
-  double accept_ratio = (double) accepted_moves/maxiter;
+  double accept_ratio = (double) height_changes/maxiter;
   double lattice_moves_ratio = (double) lattice_changes/lattice_moves; 
   std::stringstream stream; 
   stream << "Simulation " << rank+1
@@ -864,26 +864,29 @@ bool ChangeLattice(const RectMesh& hfield,const double& min_change,
 		   const double& sig, const double& tau,double& prj_area,
 		   double& tot_area,double& tot_energy,double& tau_energy,
 		   double& crv_energy,double& sig_energy,double& cor_energy,
-		   double& pin_energy,double& alpha,int& move_counter,
+		   double& pin_energy,double& alpha,
 		   int& lattice_moves,int& lattice_changes,
 		   std::unordered_set<Site>& pinned_sites,
 		   const double& pot_strength,const double& h0)
 {
-  //if(move_counter !=0 && move_counter % 5 == 0)
-  //{
   lattice_moves ++;
+
   std::uniform_real_distribution<double> RandDouble(min_change,max_change); 
-  double old_alpha = alpha;
-  double percentage = RandDouble(mt);
-  alpha *= percentage;
+
   double old_prj_area = prj_area;
   double old_tot_area = tot_area;
-  double old_energy = tot_energy;
+  double old_energy   = tot_energy;
+  double old_alpha  = alpha;
+  double percentage = RandDouble(mt);
+  alpha *= percentage;
+  
   CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
 		 sig_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,
 		 pinned_sites,pot_strength,h0);
+
   double dE = tot_energy - old_energy; 
   bool accept = Metropolis(dE);
+
   if (accept == 1)
     {
       lattice_changes ++;
@@ -897,50 +900,44 @@ bool ChangeLattice(const RectMesh& hfield,const double& min_change,
       alpha = old_alpha;
       return 0;
     }
-  //move_counter = 0;
-      //}
+}
+
+/*------------------ PrepareSamplingFiles ---------------------*/
+
+void PrepareSamplingFiles(std::string filename)
+{
+  std::ofstream file;
+  file.open(filename, std::ios::app);
+  file << "iter"               << "\t"
+       << "total_moves"        << "\t"
+       << "total_area"         << "\t"
+       << "prj_area"           << "\t"
+       << "alpha"              << "\t"
+       << "curv_energy"        << "\t"
+       << "entropic_corr"      << "\t"
+       << "pinning_energy"     << "\t"
+       << "tot_energy"         << "\n";
+  file.close();
 }
 
 /*--------------------------- Sample -------------------------*/
 
 /* Stores the data in a txt file.                             */
 
-void Sample(int& iter,int& move_counter,std::string filename,
-	    double& tot_energy,double& tau_energy,
-	    double& crv_energy,double& sig_energy,
+void Sample(int& iter,int& total_moves,std::string filename,
+	    double& tot_energy,double& crv_energy,
 	    double& cor_energy,double& pin_energy,double& tot_area,
 	    double& prj_area,double& alpha,const int& DoF)
 {
-  if (iter == 0)
-    {
-      double DOF = (double) DoF;
-      std::ofstream file;
-      file.open(filename, std::ios::app);
-      file << "iter"               << "\t"
-	   << "move counter"       << "\t"
-	   << "total_area"         << "\t"
-	   << "prj_area"           << "\t"
-	   << "alpha"              << "\t"
-	   << "tau*prj_area"       << "\t" //delete thisa
-	   << "curv_energy"        << "\t"
-	   << "sigma*total_area"   << "\t" //delete this too
-	   << "entropic_corr"      << "\t"
-	   << "pinning_energy"     << "\t"
-	   << "tot_energy"         << "\n";
-      file.close();
-    }
-
   double DOF = (double) DoF;
   std::ofstream file;
   file.open(filename, std::ios::app);
-  file << iter << "\t"
-       << move_counter << "\t"
+  file << iter                                     << "\t"
+       << total_moves                              << "\t"
        << std::setprecision(6) << tot_area/DOF     << "\t"
        << std::setprecision(6) << prj_area/DOF     << "\t"
        << std::setprecision(6) << alpha            << "\t"
-       << std::setprecision(6) << tau_energy/DOF   << "\t"
        << std::setprecision(6) << crv_energy/DOF   << "\t"
-       << std::setprecision(6) << sig_energy/DOF   << "\t"
        << std::setprecision(6) << cor_energy/DOF   << "\t"
        << std::setprecision(6) << pin_energy/DOF   << "\t"
        << std::setprecision(6) << tot_energy/DOF   << "\n";

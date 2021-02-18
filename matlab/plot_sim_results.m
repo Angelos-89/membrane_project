@@ -5,9 +5,9 @@ height  = h5read("hfield_0.h5","/RectMesh");
 height  = inner(height,2);
 
 %% lists of data
-area   = samples(:,2);
-alpha  = samples(:,4);
-energy = samples(:,10);
+area   = samples(:,3);
+alpha  = samples(:,5);
+energy = samples(:,9);
  
 %% plot data
 

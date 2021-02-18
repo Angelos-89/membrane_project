@@ -35,10 +35,12 @@ int main(int argc, char* argv[])
   int acc_samples;
   double maxit,e,s,t,minchange,maxchange,pin_ratio;
   std::string input_filename  = "input_"    + std::to_string(rank) + ".txt";
-  std::string output_filename = "sampling_" + std::to_string(rank) + ".txt";
+  std::string output_filename = "timeseries_" + std::to_string(rank) + ".txt";
   std::string hfield_filename = "hfield_"   + std::to_string(rank) + ".h5";
   const char* cc = hfield_filename.c_str();
 
+  PrepareSamplingFiles(output_filename);
+  
   ReadInput(input_filename,maxit,s,t,e,
 	    minchange,maxchange,pin_ratio,acc_samples);
 
@@ -61,7 +63,7 @@ int main(int argc, char* argv[])
   const double h0 = 0;                 //equilibrium position of pinned sites
   double alpha = 1.0;                  //lattice spacing(distance between 2 DoF)
   int sample_every = acc_samples;      //sample when acc_samples are accepted
-
+  int attempt = 5;                     //iterations to attempt a lattice change
   
   OutputParams(maxiter,N,DoF,nghost,rig,sig,tau,epsilon,
 	       min_change,max_change,alpha,pn_prcn,sample_every,rank);
@@ -85,13 +87,13 @@ int main(int argc, char* argv[])
   
   bool where;                  //indicator of boundary or bulk point
   bool pin;                    //indicator of pinned point
-  bool accept;                 //indicates the acceptance of a Monte-Carlo move
-  bool lattice_accept;
-  
+  bool accept;                 //indicates the acceptance of a height move
+  bool lattice_accept;         //indicates the acceptance of a lattice move
+
   int lattice_changes = 0;
-  int accepted_moves = 0;
+  int height_changes  = 0;
   int lattice_moves = 0;
-  int move_counter = 0;         
+  int total_moves = 0;         
   
   Site site;
   int x,y;
@@ -142,13 +144,13 @@ int main(int argc, char* argv[])
   				     neighbors_corr,
   				     neighbors_ener,
   				     alpha,rig,sig,tau,pot_strength,h0,pin);
+
       local_area_pre = LocalArea(hfield,neighbors_area,alpha);
       
       /* 6) Randomly perturbate the height of the chosen point.           */
 
       perturb = RandDouble(MT); 
       hfield(x,y) += perturb;
-      // move_counter ++;
       if(where==1)
   	GhostCopy(hfield);
       
@@ -158,6 +160,7 @@ int main(int argc, char* argv[])
   				     neighbors_corr,
   				     neighbors_ener,
   				     alpha,rig,sig,tau,pot_strength,h0,pin);
+
       local_area_aft = LocalArea(hfield,neighbors_area,alpha);
       
       /* 8) Calculate the energy difference and check whether the 
@@ -171,47 +174,39 @@ int main(int argc, char* argv[])
   	 Otherwise return to previous state.                              */
 
       AcceptOrDecline(hfield,site,accept,where,tot_area,
-  		      tot_energy,dAlocal,dElocal,accepted_moves,perturb);
+  		      tot_energy,dAlocal,dElocal,height_changes,perturb);
       
-      /* 10) After 5 MC steps, randomly change alpha, compute the 
+      /* 10) After "attempt" iterations, randomly change alpha, compute the 
   	 new projected area and update the total energy.                  */
 
-      if (iter % 5 == 0)
-	lattice_accept = ChangeLattice(hfield,min_change,max_change,DoF,rig,sig,
-		      tau,prj_area,tot_area,tot_energy,tau_energy,
-		      crv_energy,sig_energy,cor_energy,pin_energy,
-		      alpha,move_counter,lattice_moves,lattice_changes,
-		      pinned_sites,pot_strength,h0);
+      if (iter % attempt == 0)
+	lattice_accept = ChangeLattice(hfield,min_change,max_change,
+				       DoF,rig,sig,tau,prj_area,tot_area,
+				       tot_energy,tau_energy,crv_energy,
+				       sig_energy,cor_energy,pin_energy,
+				       alpha,lattice_moves,lattice_changes,
+				       pinned_sites,pot_strength,h0);
       
-      move_counter = accepted_moves + lattice_changes;
+      total_moves = height_changes + lattice_changes;
 
       /* 11) Sample                                                       */
 
-      // std::cout << accepted_moves << "\t" << lattice_changes << "\t" << move_counter << std::endl;
-      // if ( (iter == 0) or (move_counter != 0 and move_counter % sample_every == 0) )
-      if( iter == 0 )
+      if ( (accept == 1 or lattice_accept == 1) and
+	   (total_moves % sample_every == 0) )
 	{
-	  Sample(iter,move_counter,output_filename,tot_energy,
-		 tau_energy,crv_energy,sig_energy,cor_energy,pin_energy,tot_area,
-		 prj_area,alpha,DoF);
+	  Sample(iter,total_moves,output_filename,tot_energy,crv_energy,
+		 cor_energy,pin_energy,tot_area,prj_area,alpha,DoF);
+	  
+	  accept = 0; lattice_accept = 0;
 	}
-      else {
-	if ( (accept == 1 or lattice_accept == 1) and (move_counter % sample_every == 0))
-	  {
-	    Sample(iter,move_counter,output_filename,tot_energy,
-		   tau_energy,crv_energy,sig_energy,cor_energy,pin_energy,tot_area,
-		   prj_area,alpha,DoF);
-	    accept = 0;
-	    lattice_accept = 0;
-	  }
-      }
+   
       if (iter % (int) 1e5 == 0)
-  	hfield.writeH5(cc);
+	hfield.writeH5(cc);
     }
 
   /* 12) Print acceptance ratios and finish                               */
 
-  PrintAcceptance(maxiter,accepted_moves,lattice_moves,lattice_changes,rank);
+  PrintAcceptance(maxiter,height_changes,lattice_moves,lattice_changes,rank);
   
   MPI_Finalize();
   return 0;
