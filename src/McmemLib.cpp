@@ -54,7 +54,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
        << "Min change in lattice spacing: "   << min_change  << "%"       <<"\n"
        << "Max change in lattice spacing: "   << max_change  << "%"       <<"\n"
        << "Initial lattice spacing: "         << alpha       << " (a_0)"  <<"\n"
-       << "Pinning percentage: "              << pn_prcn*100 << " %"      <<"\n"
+       << "Pinning percentage: "              << pn_prcn*100 << "%"      <<"\n"
        << "Sample every: "                    << sample_every<< " moves"
        << "\n------------------------------------\n\n";
   std::cout << strm.str();
@@ -74,7 +74,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
        << "Min change in lattice spacing: "   << min_change  << "%"       <<"\n"
        << "Max change in lattice spacing: "   << max_change  << "%"       <<"\n"
        << "Initial lattice spacing: "         << alpha       << " (a_0)"  <<"\n"
-       << "Pinning percentage: "              << pn_prcn     << " %"      <<"\n"
+       << "Pinning percentage: "              << pn_prcn     << "%"      <<"\n"
        << "Sample every: "                    << sample_every<< " moves";
   file.close();
 }
