@@ -28,18 +28,18 @@ void OutputParams(const int maxiter,const int N,const int DoF,
   std::stringstream strm; 
   strm << "Run "                              << rank+1
        << " parameters: \n-----------------\n"
-       << "Maxiter: "                         << maxiter                 <<"\n"
-       << "Grid Size: "                       << N << "x" << N           <<"\n"
-       << "DoF: "                             << DoF                     <<"\n"
-       << "Ghost points per boundary point: " << nghost                  <<"\n"
-       << "Bending rigidity: "                << rig        << " (k_bT)" <<"\n"
-       << "Internal tension: "                << sig        << " (k_bT)" <<"\n"
-       << "Frame tension: "                   << tau        << " (k_bT)" <<"\n"
-       << "Max height perturbation: "         << epsilon    << " (a_0)"  <<"\n"
-       << "Min change in lattice spacing: "   << min_change << "%"       <<"\n"
-       << "Max change in lattice spacing: "   << max_change << "%"       <<"\n"
-       << "Initial lattice spacing: "         << alpha      << " (a_0)"  <<"\n"
-       << "Sample every: "                    <<sample_every<< " accepted moves"
+       << "Maxiter: "                         << maxiter                  <<"\n"
+       << "Grid Size: "                       << N << "x"  << N           <<"\n"
+       << "DoF: "                             << DoF                      <<"\n"
+       << "Ghost points per boundary point: " << nghost                   <<"\n"
+       << "Bending rigidity: "                << rig         << " (k_bT)" <<"\n"
+       << "Internal tension: "                << sig         << " (k_bT)" <<"\n"
+       << "Frame tension: "                   << tau         << " (k_bT)" <<"\n"
+       << "Max height perturbation: "         << epsilon     << " (a_0)"  <<"\n"
+       << "Min change in lattice spacing: "   << min_change  << "%"       <<"\n"
+       << "Max change in lattice spacing: "   << max_change  << "%"       <<"\n"
+       << "Initial lattice spacing: "         << alpha       << " (a_0)"  <<"\n"
+       << "Sample every: "                    << sample_every<< " moves"
        << "\n------------------------------------\n\n";
   std::cout << strm.str();
 
@@ -47,17 +47,18 @@ void OutputParams(const int maxiter,const int N,const int DoF,
   std::ofstream file;
   std::string filename = "PARAMS_" + std::to_string(rank) + ".txt";
   file.open(filename);
-  file << "Maxiter: "                         << maxiter                 <<"\n"
-       << "Grid Size: "                       << N                       <<"\n"
-       << "DoF: "                             << DoF                     <<"\n"
-       << "Ghost points per boundary point: " << nghost                  <<"\n"
-       << "Bending rigidity: "                << rig        << " (k_bT)" <<"\n"
-       << "Internal tension: "                << sig        << " (k_bT)" <<"\n"
-       << "Frame tension: "                   << tau        << " (k_bT)" <<"\n"
-       << "Max height perturbation: "         << epsilon    << " (a_0)"  <<"\n"
-       << "Min change in lattice spacing: "   << min_change << "%"       <<"\n"
-       << "Max change in lattice spacing: "   << max_change << "%"       <<"\n"
-       << "Initial lattice spacing: "         << alpha      << " (a_0)"  <<"\n";
+  file << "Maxiter: "                         << maxiter                  <<"\n"
+       << "Grid Size: "                       << N                        <<"\n"
+       << "DoF: "                             << DoF                      <<"\n"
+       << "Ghost points per boundary point: " << nghost                   <<"\n"
+       << "Bending rigidity: "                << rig         << " (k_bT)" <<"\n"
+       << "Internal tension: "                << sig         << " (k_bT)" <<"\n"
+       << "Frame tension: "                   << tau         << " (k_bT)" <<"\n"
+       << "Max height perturbation: "         << epsilon     << " (a_0)"  <<"\n"
+       << "Min change in lattice spacing: "   << min_change  << "%"       <<"\n"
+       << "Max change in lattice spacing: "   << max_change  << "%"       <<"\n"
+       << "Initial lattice spacing: "         << alpha       << " (a_0)"  <<"\n"
+       << "Sample every: "                    << sample_every<< " moves";
   file.close();
 }
 
@@ -785,35 +786,28 @@ void ChangeLattice(const RectMesh& hfield,const double& min_change,
 
 /* Stores the data in a txt file.                             */
 
-void Sample(int& iter,int& sample_every,int& accepted_moves,
+void Sample(int& iter,int& sample_every,
 	    int& lattice_changes,std::string filename,
 	    double& tot_energy,double& tau_energy,
 	    double& crv_energy,double& sig_energy,
 	    double& cor_energy,double& tot_area,
 	    double& prj_area,double& alpha,const int& DoF)
 {
-  if (iter == 0)
-    {
-      std::ofstream file;
-      file.open(filename, std::ios::app);
-      file << "%%\b" << "iter"   << "\t" 
-	   << "total_area"       << "\t"
-	   << "prj_area"         << "\t"
-	   << "alpha"            << "\t"
-	   << "tau*prj_area"     << "\t"
-	   << "curv_energy"      << "\t"
-	   << "sigma*total_area" << "\t"
-	   << "entropic_corr"    << "\t"
-	   << "tot_energy"
-	   << std::endl;
-      file.close();
-  }
-  if(accepted_moves % sample_every == 0 || lattice_changes % sample_every == 0)
+  if (iter == 0) // at the first iteration write the fields and the values
     {
       double DOF = (double) DoF;
       std::ofstream file;
       file.open(filename, std::ios::app);
-      file <<  iter << "\t" 
+      file << "%%\b" << "iter"     << "\t" 
+	   << "total_area"         << "\t"
+	   << "prj_area"           << "\t"
+	   << "alpha"              << "\t"
+	   << "tau*prj_area"       << "\t"
+	   << "curv_energy"        << "\t"
+	   << "sigma*total_area"   << "\t"
+	   << "entropic_corr"      << "\t"
+	   << "tot_energy"         << "\n"
+	   << file                 << iter             << "\t" 
 	   << std::setprecision(6) << tot_area/DOF     << "\t"
 	   << std::setprecision(6) << prj_area/DOF     << "\t"
 	   << std::setprecision(6) << alpha            << "\t"
@@ -821,9 +815,25 @@ void Sample(int& iter,int& sample_every,int& accepted_moves,
 	   << std::setprecision(6) << crv_energy/DOF   << "\t"
 	   << std::setprecision(6) << sig_energy/DOF   << "\t"
 	   << std::setprecision(6) << cor_energy/DOF   << "\t"
-	   << std::setprecision(6) << tot_energy/DOF
-	   << std::endl;
-      file.close();
+	   << std::setprecision(6) << tot_energy/DOF   << "\n"
+	file.close();
+    }
+
+  if( (lattice_changes != 0) && (lattice_changes % sample_every == 0) )
+    {
+      double DOF = (double) DoF;
+      std::ofstream file;
+      file.open(filename, std::ios::app);
+      file                         << iter             << "\t" 
+	   << std::setprecision(6) << tot_area/DOF     << "\t"
+	   << std::setprecision(6) << prj_area/DOF     << "\t"
+	   << std::setprecision(6) << alpha            << "\t"
+	   << std::setprecision(6) << tau_energy/DOF   << "\t"
+	   << std::setprecision(6) << crv_energy/DOF   << "\t"
+	   << std::setprecision(6) << sig_energy/DOF   << "\t"
+	   << std::setprecision(6) << cor_energy/DOF   << "\t"
+	   << std::setprecision(6) << tot_energy/DOF   << "\n"
+	file.close();
     }
 }
 

@@ -70,7 +70,7 @@ void ChangeLattice(const RectMesh& hfield,const double& min_change,
 		   double& crv_energy,double& sig_energy,double& cor_energy,
 		   double& alpha,int& move_counter,int& lattice_moves,
 		   int& lattice_changes);
-void Sample(int& iter,int& sample_every,int& accepted_moves,
+void Sample(int& iter,int& sample_every,
 	    int& lattice_changes,std::string filename,
 	    double& tot_energy,double& tau_energy,
 	    double& crv_energy,double& sig_energy,

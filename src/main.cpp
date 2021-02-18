@@ -156,10 +156,9 @@ int main(int argc, char* argv[])
       
       /* 11) Sample                                                       */
 
-      Sample(iter,sample_every,accepted_moves,lattice_changes,
-	     output_filename,tot_energy,
-	     tau_energy,crv_energy,sig_energy,
-  	     cor_energy,tot_area,prj_area,alpha,DoF);
+      Sample(iter,sample_every,lattice_changes,output_filename,tot_energy,
+	     tau_energy,crv_energy,sig_energy,cor_energy,tot_area,
+	     prj_area,alpha,DoF);
 
       if (iter % (int) 1e5 == 0)
   	hfield.writeH5(cc);
