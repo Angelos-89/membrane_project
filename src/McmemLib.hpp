@@ -17,7 +17,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
 		  const int nghost,const double rig,const double sig,
 		  const double tau,const double epsilon,
 		  const double min_change,const double max_change,
-		  double alpha,int sample_every,int rank);
+		  double alpha,double pn_prcn,int sample_every,int rank);
 std::unordered_set<Site> InitPinning(int N,double pn_prcn);
 void InitSurface(RectMesh& hfield,const double min,const double max,
 		 std::unordered_set<Site>& pinned_sites);
@@ -80,17 +80,19 @@ void ChangeLattice(const RectMesh& hfield,const double& min_change,
 		   const double& sig, const double& tau,double& prj_area,
 		   double& tot_area,double& tot_energy,double& tau_energy,
 		   double& crv_energy,double& sig_energy,double& cor_energy,
-		   double& alpha,int& move_counter,int& lattice_moves,
-		   int& lattice_changes);
+		   double& pin_energy,double& alpha,int& move_counter,
+		   int& lattice_moves,int& lattice_changes,
+		   std::unordered_set<Site>& pinned_sites,
+		   const double& pot_strength,const double& h0);
 void Sample(int& iter,int& sample_every,
 	    int& lattice_changes,std::string filename,
 	    double& tot_energy,double& tau_energy,
 	    double& crv_energy,double& sig_energy,
-	    double& cor_energy,double& tot_area,
+	    double& cor_energy,double& pin_energy,double& tot_area,
 	    double& prj_area,double& alpha,const int& DoF);
 void ReadInput(std::string filename,double& maxiter,double& sig,double& tau,
 	       double& epsilon,double& min_change,double& max_change,
-	       int& acc_samples);
+	       double& pin_ratio,int& acc_samples);
 
 // void ReadTxt(const char filename, std::vector<double> &data);
 // void ReadTxtInt(const char filename[], std::vector<int> &data);

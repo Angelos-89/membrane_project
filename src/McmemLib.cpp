@@ -38,7 +38,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
 		  const int nghost,const double rig,const double sig,
 		  const double tau,const double epsilon,
 		  const double min_change,const double max_change,
-		  double alpha,int sample_every,int rank)
+		  double alpha,double pn_prcn,int sample_every,int rank)
 {
   std::stringstream strm; 
   strm << "Run "                              << rank+1
@@ -54,6 +54,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
        << "Min change in lattice spacing: "   << min_change  << "%"       <<"\n"
        << "Max change in lattice spacing: "   << max_change  << "%"       <<"\n"
        << "Initial lattice spacing: "         << alpha       << " (a_0)"  <<"\n"
+       << "Pinning percentage: "              << pn_prcn     << " %"      <<"\n"
        << "Sample every: "                    << sample_every<< " moves"
        << "\n------------------------------------\n\n";
   std::cout << strm.str();
@@ -73,6 +74,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
        << "Min change in lattice spacing: "   << min_change  << "%"       <<"\n"
        << "Max change in lattice spacing: "   << max_change  << "%"       <<"\n"
        << "Initial lattice spacing: "         << alpha       << " (a_0)"  <<"\n"
+       << "Pinning percentage: "              << pn_prcn     << " %"      <<"\n"
        << "Sample every: "                    << sample_every<< " moves";
   file.close();
 }
@@ -905,7 +907,7 @@ void Sample(int& iter,int& sample_every,
 	    int& lattice_changes,std::string filename,
 	    double& tot_energy,double& tau_energy,
 	    double& crv_energy,double& sig_energy,
-	    double& cor_energy,double& tot_area,
+	    double& cor_energy,double& pin_energy,double& tot_area,
 	    double& prj_area,double& alpha,const int& DoF)
 {
   if (iter == 0) // at the first iteration write the fields and the values
@@ -921,6 +923,7 @@ void Sample(int& iter,int& sample_every,
 	   << "curv_energy"        << "\t"
 	   << "sigma*total_area"   << "\t"
 	   << "entropic_corr"      << "\t"
+	   << "pinning_energy"     << "\t"
 	   << "tot_energy"         << "\n"
 	                           << iter             << "\t" 
 	   << std::setprecision(6) << tot_area/DOF     << "\t"
@@ -930,6 +933,7 @@ void Sample(int& iter,int& sample_every,
 	   << std::setprecision(6) << crv_energy/DOF   << "\t"
 	   << std::setprecision(6) << sig_energy/DOF   << "\t"
 	   << std::setprecision(6) << cor_energy/DOF   << "\t"
+	   << std::setprecision(6) << pin_energy/DOF   << "\t"
 	   << std::setprecision(6) << tot_energy/DOF   << "\n";
 	file.close();
     }
@@ -958,7 +962,7 @@ void Sample(int& iter,int& sample_every,
 
 void ReadInput(std::string filename,double& maxiter,double& sig,double& tau,
 	       double& epsilon,double& min_change,double& max_change,
-	       int& acc_samples)
+	       double& pin_ratio,int& acc_samples)
 {
   std::ifstream infile;
   infile.open(filename);
@@ -969,7 +973,7 @@ void ReadInput(std::string filename,double& maxiter,double& sig,double& tau,
     }
   while(!infile.eof())
     infile >> maxiter >> sig >> tau >> epsilon >> min_change >> max_change
-	   >> acc_samples;
+	   >> pin_ratio >> acc_samples;
 
   infile.close();
 }

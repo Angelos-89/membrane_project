@@ -33,13 +33,14 @@ int main(int argc, char* argv[])
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
   int acc_samples;
-  double maxit,e,s,t,minchange,maxchange;
+  double maxit,e,s,t,minchange,maxchange,pin_ratio;
   std::string input_filename  = "input_"    + std::to_string(rank) + ".txt";
   std::string output_filename = "sampling_" + std::to_string(rank) + ".txt";
   std::string hfield_filename = "hfield_"   + std::to_string(rank) + ".h5";
-
   const char* cc = hfield_filename.c_str();
-  ReadInput(input_filename,maxit,s,t,e,minchange,maxchange,acc_samples);
+
+  ReadInput(input_filename,maxit,s,t,e,
+	    minchange,maxchange,pin_ratio,acc_samples);
 
   /* 1) Set values for number of degrees of freedom "DoF", bending rigidity 
      "rig" and lattice spacing "alpha". Define and initialize variables 
@@ -55,7 +56,7 @@ int main(int argc, char* argv[])
   const double epsilon = e;            //maximum possible height perturbation
   const double min_change = minchange; //min percentage of lattice size change
   const double max_change = maxchange; //max percentage of lattice size change
-  const double pn_prcn = 0.1;          //percentage of the total DoF to be pinned
+  const double pn_prcn = pin_ratio;    //ratio of the total DoF to be pinned
   const double pot_strength = 14000;   //strength of the pinning potential
   const double h0 = 0;                 //equilibrium position of pinned sites
   double alpha = 1.0;                  //lattice spacing(distance between 2 DoF)
@@ -63,7 +64,7 @@ int main(int argc, char* argv[])
 
   
   OutputParams(maxiter,N,DoF,nghost,rig,sig,tau,epsilon,
-	       min_change,max_change,alpha,sample_every,rank);
+	       min_change,max_change,alpha,sample_every,pn_prcn,rank);
   
   double prj_area = 0.0;
   double tot_area = 0.0;
@@ -183,7 +184,7 @@ int main(int argc, char* argv[])
       /* 11) Sample                                                       */
       
       Sample(iter,sample_every,lattice_changes,output_filename,tot_energy,
-	     tau_energy,crv_energy,sig_energy,cor_energy,tot_area,
+	     tau_energy,crv_energy,sig_energy,cor_energy,pin_energy,tot_area,
 	     prj_area,alpha,DoF);
 
       if (iter % (int) 1e5 == 0)
