@@ -17,6 +17,7 @@ public:
 
   Site(int xx=0, int yy=0) : x(xx), y(yy) {};
   void set(int xx, int yy){ x = xx; y=yy;}
+  friend bool operator==(const Site& lhs, const Site& rhs);
   int getx() const {return x;}
   int gety() const {return y;}
   void print() const

@@ -1,12 +1,15 @@
 include config.local
 
-objects = main.o Vec3dLib.o RectMesh.o McmemLib.o
+objects = main.o Site.o Vec3dLib.o RectMesh.o McmemLib.o
 
 membrane.exe : $(objects)
 	$(CC) -o membrane.exe $(objects) -I$(HDF5.h_dir) -L$(HDF5.a_dir) -lhdf5_hl_cpp -lhdf5_cpp -lhdf5_hl -lhdf5 -lfftw3
 
 main.o : main.cpp
 	$(CC) $(CFLAGS) main.cpp -I$(HDF5.h_dir)
+
+Site.o : Site.cpp
+	$(CC) $(CFLAGS) Site.cpp 
 
 Vec3dLib.o : Vec3dLib.cpp
 	$(CC) $(CFLAGS) Vec3dLib.cpp

@@ -11,6 +11,19 @@
 #include "Vec3dLib.hpp"
 #include "McmemLib.hpp"
 
+namespace std
+{
+  template <>
+  struct hash<Site>
+  {
+    size_t operator()( const Site& p ) const
+    {
+      return((53 + std::hash<int>()(p.getx()))*53
+	         + std::hash<int>()(p.gety()));
+    }
+  }; 
+}
+
 std::random_device rd;
 std::mt19937 mt(rd());
 
@@ -64,12 +77,45 @@ void OutputParams(const int maxiter,const int N,const int DoF,
   file.close();
 }
 
-/*------------------ InitSurface ------------------------*/
+/*---------------------------- InitPinning ------------------------*/
+
+/* Given the percentage of the total DoF that will be pinned, it 
+   fills the vector with all the pinned sites. N = sqrt(DoF)       */
+
+std::unordered_set<Site> InitPinning(int N,double pn_prcn) 
+{
+  int len = pow(N,2)*pn_prcn;
+  if ( len < 0 )
+    {
+      std::cout << "InitPinning: Length of vector must be greater or equal "
+	"to zero. Exiting."
+		<< std::endl;
+      exit(EXIT_FAILURE);
+    }
+  
+  Site site;
+  int x,y;
+  std::unordered_set<Site> set = {}; 
+  
+  while (set.size() < len)
+    {
+      std::uniform_int_distribution<int> RandInt(0,N-1);
+      x = RandInt(mt);
+      y = RandInt(mt);
+      site.set(x,y);
+      set.insert(site);
+    }
+  return set;  
+}
+
+/*------------------- InitSurface --------------------------*/
 
 /* Initializes a RectMesh object with random values ranging
-from min to max. */
+   from min to max. Furthermore, it sets the sites contained
+   inside the vector to zero.                               */
 
-void InitSurface(RectMesh& hfield,double min,double max)
+void InitSurface(RectMesh& hfield,double min,double max,
+		 std::unordered_set<Site>& pinned_sites)
 {
   std::uniform_real_distribution<double> UnifProb(min,max);
   for (int j=0; j<hfield.getrows(); j++)
@@ -77,6 +123,15 @@ void InitSurface(RectMesh& hfield,double min,double max)
     for (int i=0; i<hfield.getcols(); i++)
       hfield(i,j) = UnifProb(mt);
   }
+  
+  /* Pinning */
+  int x,y;
+  for (auto it = pinned_sites.begin(); it != pinned_sites.end(); ++it)
+    {
+      x = (*it).getx();
+      y = (*it).gety();
+      hfield(x,y) = 0;
+    }
   GhostCopy(hfield);
 }
 
@@ -469,6 +524,17 @@ double LocalCorrectionEnergy(const RectMesh& field,
   return energy;
 }
 
+/*----------------------------- LocalPinEnergy --------------------------------*/
+
+double LocalPinEnergy(const RectMesh& hfield,Site& site,
+		      const double& pot_strength,const double& h0)
+{
+  int x = site.getx();
+  int y = site.gety();
+  double h = hfield(x,y);
+  return 0.5 * pot_strength * pow((h-h0),2);
+}
+  
 /*-------------------------CorrectionEnergyTotal------------------------------*/
 
 /* This function calculates the total correction in energy due to the Monge
@@ -478,7 +544,7 @@ double LocalCorrectionEnergy(const RectMesh& field,
    coordinates of the unit normal vectors along the surface of the membrane. 
    Note that we work in reduced units i.e., k_b*T=1.                          */
 
-double CorrectionEnergyTotal(const RectMesh& hfield, double alpha)
+double CorrectionEnergyTotal(const RectMesh& hfield,double alpha)
 {
   //edw giati na mhn kanw mia for kai kanw temp = NormalZ..?
 
@@ -499,6 +565,29 @@ double CorrectionEnergyTotal(const RectMesh& hfield, double alpha)
   return -temp.sum();
 }
 
+/*------------------------- PinningEnergyTotal --------------------------*/
+
+/* Calculates the total energy due to the harmonic oscillator potential
+   at each pinned site.                                                  */
+
+double PinningEnergyTotal(const RectMesh& hfield,
+			  std::unordered_set<Site>& pinned_sites,
+			  const double& pot_strength,const double& h0)
+{
+  double energy = 0;
+  int x,y;
+  double h;
+  for (auto it = pinned_sites.begin(); it != pinned_sites.end(); it++)
+    {
+      x = (*it).getx();
+      y = (*it).gety();
+      h = hfield(x,y);
+      energy += pow((h-h0),2);
+    }
+  energy *= 0.5*pot_strength;
+  return energy;
+}
+
 /*-------------------------- LocalEnergy -------------------------------------*/
 
 /* This function calculates the local energy by summing up the contributions
@@ -511,13 +600,20 @@ double LocalEnergy(const RectMesh& hfield,
 		   Site neighbors_corr[],
 		   Site neighbors_ener[],
 		   double alpha,const double rig,
-		   const double sig,const double tau)
+		   const double sig,const double tau,
+		   const double& pot_strength,const double& h0,bool pin)
 {
   double tau_ener = -tau*alpha*alpha; 
   double crv_ener = LocalCurvatureEnergy(hfield,neighbors_ener,alpha,rig);
   double sig_ener = sig*LocalArea(hfield,neighbors_area,alpha);
   double cor_ener = LocalCorrectionEnergy(hfield,neighbors_corr,alpha);
-  return tau_ener + crv_ener + sig_ener + cor_ener;
+  double pin_energy = 0;
+  if (pin)
+    {
+      Site site; site = neighbors_area[0];
+      pin_energy = LocalPinEnergy(hfield,site,pot_strength,h0);
+    }
+  return tau_ener + crv_ener + sig_ener + cor_ener + pin_energy;
 }
 
 /*--------------------- TotalEnergy -----------------------*/
@@ -541,10 +637,12 @@ double LocalEnergy(const RectMesh& hfield,
    area of the membrane. It also updates the different energies involved.   */ 
 
 void CalculateTotal(const RectMesh& hfield,const int& DoF,const double& rig,
-		    const double& sig,const double& tau, double& tot_energy,
+		    const double& sig,const double& tau,double& tot_energy,
 		    double& tau_energy,double& crv_energy,double& sig_energy,
-		    double& cor_energy,double& tot_area,
-		    double& prj_area,double& alpha)
+		    double& cor_energy,double& pin_energy,double& tot_area,
+		    double& prj_area,double& alpha,
+		    std::unordered_set<Site>& pinned_sites,
+		    const double& pot_strength,const double& h0)
 {
   prj_area = (double)DoF*alpha*alpha;
   tot_area = TotalArea(hfield,alpha);
@@ -552,6 +650,7 @@ void CalculateTotal(const RectMesh& hfield,const int& DoF,const double& rig,
   crv_energy = CurvatureEnergyTotal(hfield,alpha,rig);
   sig_energy = sig*tot_area;
   cor_energy = CorrectionEnergyTotal(hfield,alpha);
+  pin_energy = PinningEnergyTotal(hfield,pinned_sites,pot_strength,h0);
   tot_energy = tau_energy + crv_energy + sig_energy + cor_energy;
 }
 
@@ -575,6 +674,17 @@ bool WhereIs(Site site, int cols, int rows, int nghost)
   if (i<nghost || i>=cols-nghost || j<nghost || j>=rows-nghost) //boundary point
     return 1;    
   else return 0; 
+}
+
+/*------------------------- Ispinned ------------------------*/
+
+bool Ispinned(Site& site,std::unordered_set<Site>& pinned_sites)
+{
+  auto search = pinned_sites.find(site);
+  if (search != pinned_sites.end()) 
+    return 1;
+  else 
+    return 0;
 }
 
 /*------------------ GetNeighbors ---------------*/
@@ -754,21 +864,24 @@ void ChangeLattice(const RectMesh& hfield,const double& min_change,
 		   const double& sig, const double& tau,double& prj_area,
 		   double& tot_area,double& tot_energy,double& tau_energy,
 		   double& crv_energy,double& sig_energy,double& cor_energy,
-		   double& alpha,int& move_counter,int& lattice_moves,
-		   int& lattice_changes)
+		   double& pin_energy,double& alpha,int& move_counter,
+		   int& lattice_moves,int& lattice_changes,
+		   std::unordered_set<Site>& pinned_sites,
+		   const double& pot_strength,const double& h0)
 {
   if(move_counter !=0 && move_counter % 5 == 0)
     {
       lattice_moves ++;
       std::uniform_real_distribution<double> RandDouble(min_change,max_change); 
       double old_alpha = alpha;
-      double epsilon = RandDouble(mt);
-      alpha *= epsilon;
+      double percentage = RandDouble(mt);
+      alpha *= percentage;
       double old_prj_area = prj_area;
       double old_tot_area = tot_area;
       double old_energy = tot_energy;
       CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
-		     sig_energy,cor_energy,tot_area,prj_area,alpha);
+		     sig_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,
+		     pinned_sites,pot_strength,h0);
       double dE = tot_energy - old_energy; 
       bool accept = Metropolis(dE);
       if (accept == 1)
@@ -834,6 +947,7 @@ void Sample(int& iter,int& sample_every,
 	   << std::setprecision(6) << crv_energy/DOF   << "\t"
 	   << std::setprecision(6) << sig_energy/DOF   << "\t"
 	   << std::setprecision(6) << cor_energy/DOF   << "\t"
+	   << std::setprecision(6) << pin_energy/DOF   << "\t"
 	   << std::setprecision(6) << tot_energy/DOF   << "\n";
       file.close();
       write_index += sample_every;

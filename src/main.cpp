@@ -1,9 +1,23 @@
 #include <mpi.h>
+#include <vector>
 #include <iomanip>
 #include <fstream>
 #include <string>
 #include <random>
 #include "McmemLib.hpp"
+
+namespace std
+{
+  template <>
+  struct hash<Site>
+  {
+    size_t operator()( const Site& p ) const
+    {
+      return((53 + std::hash<int>()(p.getx()))*53
+	         + std::hash<int>()(p.gety()));
+    }
+  }; 
+}
 
 std::random_device RD;
 std::mt19937 MT(RD()); 
@@ -23,6 +37,7 @@ int main(int argc, char* argv[])
   std::string input_filename  = "input_"    + std::to_string(rank) + ".txt";
   std::string output_filename = "sampling_" + std::to_string(rank) + ".txt";
   std::string hfield_filename = "hfield_"   + std::to_string(rank) + ".h5";
+
   const char* cc = hfield_filename.c_str();
   ReadInput(input_filename,maxit,s,t,e,minchange,maxchange,acc_samples);
 
@@ -40,8 +55,12 @@ int main(int argc, char* argv[])
   const double epsilon = e;            //maximum possible height perturbation
   const double min_change = minchange; //min percentage of lattice size change
   const double max_change = maxchange; //max percentage of lattice size change
+  const double pn_prcn = 0.1;          //percentage of the total DoF to be pinned
+  const double pot_strength = 14000;   //strength of the pinning potential
+  const double h0 = 0;                 //equilibrium position of pinned sites
   double alpha = 1.0;                  //lattice spacing(distance between 2 DoF)
   int sample_every = acc_samples;      //sample when acc_samples are accepted
+
   
   OutputParams(maxiter,N,DoF,nghost,rig,sig,tau,epsilon,
 	       min_change,max_change,alpha,sample_every,rank);
@@ -52,6 +71,7 @@ int main(int argc, char* argv[])
   double crv_energy = 0.0;
   double sig_energy = 0.0;
   double cor_energy = 0.0;
+  double pin_energy = 0.0;
   double tot_energy = 0.0;
   
   double local_energy_pre = 0.0;
@@ -63,13 +83,15 @@ int main(int argc, char* argv[])
   double perturb;              //value of the random perturbation
   
   bool where;                  //indicator of boundary or bulk point
+  bool pin;                    //indicator of pinned point
   bool accept;                 //indicates the acceptance of a Monte-Carlo move
   
   int lattice_changes = 0;
   int accepted_moves = 0;
   int lattice_moves = 0;
   int move_counter = 0;         
-  
+
+  Site site;
   int x,y;
   int len_area = 5; 
   int len_corr = 4*nghost+1;
@@ -77,22 +99,24 @@ int main(int argc, char* argv[])
   Site neighbors_area[len_area] = {};
   Site neighbors_corr[len_corr] = {};
   Site neighbors_ener[len_ener] = {};
-  Site site;
+  std::unordered_set<Site> pinned_sites;
   
   std::uniform_int_distribution<int>      RandInt(0,N-1);  
-  std::uniform_real_distribution<double>  RandDouble(-epsilon,epsilon);
+  std::uniform_real_distribution<double>  RandDouble(-epsilon,+epsilon);
 
-  /* 2) Initialize the height field hfield(i,j)                           */ 
+  /* 2) Initialize pinning and the height field hfield(i,j)                 */
 
   RectMesh hfield(N,N,nghost);
-  InitSurface(hfield,-0.1,+0.1);
+  pinned_sites = InitPinning(N,pn_prcn);      //store pinned sites to a set
+  InitSurface(hfield,-0.1,+0.1,pinned_sites); //initialize a random surface
   
   /* 3) Calculate the projected membrane area "prj_area", the total area 
      "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
      "cor_energy" and "tot_energy".                                       */
   
   CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
-  		 sig_energy,cor_energy,tot_area,prj_area,alpha);
+  		 sig_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,
+		 pinned_sites,pot_strength,h0);
 
   /*---------------------------------MC-Loop------------------------------*/
   
@@ -100,21 +124,22 @@ int main(int argc, char* argv[])
     {
       
       /* 4) Randomly choose a lattice site (i,j) and check whether it 
-  	 belongs to the boundaries or to the bulk. Also find and store all
-  	 its neighbors.                                                   */
+  	 belongs to the boundaries or to the bulk, and if it is a pinned
+	 site. Also find and store all its neighbors.                     */
 
       x = RandInt(MT);
       y = RandInt(MT);
       site.set(x,y);
       GetNeighbors(hfield,site,neighbors_area,neighbors_corr,neighbors_ener);
       where = WhereIs(site,N,N,nghost);
-
+      pin = Ispinned(site,pinned_sites);
+      
       /* 5) Calculate the local area and energy of that point.            */
 
       local_energy_pre = LocalEnergy(hfield,neighbors_area,
   				     neighbors_corr,
   				     neighbors_ener,
-  				     alpha,rig,sig,tau);
+  				     alpha,rig,sig,tau,pot_strength,h0,pin);
       local_area_pre = LocalArea(hfield,neighbors_area,alpha);
       
       /* 6) Randomly perturbate the height of the chosen point.           */
@@ -130,13 +155,13 @@ int main(int argc, char* argv[])
       local_energy_aft = LocalEnergy(hfield,neighbors_area,
   				     neighbors_corr,
   				     neighbors_ener,
-  				     alpha,rig,sig,tau);
+  				     alpha,rig,sig,tau,pot_strength,h0,pin);
       local_area_aft = LocalArea(hfield,neighbors_area,alpha);
       
       /* 8) Calculate the energy difference and check whether the 
   	 move is accepted or not.                                         */
 
-      dAlocal = local_area_aft - local_area_pre;
+      dAlocal = local_area_aft   - local_area_pre;
       dElocal = local_energy_aft - local_energy_pre;
       accept  = Metropolis(dElocal);
       
@@ -149,13 +174,14 @@ int main(int argc, char* argv[])
       /* 10) After 5 MC steps, randomly change alpha, compute the 
   	 new projected area and update the total energy.                  */
 
-      ChangeLattice(hfield,min_change,max_change,DoF,rig,sig,tau,prj_area,
-		    tot_area,tot_energy,tau_energy,crv_energy,sig_energy,
-		    cor_energy,alpha,move_counter,
-		    lattice_moves,lattice_changes);
+      ChangeLattice(hfield,min_change,max_change,DoF,rig,sig,
+		    tau,prj_area,tot_area,tot_energy,tau_energy,
+		    crv_energy,sig_energy,cor_energy,pin_energy,
+		    alpha,move_counter,lattice_moves,lattice_changes,
+		    pinned_sites,pot_strength,h0);
       
       /* 11) Sample                                                       */
-
+      
       Sample(iter,sample_every,lattice_changes,output_filename,tot_energy,
 	     tau_energy,crv_energy,sig_energy,cor_energy,tot_area,
 	     prj_area,alpha,DoF);
@@ -167,7 +193,7 @@ int main(int argc, char* argv[])
   /* 12) Print acceptance ratios and finish                               */
 
   PrintAcceptance(maxiter,accepted_moves,lattice_moves,lattice_changes,rank);
-
+  
   MPI_Finalize();
   return 0;
 }
