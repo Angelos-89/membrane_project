@@ -27,8 +27,6 @@ namespace std
 std::random_device rd;
 std::mt19937 mt(rd());
 
-static int write_index = 1;
-
 /*------------------------- OutputParams ---------------------------*/
 
 /* Prints the parameters of the specific run to the 
@@ -861,7 +859,7 @@ void PrintAcceptance(const int maxiter, int accepted_moves,
    accepted or not. If it is, it updates everything, if not, it returns 
    the membrane to its previous state.                                  */
 
-void ChangeLattice(const RectMesh& hfield,const double& min_change,
+bool ChangeLattice(const RectMesh& hfield,const double& min_change,
 		   const double& max_change,const int& DoF,const double& rig,
 		   const double& sig, const double& tau,double& prj_area,
 		   double& tot_area,double& tot_energy,double& tau_energy,
@@ -871,91 +869,82 @@ void ChangeLattice(const RectMesh& hfield,const double& min_change,
 		   std::unordered_set<Site>& pinned_sites,
 		   const double& pot_strength,const double& h0)
 {
-  if(move_counter !=0 && move_counter % 5 == 0)
+  //if(move_counter !=0 && move_counter % 5 == 0)
+  //{
+  lattice_moves ++;
+  std::uniform_real_distribution<double> RandDouble(min_change,max_change); 
+  double old_alpha = alpha;
+  double percentage = RandDouble(mt);
+  alpha *= percentage;
+  double old_prj_area = prj_area;
+  double old_tot_area = tot_area;
+  double old_energy = tot_energy;
+  CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
+		 sig_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,
+		 pinned_sites,pot_strength,h0);
+  double dE = tot_energy - old_energy; 
+  bool accept = Metropolis(dE);
+  if (accept == 1)
     {
-      lattice_moves ++;
-      std::uniform_real_distribution<double> RandDouble(min_change,max_change); 
-      double old_alpha = alpha;
-      double percentage = RandDouble(mt);
-      alpha *= percentage;
-      double old_prj_area = prj_area;
-      double old_tot_area = tot_area;
-      double old_energy = tot_energy;
-      CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
-		     sig_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,
-		     pinned_sites,pot_strength,h0);
-      double dE = tot_energy - old_energy; 
-      bool accept = Metropolis(dE);
-      if (accept == 1)
-	lattice_changes ++;
-      else
-	{
-	  tot_energy = old_energy;
-	  prj_area = old_prj_area;
-	  tot_area = old_tot_area;
-	  alpha = old_alpha;
-	}
-      move_counter = 0;
+      lattice_changes ++;
+      return 1;
     }
+  else
+    {
+      tot_energy = old_energy;
+      prj_area = old_prj_area;
+      tot_area = old_tot_area;
+      alpha = old_alpha;
+      return 0;
+    }
+  //move_counter = 0;
+      //}
 }
 
 /*--------------------------- Sample -------------------------*/
 
 /* Stores the data in a txt file.                             */
 
-void Sample(int& iter,int& sample_every,
-	    int& lattice_changes,std::string filename,
+void Sample(int& iter,int& move_counter,std::string filename,
 	    double& tot_energy,double& tau_energy,
 	    double& crv_energy,double& sig_energy,
 	    double& cor_energy,double& pin_energy,double& tot_area,
 	    double& prj_area,double& alpha,const int& DoF)
 {
-  if (iter == 0) // at the first iteration write the fields and the values
+  if (iter == 0)
     {
       double DOF = (double) DoF;
       std::ofstream file;
       file.open(filename, std::ios::app);
-      file << "iter"               << "\t" 
+      file << "iter"               << "\t"
+	   << "move counter"       << "\t"
 	   << "total_area"         << "\t"
 	   << "prj_area"           << "\t"
 	   << "alpha"              << "\t"
-	   << "tau*prj_area"       << "\t"
+	   << "tau*prj_area"       << "\t" //delete thisa
 	   << "curv_energy"        << "\t"
-	   << "sigma*total_area"   << "\t"
+	   << "sigma*total_area"   << "\t" //delete this too
 	   << "entropic_corr"      << "\t"
 	   << "pinning_energy"     << "\t"
-	   << "tot_energy"         << "\n"
-	                           << iter             << "\t" 
-	   << std::setprecision(6) << tot_area/DOF     << "\t"
-	   << std::setprecision(6) << prj_area/DOF     << "\t"
-	   << std::setprecision(6) << alpha            << "\t"
-	   << std::setprecision(6) << tau_energy/DOF   << "\t"
-	   << std::setprecision(6) << crv_energy/DOF   << "\t"
-	   << std::setprecision(6) << sig_energy/DOF   << "\t"
-	   << std::setprecision(6) << cor_energy/DOF   << "\t"
-	   << std::setprecision(6) << pin_energy/DOF   << "\t"
-	   << std::setprecision(6) << tot_energy/DOF   << "\n";
-	file.close();
+	   << "tot_energy"         << "\n";
+      file.close();
     }
 
-  if( lattice_changes == write_index )
-    {
-      double DOF = (double) DoF;
-      std::ofstream file;
-      file.open(filename, std::ios::app);
-      file << iter << "\t" 
-	   << std::setprecision(6) << tot_area/DOF     << "\t"
-	   << std::setprecision(6) << prj_area/DOF     << "\t"
-	   << std::setprecision(6) << alpha            << "\t"
-	   << std::setprecision(6) << tau_energy/DOF   << "\t"
-	   << std::setprecision(6) << crv_energy/DOF   << "\t"
-	   << std::setprecision(6) << sig_energy/DOF   << "\t"
-	   << std::setprecision(6) << cor_energy/DOF   << "\t"
-	   << std::setprecision(6) << pin_energy/DOF   << "\t"
-	   << std::setprecision(6) << tot_energy/DOF   << "\n";
-      file.close();
-      write_index += sample_every;
-    }
+  double DOF = (double) DoF;
+  std::ofstream file;
+  file.open(filename, std::ios::app);
+  file << iter << "\t"
+       << move_counter << "\t"
+       << std::setprecision(6) << tot_area/DOF     << "\t"
+       << std::setprecision(6) << prj_area/DOF     << "\t"
+       << std::setprecision(6) << alpha            << "\t"
+       << std::setprecision(6) << tau_energy/DOF   << "\t"
+       << std::setprecision(6) << crv_energy/DOF   << "\t"
+       << std::setprecision(6) << sig_energy/DOF   << "\t"
+       << std::setprecision(6) << cor_energy/DOF   << "\t"
+       << std::setprecision(6) << pin_energy/DOF   << "\t"
+       << std::setprecision(6) << tot_energy/DOF   << "\n";
+  file.close();
 }
 
 /*------------------------------ ReadInput -----------------------------*/

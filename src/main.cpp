@@ -86,12 +86,13 @@ int main(int argc, char* argv[])
   bool where;                  //indicator of boundary or bulk point
   bool pin;                    //indicator of pinned point
   bool accept;                 //indicates the acceptance of a Monte-Carlo move
+  bool lattice_accept;
   
   int lattice_changes = 0;
   int accepted_moves = 0;
   int lattice_moves = 0;
   int move_counter = 0;         
-
+  
   Site site;
   int x,y;
   int len_area = 5; 
@@ -147,7 +148,7 @@ int main(int argc, char* argv[])
 
       perturb = RandDouble(MT); 
       hfield(x,y) += perturb;
-      move_counter ++;
+      // move_counter ++;
       if(where==1)
   	GhostCopy(hfield);
       
@@ -175,18 +176,35 @@ int main(int argc, char* argv[])
       /* 10) After 5 MC steps, randomly change alpha, compute the 
   	 new projected area and update the total energy.                  */
 
-      ChangeLattice(hfield,min_change,max_change,DoF,rig,sig,
-		    tau,prj_area,tot_area,tot_energy,tau_energy,
-		    crv_energy,sig_energy,cor_energy,pin_energy,
-		    alpha,move_counter,lattice_moves,lattice_changes,
-		    pinned_sites,pot_strength,h0);
+      if (iter % 5 == 0)
+	lattice_accept = ChangeLattice(hfield,min_change,max_change,DoF,rig,sig,
+		      tau,prj_area,tot_area,tot_energy,tau_energy,
+		      crv_energy,sig_energy,cor_energy,pin_energy,
+		      alpha,move_counter,lattice_moves,lattice_changes,
+		      pinned_sites,pot_strength,h0);
       
-      /* 11) Sample                                                       */
-      
-      Sample(iter,sample_every,lattice_changes,output_filename,tot_energy,
-	     tau_energy,crv_energy,sig_energy,cor_energy,pin_energy,tot_area,
-	     prj_area,alpha,DoF);
+      move_counter = accepted_moves + lattice_changes;
 
+      /* 11) Sample                                                       */
+
+      // std::cout << accepted_moves << "\t" << lattice_changes << "\t" << move_counter << std::endl;
+      // if ( (iter == 0) or (move_counter != 0 and move_counter % sample_every == 0) )
+      if( iter == 0 )
+	{
+	  Sample(iter,move_counter,output_filename,tot_energy,
+		 tau_energy,crv_energy,sig_energy,cor_energy,pin_energy,tot_area,
+		 prj_area,alpha,DoF);
+	}
+      else {
+	if ( (accept == 1 or lattice_accept == 1) and (move_counter % sample_every == 0))
+	  {
+	    Sample(iter,move_counter,output_filename,tot_energy,
+		   tau_energy,crv_energy,sig_energy,cor_energy,pin_energy,tot_area,
+		   prj_area,alpha,DoF);
+	    accept = 0;
+	    lattice_accept = 0;
+	  }
+      }
       if (iter % (int) 1e5 == 0)
   	hfield.writeH5(cc);
     }
