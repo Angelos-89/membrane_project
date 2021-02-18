@@ -7,7 +7,7 @@ height  = inner(height,2);
 %% lists of data
 area   = samples(:,2);
 alpha  = samples(:,4);
-energy = samples(:,9);
+energy = samples(:,10);
  
 %% plot data
 
