@@ -14,6 +14,8 @@
 std::random_device rd;
 std::mt19937 mt(rd());
 
+static int write_index = 1;
+
 /*------------------------- OutputParams ---------------------------*/
 
 /* Prints the parameters of the specific run to the 
@@ -819,7 +821,7 @@ void Sample(int& iter,int& sample_every,
 	file.close();
     }
 
-  if( lattice_changes == sample_every )
+  if( lattice_changes == write_index )
     {
       double DOF = (double) DoF;
       std::ofstream file;
@@ -834,7 +836,7 @@ void Sample(int& iter,int& sample_every,
 	   << std::setprecision(6) << cor_energy/DOF   << "\t"
 	   << std::setprecision(6) << tot_energy/DOF   << "\n";
       file.close();
-      sample_every += sample_every;
+      write_index += sample_every;
     }
 }
 
