@@ -798,7 +798,7 @@ void Sample(int& iter,int& sample_every,
       double DOF = (double) DoF;
       std::ofstream file;
       file.open(filename, std::ios::app);
-      file << "%%\b" << "iter"     << "\t" 
+      file << "iter"               << "\t" 
 	   << "total_area"         << "\t"
 	   << "prj_area"           << "\t"
 	   << "alpha"              << "\t"
@@ -807,7 +807,7 @@ void Sample(int& iter,int& sample_every,
 	   << "sigma*total_area"   << "\t"
 	   << "entropic_corr"      << "\t"
 	   << "tot_energy"         << "\n"
-	   << file                 << iter             << "\t" 
+	                           << iter             << "\t" 
 	   << std::setprecision(6) << tot_area/DOF     << "\t"
 	   << std::setprecision(6) << prj_area/DOF     << "\t"
 	   << std::setprecision(6) << alpha            << "\t"
@@ -815,7 +815,7 @@ void Sample(int& iter,int& sample_every,
 	   << std::setprecision(6) << crv_energy/DOF   << "\t"
 	   << std::setprecision(6) << sig_energy/DOF   << "\t"
 	   << std::setprecision(6) << cor_energy/DOF   << "\t"
-	   << std::setprecision(6) << tot_energy/DOF   << "\n"
+	   << std::setprecision(6) << tot_energy/DOF   << "\n";
 	file.close();
     }
 
@@ -824,15 +824,14 @@ void Sample(int& iter,int& sample_every,
       double DOF = (double) DoF;
       std::ofstream file;
       file.open(filename, std::ios::app);
-      file                         << iter             << "\t" 
+      file << iter << "\t" 
 	   << std::setprecision(6) << tot_area/DOF     << "\t"
 	   << std::setprecision(6) << prj_area/DOF     << "\t"
 	   << std::setprecision(6) << alpha            << "\t"
 	   << std::setprecision(6) << tau_energy/DOF   << "\t"
 	   << std::setprecision(6) << crv_energy/DOF   << "\t"
 	   << std::setprecision(6) << sig_energy/DOF   << "\t"
-	   << std::setprecision(6) << cor_energy/DOF   << "\t"
-	   << std::setprecision(6) << tot_energy/DOF   << "\n"
+	   << std::setprecision(6) << cor_energy/DOF   << "\t"				   << std::setprecision(6) << tot_energy/DOF   << "\n";
 	file.close();
     }
 }
