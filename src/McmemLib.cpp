@@ -124,15 +124,15 @@ void InitSurface(RectMesh& hfield,double min,double max,
       hfield(i,j) = UnifProb(mt);
   }
   
-  /* Pinning */
-  int x,y;
-  for (auto it = pinned_sites.begin(); it != pinned_sites.end(); ++it)
-    {
-      x = (*it).getx();
-      y = (*it).gety();
-      hfield(x,y) = 0;
-    }
-  GhostCopy(hfield);
+  // /* Pinning */
+  // int x,y;
+  // for (auto it = pinned_sites.begin(); it != pinned_sites.end(); ++it)
+  //   {
+  //     x = (*it).getx();
+  //     y = (*it).gety();
+  //     hfield(x,y) = 0;
+  //   }
+  // GhostCopy(hfield);
 }
 
 /*---------------- GhostCopy ------------------*/
