@@ -54,7 +54,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
        << "Min change in lattice spacing: "   << min_change  << "%"       <<"\n"
        << "Max change in lattice spacing: "   << max_change  << "%"       <<"\n"
        << "Initial lattice spacing: "         << alpha       << " (a_0)"  <<"\n"
-       << "Pinning percentage: "              << pn_prcn*100 << "%"      <<"\n"
+       << "Pinning percentage: "              << pn_prcn*100 << "%"       <<"\n"
        << "Sample every: "                    << sample_every<< " moves"
        << "\n------------------------------------\n\n";
   std::cout << strm.str();
@@ -63,19 +63,19 @@ void OutputParams(const int maxiter,const int N,const int DoF,
   std::ofstream file;
   std::string filename = "PARAMS_" + std::to_string(rank) + ".txt";
   file.open(filename);
-  file << "Maxiter: "                         << maxiter                  <<"\n"
-       << "Grid Size: "                       << N                        <<"\n"
-       << "DoF: "                             << DoF                      <<"\n"
-       << "Ghost points per boundary point: " << nghost                   <<"\n"
-       << "Bending rigidity: "                << rig         << " (k_bT)" <<"\n"
-       << "Internal tension: "                << sig         << " (k_bT)" <<"\n"
-       << "Frame tension: "                   << tau         << " (k_bT)" <<"\n"
-       << "Max height perturbation: "         << epsilon     << " (a_0)"  <<"\n"
-       << "Min change in lattice spacing: "   << min_change  << "%"       <<"\n"
-       << "Max change in lattice spacing: "   << max_change  << "%"       <<"\n"
-       << "Initial lattice spacing: "         << alpha       << " (a_0)"  <<"\n"
+  file << "Maxiter: "                         << maxiter                 <<"\n"
+       << "Grid Size: "                       << N                       <<"\n"
+       << "DoF: "                             << DoF                     <<"\n"
+       << "Ghost points per boundary point: " << nghost                  <<"\n"
+       << "Bending rigidity: "                << rig         << " (k_bT)"<<"\n"
+       << "Internal tension: "                << sig         << " (k_bT)"<<"\n"
+       << "Frame tension: "                   << tau         << " (k_bT)"<<"\n"
+       << "Max height perturbation: "         << epsilon     << " (a_0)" <<"\n"
+       << "Min change in lattice spacing: "   << min_change  << "%"      <<"\n"
+       << "Max change in lattice spacing: "   << max_change  << "%"      <<"\n"
+       << "Initial lattice spacing: "         << alpha       << " (a_0)" <<"\n"
        << "Pinning percentage: "              << pn_prcn     << "%"      <<"\n"
-       << "Sample every: "                    << sample_every<< " moves";
+       << "Sample every: "                    << sample_every<< " moves" <<"\n";
   file.close();
 }
 
