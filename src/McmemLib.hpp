@@ -82,7 +82,7 @@ bool ChangeLattice(const RectMesh& hfield,const double& min_change,
 		   int& lattice_moves,int& lattice_changes,
 		   std::unordered_set<Site>& pinned_sites,
 		   const double& pot_strength,const double& h0);
-void Sample(int& iter,int& total_moves,std::string filename,
+void Sample(int& call_sample, int& iter,int& total_moves,std::string filename,
 	    double& tot_energy,double& crv_energy,
 	    double& cor_energy,double& pin_energy,double& tot_area,
 	    double& prj_area,double& alpha,const int& DoF);

@@ -907,17 +907,16 @@ bool ChangeLattice(const RectMesh& hfield,const double& min_change,
 
 /* Stores the data in a txt file.                             */
 
-void Sample(int& iter,int& total_moves,std::string filename,
+void Sample(int& call_sample, int& iter,int& total_moves,std::string filename,
 	    double& tot_energy,double& crv_energy,
 	    double& cor_energy,double& pin_energy,double& tot_area,
 	    double& prj_area,double& alpha,const int& DoF)
 {
-  int index = iter+1;
+  //  int index = iter+1;
   std::ofstream file;
   file.open(filename, std::ios::app);
-  if (total_moves == 0)
+  if (call_sample == 0)
     {
-      index = iter;
       file << "iter"                                          << "\t"
 	   << std::right << std::setw(12)<<"total_moves"      << "\t"
 	   << std::right << std::setw(12) <<"total_area"      << "\t"
@@ -929,7 +928,7 @@ void Sample(int& iter,int& total_moves,std::string filename,
 	   << std::right << std::setw(15) <<"tot_energy"      << "\n";
     }
   double DOF = (double) DoF;
-  file << index                                                                   << "\t"
+  file << iter                                                                   << "\t"
        << std::right << std::setw(12) << total_moves                              << "\t"
        << std::right << std::setw(12) << std::setprecision(6) << tot_area/DOF     << "\t"
        << std::right << std::setw(12) << std::setprecision(6) << prj_area/DOF     << "\t"

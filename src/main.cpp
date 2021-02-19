@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
   const double h0 = 0;                 //equilibrium position of pinned sites
   double alpha = 1.0;                  //lattice spacing(distance between 2 DoF)
   int sample_every = acc_samples;      //sample when acc_samples are accepted
-  int attempt = 5;                     //iterations to attempt a lattice change
+  int attempt_lattice_change = 5;       //iterations to attempt a lattice change
   int iter = 0;
  // 
   OutputParams(maxiter,N,DoF,nghost,rig,sig,tau,epsilon,
@@ -122,12 +122,14 @@ int main(int argc, char* argv[])
   		 sig_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,
 		 pinned_sites,pot_strength,h0);
   //
-  Sample(iter,total_moves,output_filename,tot_energy,crv_energy,
+  int call_sample = 0;
+  Sample(call_sample, iter,total_moves,output_filename,tot_energy,crv_energy,
 	 cor_energy,pin_energy,tot_area,prj_area,alpha,DoF);
+  call_sample=call_sample+1;
   //
   /*---------------------------------MC Loop--------------------------------*/
   
-  for (iter=0; iter<maxiter; iter++)
+  for (iter=1; iter<maxiter+1; iter++)
     {
       
       /* 4) Randomly choose a lattice site (i,j) and check whether it 
@@ -181,32 +183,33 @@ int main(int argc, char* argv[])
       
       AcceptOrDecline(hfield,site,accept,where,tot_area,
   		      tot_energy,dAlocal,dElocal,height_changes,perturb);
-      
+      if (accept)
+	{ total_moves = total_moves + 1;
+	  if (total_moves % sample_every == 0 ){
+	    Sample(call_sample, iter,total_moves,output_filename,tot_energy,crv_energy,
+		 cor_energy,pin_energy,tot_area,prj_area,alpha,DoF);
+	  }
+	}
       /* 10) After "attempt" iterations, randomly change alpha, compute the 
   	 new projected area and update the total energy.                    */
 
-      if (iter % attempt == 0) //should we change iter to height moves?
+      if (iter % attempt_lattice_change == 0) //should we change iter to height moves?
 	lattice_accept = ChangeLattice(hfield,min_change,max_change,
 				       DoF,rig,sig,tau,prj_area,tot_area,
 				       tot_energy,tau_energy,crv_energy,
 				       sig_energy,cor_energy,pin_energy,
 				       alpha,lattice_moves,lattice_changes,
 				       pinned_sites,pot_strength,h0);
-      
-      total_moves = height_changes + lattice_changes;
-      
-      /* 11) Sample                                                         */
-      
-      if ( (iter == maxiter-1) or ((accept == 1 or lattice_accept == 1) and
-				   (total_moves % sample_every    == 0)) )
-	{
-	  Sample(iter,total_moves,output_filename,tot_energy,crv_energy,
+
+      if (lattice_accept)
+	{ total_moves = total_moves + 1;
+	  if (total_moves % sample_every == 0 ){
+	    Sample(call_sample, iter,total_moves,output_filename,tot_energy,crv_energy,
 		 cor_energy,pin_energy,tot_area,prj_area,alpha,DoF);
-	  
-	  accept = 0; lattice_accept = 0;
+	  }
 	}
-      
-      if (iter % (int) 1e5 == 0)
+
+      if (total_moves % (int) 1e3 == 0)
 	hfield.writeH5(cc);
       
     }
