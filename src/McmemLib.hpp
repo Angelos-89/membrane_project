@@ -16,7 +16,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
 		  const int nghost,const double rig,const double sig,
 		  const double tau,const double epsilon,
 		  const double min_change,const double max_change,
-		  double alpha,double pn_prcn,int sample_every,int rank);
+		  double alpha,double pn_prcn,int sample_every,int rank, double Eactive);
 std::unordered_set<Site> InitPinning(int N,double pn_prcn);
 void InitSurface(RectMesh& hfield,const double min,const double max);
 void GhostCopy(RectMesh& mesh);
@@ -88,7 +88,9 @@ void Sample(int& iter,int& total_moves,std::string filename,
 	    double& prj_area,double& alpha,const int& DoF);
 void ReadInput(std::string filename,double& maxiter,double& sig,double& tau,
 	       double& epsilon,double& min_change,double& max_change,
-	       double& pin_ratio,int& acc_samples);
+	       double& pin_ratio,int& acc_samples, double& Ea);
+void AddShift(double& dE);
+
 
 // void ReadTxt(const char filename, std::vector<double> &data);
 // void ReadTxtInt(const char filename[], std::vector<int> &data);
