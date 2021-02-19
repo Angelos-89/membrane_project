@@ -916,26 +916,26 @@ void Sample(int& iter,int& total_moves,std::string filename,
   if (total_moves == 0)
     {
       index = iter;
-      file << "iter"               << "\t"
-	   << "total_moves"        << "\t"
-	   << "total_area"         << "\t"
-	   << "prj_area"           << "\t"
-	   << "alpha"              << "\t"
-	   << "curv_energy"        << "\t"
-	   << "entropic_corr"      << "\t"
-	   << "pinning_energy"     << "\t"
-	   << "tot_energy"         << "\n";
+      file << "iter"                                          << "\t"
+	   << std::right << std::setw(12)<<"total_moves"      << "\t"
+	   << std::right << std::setw(12) <<"total_area"      << "\t"
+	   << std::right << std::setw(12) <<"prj_area"        << "\t"
+	   << std::right << std::setw(12) <<"alpha"           << "\t"
+	   << std::right << std::setw(15) <<"curv_energy"     << "\t"
+	   << std::right << std::setw(15) <<"entropic_corr"   << "\t"
+	   << std::right << std::setw(15) <<"pinning_energy"  << "\t"
+	   << std::right << std::setw(15) <<"tot_energy"      << "\n";
     }
   double DOF = (double) DoF;
-  file << index                                    << "\t"
-       << total_moves                              << "\t"
-       << std::setprecision(6) << tot_area/DOF     << "\t"
-       << std::setprecision(6) << prj_area/DOF     << "\t"
-       << std::setprecision(6) << alpha            << "\t"
-       << std::setprecision(6) << crv_energy/DOF   << "\t"
-       << std::setprecision(6) << cor_energy/DOF   << "\t"
-       << std::setprecision(6) << pin_energy/DOF   << "\t"
-       << std::setprecision(6) << tot_energy/DOF   << "\n";
+  file << index                                                                   << "\t"
+       << std::right << std::setw(12) << total_moves                              << "\t"
+       << std::right << std::setw(12) << std::setprecision(6) << tot_area/DOF     << "\t"
+       << std::right << std::setw(12) << std::setprecision(6) << prj_area/DOF     << "\t"
+       << std::right << std::setw(12) << std::setprecision(6) << alpha            << "\t"
+       << std::right << std::setw(15) << std::setprecision(6) << crv_energy/DOF   << "\t"
+       << std::right << std::setw(15) << std::setprecision(6) << cor_energy/DOF   << "\t"
+       << std::right << std::setw(15) << std::setprecision(6) << pin_energy/DOF   << "\t"
+       << std::right << std::setw(15) << std::setprecision(6) << tot_energy/DOF   << "\n";
   file.close();
 }
 
