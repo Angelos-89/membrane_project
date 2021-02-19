@@ -114,8 +114,7 @@ std::unordered_set<Site> InitPinning(int N,double pn_prcn)
    from min to max. Furthermore, it sets the sites contained
    inside the vector to zero.                               */
 
-void InitSurface(RectMesh& hfield,double min,double max,
-		 std::unordered_set<Site>& pinned_sites)
+void InitSurface(RectMesh& hfield,double min,double max)
 {
   std::uniform_real_distribution<double> UnifProb(min,max);
   for (int j=0; j<hfield.getrows(); j++)
@@ -911,10 +910,12 @@ void Sample(int& iter,int& total_moves,std::string filename,
 	    double& cor_energy,double& pin_energy,double& tot_area,
 	    double& prj_area,double& alpha,const int& DoF)
 {
+  int index = iter+1;
   std::ofstream file;
   file.open(filename, std::ios::app);
-  if (iter == 0)
+  if (total_moves == 0)
     {
+      index = iter;
       file << "iter"               << "\t"
 	   << "total_moves"        << "\t"
 	   << "total_area"         << "\t"
@@ -924,11 +925,9 @@ void Sample(int& iter,int& total_moves,std::string filename,
 	   << "entropic_corr"      << "\t"
 	   << "pinning_energy"     << "\t"
 	   << "tot_energy"         << "\n";
-      file.close();
     }
-
   double DOF = (double) DoF;
-  file << iter                                     << "\t"
+  file << index                                    << "\t"
        << total_moves                              << "\t"
        << std::setprecision(6) << tot_area/DOF     << "\t"
        << std::setprecision(6) << prj_area/DOF     << "\t"

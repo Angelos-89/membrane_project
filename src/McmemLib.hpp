@@ -18,8 +18,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
 		  const double min_change,const double max_change,
 		  double alpha,double pn_prcn,int sample_every,int rank);
 std::unordered_set<Site> InitPinning(int N,double pn_prcn);
-void InitSurface(RectMesh& hfield,const double min,const double max,
-		 std::unordered_set<Site>& pinned_sites);
+void InitSurface(RectMesh& hfield,const double min,const double max);
 void GhostCopy(RectMesh& mesh);
 void Der(const RectMesh& mesh, Site site, double alpha, double grad[]);
 void Der2(const RectMesh& mesh, Site site, double alpha, double hess[]);
