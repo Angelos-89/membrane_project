@@ -26,6 +26,7 @@ namespace std
 
 std::random_device rd;
 std::mt19937 mt(rd());
+
 static double ShiftInEnergy = 0.;
 
 /*------------------------- OutputParams ---------------------------*/
@@ -55,7 +56,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
        << "Initial lattice spacing: "         << alpha       << " (a_0)"  <<"\n"
        << "Pinning percentage: "              << pn_prcn*100 << "%"       <<"\n"
        << "Sample every: "                    << sample_every<< " moves"  <<"\n"
-       << "Eactive: "                         << Eactive     << " (k_B T) " 
+       << "Eactive: "                         << Eactive     << " (k_BT) " 
        << "\n------------------------------------\n\n";
   std::cout << strm.str();
 
@@ -757,6 +758,7 @@ void GetNeighbors(const RectMesh& field,Site site,
 }
 
 /*------------ PrintNeighbors -------------*/
+
 void PrintNeighbors(Site neighbors[],int len)
 {
   for(int i=0; i<len; i++)
@@ -764,15 +766,18 @@ void PrintNeighbors(Site neighbors[],int len)
 }
 
 /*------------- AddShift ----------------*/
-void AddShift(double& dE){
+
+void AddShift(double& dE)
+{
   ShiftInEnergy = dE;
 }
 
 /*------------------- Metropolis ----------------------*/
+
 /* It returns 1 if the move is accepted and 
    0 otherwise according to the Boltzmann criterion.   */
 
-bool Metropolis(double& dElocal )
+bool Metropolis(double& dElocal)
 {
   dElocal += ShiftInEnergy;
   if(dElocal < 0) return 1;
@@ -860,7 +865,7 @@ bool ChangeLattice(const RectMesh& hfield,const double& min_change,
 
   double old_prj_area = prj_area;
   double old_tot_area = tot_area;
-  double old_energy   = tot_energy;
+  double old_energy = tot_energy;
   double old_alpha  = alpha;
   double percentage = RandDouble(mt);
   alpha *= percentage;

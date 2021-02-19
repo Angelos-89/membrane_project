@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
       /* 8) Calculate the energy difference and check whether the 
   	 move is accepted or not.                                           */
 
-      dAlocal = local_area_aft   - local_area_pre;
+      dAlocal = local_area_aft - local_area_pre;
       dElocal = local_energy_aft - local_energy_pre;
       accept  = Metropolis(dElocal);
       
