@@ -27,11 +27,12 @@ namespace std
 std::random_device rd;
 std::mt19937 mt(rd());
 static double ShiftInEnergy = 0.;
-//
+
 /*------------------------- OutputParams ---------------------------*/
+
 /* Prints the parameters of the specific run to the 
    console and writes them to a .txt file                           */
-//
+
 void OutputParams(const int maxiter,const int N,const int DoF,
 		  const int nghost,const double rig,const double sig,
 		  const double tau,const double epsilon,
@@ -53,7 +54,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
        << "Max change in lattice spacing: "   << max_change  << "%"       <<"\n"
        << "Initial lattice spacing: "         << alpha       << " (a_0)"  <<"\n"
        << "Pinning percentage: "              << pn_prcn*100 << "%"       <<"\n"
-       << "Sample every: "                    << sample_every<< " moves"  << "\n" 
+       << "Sample every: "                    << sample_every<< " moves"  <<"\n"
        << "Eactive: "                         << Eactive     << " (k_B T) " 
        << "\n------------------------------------\n\n";
   std::cout << strm.str();
@@ -62,20 +63,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
   std::ofstream file;
   std::string filename = "PARAMS_" + std::to_string(rank) + ".txt";
   file.open(filename);
-  file << "Maxiter: "                         << maxiter                 <<"\n"
-       << "Grid Size: "                       << N                       <<"\n"
-       << "DoF: "                             << DoF                     <<"\n"
-       << "Ghost points per boundary point: " << nghost                  <<"\n"
-       << "Bending rigidity: "                << rig         << " (k_bT)"<<"\n"
-       << "Internal tension: "                << sig         << " (k_bT)"<<"\n"
-       << "Frame tension: "                   << tau         << " (k_bT)"<<"\n"
-       << "Max height perturbation: "         << epsilon     << " (a_0)" <<"\n"
-       << "Min change in lattice spacing: "   << min_change  << "%"      <<"\n"
-       << "Max change in lattice spacing: "   << max_change  << "%"      <<"\n"
-       << "Initial lattice spacing: "         << alpha       << " (a_0)" <<"\n"
-       << "Pinning percentage: "              << pn_prcn     << "%"      <<"\n"
-       << "Sample every: "                    << sample_every<< " moves" <<"\n"
-       << "Eactive: "                         << Eactive     << " (k_B T) " ;
+  file << strm.str();
   file.close();
 }
 
@@ -109,6 +97,9 @@ std::unordered_set<Site> InitPinning(int N,double pn_prcn)
     }
   return set;  
 }
+
+/*------------------------ InitSurface ---------------------*/
+
 /* Initializes a RectMesh object with random values ranging
    from min to max. Furthermore, it sets the sites contained
    inside the vector to zero.                               */
@@ -121,16 +112,7 @@ void InitSurface(RectMesh& hfield,double min,double max)
     for (int i=0; i<hfield.getcols(); i++)
       hfield(i,j) = UnifProb(mt);
   }
-  
-  // /* Pinning */
-  // int x,y;
-  // for (auto it = pinned_sites.begin(); it != pinned_sites.end(); ++it)
-  //   {
-  //     x = (*it).getx();
-  //     y = (*it).gety();
-  //     hfield(x,y) = 0;
-  //   }
-  // GhostCopy(hfield);
+  GhostCopy(hfield);
 }
 
 /*---------------- GhostCopy ------------------*/
@@ -781,24 +763,26 @@ void PrintNeighbors(Site neighbors[],int len)
     neighbors[i].print();
 }
 
-/*-------------- Metropolis ----------------*/
+/*------------- AddShift ----------------*/
 void AddShift(double& dE){
   ShiftInEnergy = dE;
 }
+
+/*------------------- Metropolis ----------------------*/
 /* It returns 1 if the move is accepted and 
    0 otherwise according to the Boltzmann criterion.   */
-//
+
 bool Metropolis(double& dElocal )
 {
-  dElocal = dElocal + ShiftInEnergy;
+  dElocal += ShiftInEnergy;
   if(dElocal < 0) return 1;
   else
-  {
-    std::uniform_real_distribution<double> UnifProb(0,1);
-    double r = UnifProb(mt);
-    if (r < exp(-dElocal)) return 1;
-    else return 0;
-  }
+    {
+      std::uniform_real_distribution<double> UnifProb(0,1);
+      double r = UnifProb(mt);
+      if (r < exp(-dElocal)) return 1;
+      else return 0;
+    }
 }
 
 /*------------------------- AcceptOrdecline -----------------------------*/
@@ -912,13 +896,12 @@ void Sample(int& call_sample, int& iter,int& total_moves,std::string filename,
 	    double& cor_energy,double& pin_energy,double& tot_area,
 	    double& prj_area,double& alpha,const int& DoF)
 {
-  //  int index = iter+1;
   std::ofstream file;
   file.open(filename, std::ios::app);
   if (call_sample == 0)
     {
       file << "iter"                                          << "\t"
-	   << std::right << std::setw(12)<<"total_moves"      << "\t"
+	   << std::right << std::setw(12) <<"total_moves"     << "\t"
 	   << std::right << std::setw(12) <<"total_area"      << "\t"
 	   << std::right << std::setw(12) <<"prj_area"        << "\t"
 	   << std::right << std::setw(12) <<"alpha"           << "\t"
@@ -928,7 +911,7 @@ void Sample(int& call_sample, int& iter,int& total_moves,std::string filename,
 	   << std::right << std::setw(15) <<"tot_energy"      << "\n";
     }
   double DOF = (double) DoF;
-  file << iter                                                                   << "\t"
+  file << iter                                                                    << "\t"
        << std::right << std::setw(12) << total_moves                              << "\t"
        << std::right << std::setw(12) << std::setprecision(6) << tot_area/DOF     << "\t"
        << std::right << std::setw(12) << std::setprecision(6) << prj_area/DOF     << "\t"
@@ -940,7 +923,8 @@ void Sample(int& call_sample, int& iter,int& total_moves,std::string filename,
   file.close();
 }
 
-/*---------------------------------------------*/
+/*-------------------------------- ReadInput -----------------------------*/
+
 void ReadInput(std::string filename,double& maxiter,double& sig,double& tau,
 	       double& epsilon,double& min_change,double& max_change,
 	       double& pin_ratio,int& acc_samples, double& Ea)
@@ -958,7 +942,7 @@ void ReadInput(std::string filename,double& maxiter,double& sig,double& tau,
 
   infile.close();
 }
-/* ---------------------------------------------- */
+
 
 // void ReadTxt(const char filename[], std::vector<double> &data)
 // {

@@ -29,24 +29,25 @@ int main(int argc, char* argv[])
         and frame tensions.                                                 */ 
 
   int rank;
-//  std::cout << "Initiating MPI: DONE" << std::endl;
   MPI_Init(&argc,&argv);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-//
+  
   int acc_samples;
   double maxit,e,s,t,minchange,maxchange,pin_ratio;
-  double Eactive=0. ;
+  double Eactive = 0;
+  /* Eactive is the active energy, zero by default.
+     If you set the Eactive to non-zero values the membrane is no longer in
+     equilibrium. The value can be both positive or negative. 
+     See Kumar & Dasgupta PRE 102, 2020 */
+  
   std::string input_filename  = "input_"      + std::to_string(rank) + ".txt";
   std::string output_filename = "timeseries_" + std::to_string(rank) + ".txt";
   std::string hfield_filename = "hfield_"     + std::to_string(rank) + ".h5";
   const char* cc = hfield_filename.c_str();
+
   ReadInput(input_filename,maxit,s,t,e,
-	    minchange,maxchange,pin_ratio,acc_samples, Eactive);
-/* Eactive is the Active energy, zero by default
- * If you set the Eactive to non-zero values the membrane is no longer is
- * equilibrium. The value can be both positive or negative. See Kumar &
- * Dasgupta PRE 102, 2020 */  
-//
+	    minchange,maxchange,pin_ratio,acc_samples,Eactive);
+  
   const int maxiter = maxit;           //max no of iterations
   const int N = 80;                    //DoF per dimension
   const int DoF = N*N;                 //number of degrees of freedom
@@ -64,10 +65,10 @@ int main(int argc, char* argv[])
   int sample_every = acc_samples;      //sample when acc_samples are accepted
   int attempt_lattice_change = 5;       //iterations to attempt a lattice change
   int iter = 0;
- // 
+  
   OutputParams(maxiter,N,DoF,nghost,rig,sig,tau,epsilon,
-	       min_change,max_change,alpha,pn_prcn,sample_every,rank, Eactive);
-//
+	       min_change,max_change,alpha,pn_prcn,sample_every,rank,Eactive);
+  
   double prj_area = 0.0;
   double tot_area = 0.0;
   double tau_energy = 0.0;
@@ -94,6 +95,7 @@ int main(int argc, char* argv[])
   int height_changes = 0;      //number of accepted height moves
   int lattice_moves = 0;       //number of lattice change attempts
   int total_moves = 0;         //total accepted moves
+  int call_sample = 0;
   
   Site site;
   int x,y;
@@ -107,26 +109,28 @@ int main(int argc, char* argv[])
   
   std::uniform_int_distribution<int>      RandInt(0,N-1);  
   std::uniform_real_distribution<double>  RandDouble(-epsilon,+epsilon);
-/* Add shift in Energy in metropolis to implement "activity" */
-  AddShift(Eactive);
-/* 2) Initialize pinning and the height field hfield(i,j)                 */
+
+  AddShift(Eactive); //shift energy in metropolis to implement "activity".
+
+  /* 2) Initialize pinning and the height field hfield(i,j)                 */
+
   RectMesh hfield(N,N,nghost);
   pinned_sites = InitPinning(N,pn_prcn); //store pinned sites to a set
   InitSurface(hfield,-0.1,+0.1);         //initialize a random surface
-  //  
+    
   /* 3) Calculate the projected membrane area "prj_area", the total area 
      "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
      "cor_energy" and "tot_energy" and write the data.                      */
-  //  
+    
   CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
   		 sig_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,
 		 pinned_sites,pot_strength,h0);
-  //
-  int call_sample = 0;
-  Sample(call_sample, iter,total_moves,output_filename,tot_energy,crv_energy,
+  
+  Sample(call_sample,iter,total_moves,output_filename,tot_energy,crv_energy,
 	 cor_energy,pin_energy,tot_area,prj_area,alpha,DoF);
-  call_sample=call_sample+1;
-  //
+
+  call_sample ++;
+  
   /*---------------------------------MC Loop--------------------------------*/
   
   for (iter=1; iter<maxiter+1; iter++)
@@ -176,45 +180,50 @@ int main(int argc, char* argv[])
       dAlocal = local_area_aft   - local_area_pre;
       dElocal = local_energy_aft - local_energy_pre;
       accept  = Metropolis(dElocal);
-      /* If we are solving for an equilibrium membrane the Eactive is zero */
       
       /* 9) If the move is accepted, update total area and energy.
   	 Otherwise return to previous state.                                */
       
       AcceptOrDecline(hfield,site,accept,where,tot_area,
   		      tot_energy,dAlocal,dElocal,height_changes,perturb);
-      if (accept)
-	{ total_moves = total_moves + 1;
-	  if (total_moves % sample_every == 0 ){
-	    Sample(call_sample, iter,total_moves,output_filename,tot_energy,crv_energy,
-		 cor_energy,pin_energy,tot_area,prj_area,alpha,DoF);
-	  }
-	}
-      /* 10) After "attempt" iterations, randomly change alpha, compute the 
-  	 new projected area and update the total energy.                    */
 
-      if (iter % attempt_lattice_change == 0) //should we change iter to height moves?
+      if (accept) //if the move is accepted update total_moves
+	{
+	  total_moves ++;
+	  
+	  if (total_moves % sample_every == 0) //write every sample_every moves 
+	    Sample(call_sample,iter,total_moves,output_filename,
+		   tot_energy,crv_energy,cor_energy,pin_energy,
+		   tot_area,prj_area,alpha,DoF);
+	}
+      
+      /* 10) After "attempt_lattice_change" iterations, randomly change 
+	 alpha, compute the new projected area and update the 
+	 total energy.                                                      */
+
+      if (iter % attempt_lattice_change == 0) 
 	lattice_accept = ChangeLattice(hfield,min_change,max_change,
 				       DoF,rig,sig,tau,prj_area,tot_area,
 				       tot_energy,tau_energy,crv_energy,
 				       sig_energy,cor_energy,pin_energy,
 				       alpha,lattice_moves,lattice_changes,
 				       pinned_sites,pot_strength,h0);
-
-      if (lattice_accept)
-	{ total_moves = total_moves + 1;
-	  if (total_moves % sample_every == 0 ){
-	    Sample(call_sample, iter,total_moves,output_filename,tot_energy,crv_energy,
-		 cor_energy,pin_energy,tot_area,prj_area,alpha,DoF);
-	  }
-	}
-
-      if (total_moves % (int) 1e3 == 0)
-	hfield.writeH5(cc);
       
+      if (lattice_accept) //if the move is accepted update total_moves
+	{  
+	  total_moves ++;
+	  
+	  if (total_moves % sample_every == 0 ) //write every sample_every moves
+	    Sample(call_sample,iter,total_moves,output_filename,
+		   tot_energy,crv_energy,cor_energy,pin_energy,
+		   tot_area,prj_area,alpha,DoF);
+	}
+      
+      if (total_moves % (int) 1e3 == 0) //write surface every 1e3 accepted moves
+	hfield.writeH5(cc);
     }
-
-  /* 12) Print acceptance ratios and finish                                 */
+  
+  /* 11) Print acceptance ratios and finish                                 */
 
   PrintAcceptance(maxiter,height_changes,lattice_moves,lattice_changes,rank);
   
