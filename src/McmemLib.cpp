@@ -902,24 +902,6 @@ bool ChangeLattice(const RectMesh& hfield,const double& min_change,
     }
 }
 
-/*------------------ PrepareSamplingFiles ---------------------*/
-
-void PrepareSamplingFiles(std::string filename)
-{
-  std::ofstream file;
-  file.open(filename, std::ios::app);
-  file << "iter"               << "\t"
-       << "total_moves"        << "\t"
-       << "total_area"         << "\t"
-       << "prj_area"           << "\t"
-       << "alpha"              << "\t"
-       << "curv_energy"        << "\t"
-       << "entropic_corr"      << "\t"
-       << "pinning_energy"     << "\t"
-       << "tot_energy"         << "\n";
-  file.close();
-}
-
 /*--------------------------- Sample -------------------------*/
 
 /* Stores the data in a txt file.                             */
@@ -929,9 +911,23 @@ void Sample(int& iter,int& total_moves,std::string filename,
 	    double& cor_energy,double& pin_energy,double& tot_area,
 	    double& prj_area,double& alpha,const int& DoF)
 {
-  double DOF = (double) DoF;
   std::ofstream file;
   file.open(filename, std::ios::app);
+  if (iter == 0)
+    {
+      file << "iter"               << "\t"
+	   << "total_moves"        << "\t"
+	   << "total_area"         << "\t"
+	   << "prj_area"           << "\t"
+	   << "alpha"              << "\t"
+	   << "curv_energy"        << "\t"
+	   << "entropic_corr"      << "\t"
+	   << "pinning_energy"     << "\t"
+	   << "tot_energy"         << "\n";
+      file.close();
+    }
+
+  double DOF = (double) DoF;
   file << iter                                     << "\t"
        << total_moves                              << "\t"
        << std::setprecision(6) << tot_area/DOF     << "\t"

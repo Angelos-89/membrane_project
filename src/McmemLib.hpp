@@ -12,7 +12,6 @@
 #include <vector>
 #include <string>
 
-void PrepareSamplingFiles(std::string filename);
 void OutputParams(const int maxiter,const int N,const int DoF,
 		  const int nghost,const double rig,const double sig,
 		  const double tau,const double epsilon,

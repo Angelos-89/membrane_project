@@ -38,8 +38,6 @@ int main(int argc, char* argv[])
   std::string output_filename = "timeseries_" + std::to_string(rank) + ".txt";
   std::string hfield_filename = "hfield_"   + std::to_string(rank) + ".h5";
   const char* cc = hfield_filename.c_str();
-
-  PrepareSamplingFiles(output_filename);
   
   ReadInput(input_filename,maxit,s,t,e,
 	    minchange,maxchange,pin_ratio,acc_samples);
@@ -192,7 +190,7 @@ int main(int argc, char* argv[])
       /* 11) Sample                                                       */
 
       if ( (accept == 1 or lattice_accept == 1) and
-	   (total_moves % sample_every == 0) )
+	   (total_moves  % sample_every   == 0))
 	{
 	  Sample(iter,total_moves,output_filename,tot_energy,crv_energy,
 		 cor_energy,pin_energy,tot_area,prj_area,alpha,DoF);
