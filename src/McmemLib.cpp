@@ -27,6 +27,7 @@ namespace std
 std::random_device rd;
 std::mt19937 mt(rd());
 
+static int call_sample = 0;
 static double ShiftInEnergy = 0.;
 
 /*------------------------- OutputParams ---------------------------*/
@@ -908,7 +909,7 @@ bool ChangeLattice(const RectMesh& hfield,const double& min_change,
 
 /* Stores the data in a txt file.                             */
 
-void Sample(int& call_sample, int& iter,int& total_moves,std::string filename,
+void Sample(int& iter,int& total_moves,std::string filename,
 	    double& tot_energy,double& crv_energy,
 	    double& cor_energy,double& pin_energy,double& tot_area,
 	    double& prj_area,double& alpha,const int& DoF)
@@ -938,6 +939,7 @@ void Sample(int& call_sample, int& iter,int& total_moves,std::string filename,
        << std::right << std::setw(15) << std::setprecision(6) << pin_energy/DOF   << "\t"
        << std::right << std::setw(15) << std::setprecision(6) << tot_energy/DOF   << "\n";
   file.close();
+  call_sample ++;
 }
 
 /*-------------------------------- ReadInput -----------------------------*/

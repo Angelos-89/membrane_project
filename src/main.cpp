@@ -6,6 +6,7 @@
 #include <random>
 #include "McmemLib.hpp"
 
+/* Hash function for the Site class */
 namespace std
 {
   template <>
@@ -26,8 +27,7 @@ int main(int argc, char* argv[])
 {
 
   /* 0) Initialize MPI and read files with the values of internal 
-        and frame tensions.                                                 */ 
-
+        and frame tensions.                                                   */ 
   int rank;
   MPI_Init(&argc,&argv);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
@@ -36,8 +36,9 @@ int main(int argc, char* argv[])
   double maxit,e,s,t,minchange,maxchange,pin_ratio;
   double Eactive = 0;
   /* Eactive is the active energy, zero by default.
-     If you set the Eactive to non-zero values the membrane is no longer in
-     equilibrium. The value can be both positive or negative. 
+     If you set the Eactive to non-zero values the 
+     membrane is no longer in equilibrium. The value 
+     can be both positive or negative. 
      See Kumar & Dasgupta PRE 102, 2020 */
   
   std::string input_filename  = "input_"      + std::to_string(rank) + ".txt";
@@ -95,7 +96,6 @@ int main(int argc, char* argv[])
   int height_changes = 0;      //number of accepted height moves
   int lattice_moves = 0;       //number of lattice change attempts
   int total_moves = 0;         //total accepted moves
-  int call_sample = 0;
   
   Site site;
   int x,y;
@@ -112,33 +112,31 @@ int main(int argc, char* argv[])
 
   AddShift(Eactive); //shift energy in metropolis to implement "activity".
 
-  /* 2) Initialize pinning and the height field hfield(i,j)                 */
+  /* 2) Initialize pinning and the height field hfield(i,j)                   */
 
   RectMesh hfield(N,N,nghost);
-  pinned_sites = InitPinning(N,pn_prcn);      //store pinned sites to a set
+  pinned_sites = InitPinning(N,pn_prcn);         //store pinned sites to a set
   InitSurface(hfield,pinned_sites,-0.1,+0.1,h0); //initialize a random surface
     
   /* 3) Calculate the projected membrane area "prj_area", the total area 
      "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
-     "cor_energy" and "tot_energy" and write the data.                      */
+     "cor_energy" and "tot_energy" and write the data.                        */
     
   CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
   		 sig_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,
 		 pinned_sites,pot_strength,h0);
   
-  Sample(call_sample,iter,total_moves,output_filename,tot_energy,crv_energy,
+  Sample(iter,total_moves,output_filename,tot_energy,crv_energy,
 	 cor_energy,pin_energy,tot_area,prj_area,alpha,DoF);
-
-  call_sample ++;
   
-  /*---------------------------------MC Loop--------------------------------*/
+  /*----------------------------------MC Loop---------------------------------*/
   
   for (iter=1; iter<maxiter+1; iter++)
     {
       
       /* 4) Randomly choose a lattice site (i,j) and check whether it 
   	 belongs to the boundaries or to the bulk, and if it is a pinned
-	 site. Also find and store all its neighbors.                       */
+	 site. Also find and store all its neighbors.                         */
 
       x = RandInt(MT);
       y = RandInt(MT);
@@ -147,7 +145,7 @@ int main(int argc, char* argv[])
       where = WhereIs(site,N,N,nghost);
       pin = Ispinned(site,pinned_sites);
       
-      /* 5) Calculate the local area and energy of that point.              */
+      /* 5) Calculate the local area and energy of that point.                */
 
       local_energy_pre = LocalEnergy(hfield,neighbors_area,
   				     neighbors_corr,
@@ -157,14 +155,14 @@ int main(int argc, char* argv[])
 
       local_area_pre = LocalArea(hfield,neighbors_area,alpha);
       
-      /* 6) Randomly perturbate the height of the chosen point.             */
+      /* 6) Randomly perturbate the height of the chosen point.               */
 
       perturb = RandDouble(MT); 
       hfield(x,y) += perturb;
       if (where==1)
 	GhostCopy(hfield);
       
-      /* 7) Calculate the new local energy and local area.                  */
+      /* 7) Calculate the new local energy and local area.                    */
 
       local_energy_aft = LocalEnergy(hfield,neighbors_area,
   				     neighbors_corr,
@@ -175,14 +173,14 @@ int main(int argc, char* argv[])
       local_area_aft = LocalArea(hfield,neighbors_area,alpha);
       
       /* 8) Calculate the energy difference and check whether the 
-  	 move is accepted or not.                                           */
+  	 move is accepted or not.                                             */
 
       dAlocal = local_area_aft - local_area_pre;
       dElocal = local_energy_aft - local_energy_pre;
       accept  = Metropolis(dElocal);
       
       /* 9) If the move is accepted, update total area and energy.
-  	 Otherwise return to previous state.                                */
+  	 Otherwise return to previous state.                                  */
       
       AcceptOrDecline(hfield,site,accept,where,tot_area,
   		      tot_energy,dAlocal,dElocal,height_changes,perturb);
@@ -192,14 +190,14 @@ int main(int argc, char* argv[])
 	  total_moves ++;
 	  
 	  if (total_moves % sample_every == 0) //write every sample_every moves 
-	    Sample(call_sample,iter,total_moves,output_filename,
+	    Sample(iter,total_moves,output_filename,
 		   tot_energy,crv_energy,cor_energy,pin_energy,
 		   tot_area,prj_area,alpha,DoF);
 	}
       
       /* 10) After "attempt_lattice_change" iterations, randomly change 
 	 alpha, compute the new projected area and update the 
-	 total energy.                                                      */
+	 total energy.                                                        */
 
       if (iter % attempt_lattice_change == 0) 
 	lattice_accept = ChangeLattice(hfield,min_change,max_change,
@@ -214,7 +212,7 @@ int main(int argc, char* argv[])
 	  total_moves ++;
 	  
 	  if (total_moves % sample_every == 0 ) //write every sample_every moves
-	    Sample(call_sample,iter,total_moves,output_filename,
+	    Sample(iter,total_moves,output_filename,
 		   tot_energy,crv_energy,cor_energy,pin_energy,
 		   tot_area,prj_area,alpha,DoF);
 	}
@@ -223,7 +221,7 @@ int main(int argc, char* argv[])
 	hfield.writeH5(cc);
     }
   
-  /* 11) Print acceptance ratios and finish                                 */
+  /* 11) Print acceptance ratios and finish                                   */
 
   PrintAcceptance(maxiter,height_changes,lattice_moves,lattice_changes,rank);
   
