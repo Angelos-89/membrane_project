@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
   const double h0 = 0;                 //equilibrium position of pinned sites
   double alpha = 1.0;                  //lattice spacing(distance between 2 DoF)
   int sample_every = acc_samples;      //sample when acc_samples are accepted
-  int attempt_lattice_change = 5;       //iterations to attempt a lattice change
+  int attempt_lattice_change = 5;      //iterations to attempt a lattice change
   int iter = 0;
   
   OutputParams(maxiter,N,DoF,nghost,rig,sig,tau,epsilon,
