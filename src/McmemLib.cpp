@@ -38,7 +38,8 @@ void OutputParams(const int maxiter,const int N,const int DoF,
 		  const int nghost,const double rig,const double sig,
 		  const double tau,const double epsilon,
 		  const double min_change,const double max_change,
-		  double alpha,double pn_prcn,int sample_every,int rank, double Eactive)
+		  double alpha,double pn_prcn,int sample_every,
+		  int rank,double Eactive)
 {
   std::stringstream strm; 
   strm << "Run "                              << rank+1
@@ -105,7 +106,8 @@ std::unordered_set<Site> InitPinning(int N,double pn_prcn)
    from min to max. Furthermore, it sets the sites contained
    inside the vector to zero.                               */
 
-void InitSurface(RectMesh& hfield,double min,double max)
+void InitSurface(RectMesh& hfield,std::unordered_set<Site>& pinned_sites,
+		 double min,double max,const double h0)
 {
   std::uniform_real_distribution<double> UnifProb(min,max);
   for (int j=0; j<hfield.getrows(); j++)
@@ -113,6 +115,16 @@ void InitSurface(RectMesh& hfield,double min,double max)
     for (int i=0; i<hfield.getcols(); i++)
       hfield(i,j) = UnifProb(mt);
   }
+  
+  /* Pinning */
+  int x,y;
+  for (auto it = pinned_sites.begin(); it != pinned_sites.end(); ++it)
+    {
+      x = (*it).getx();
+      y = (*it).gety();
+      hfield(x,y) = h0;
+    }
+  
   GhostCopy(hfield);
 }
 
