@@ -108,7 +108,7 @@ std::unordered_set<Site> InitPinning(int N,double pn_prcn)
    inside the vector to zero.                               */
 
 void InitSurface(RectMesh& hfield,std::unordered_set<Site>& pinned_sites,
-		 double min,double max,const double h0)
+		 double min,double max)
 {
   std::uniform_real_distribution<double> UnifProb(min,max);
   for (int j=0; j<hfield.getrows(); j++)
@@ -117,14 +117,14 @@ void InitSurface(RectMesh& hfield,std::unordered_set<Site>& pinned_sites,
       hfield(i,j) = UnifProb(mt);
   }
   
-  /* Pinning */
-  int x,y;
-  for (auto it = pinned_sites.begin(); it != pinned_sites.end(); ++it)
-    {
-      x = (*it).getx();
-      y = (*it).gety();
-      hfield(x,y) = h0;
-    }
+  // /* Pinning */
+  // int x,y;
+  // for (auto it = pinned_sites.begin(); it != pinned_sites.end(); ++it)
+  //   {
+  //     x = (*it).getx();
+  //     y = (*it).gety();
+  //     hfield(x,y) = h0;
+  //   }
   
   GhostCopy(hfield);
 }

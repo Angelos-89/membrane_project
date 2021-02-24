@@ -115,8 +115,8 @@ int main(int argc, char* argv[])
   /* 2) Initialize pinning and the height field hfield(i,j)                   */
 
   RectMesh hfield(N,N,nghost);
-  pinned_sites = InitPinning(N,pn_prcn);         //store pinned sites to a set
-  InitSurface(hfield,pinned_sites,-0.1,+0.1,h0); //initialize a random surface
+  pinned_sites = InitPinning(N,pn_prcn);      //store pinned sites to a set
+  InitSurface(hfield,pinned_sites,-0.1,+0.1); //initialize a random surface
     
   /* 3) Calculate the projected membrane area "prj_area", the total area 
      "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
