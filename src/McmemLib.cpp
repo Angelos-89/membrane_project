@@ -117,14 +117,14 @@ void InitSurface(RectMesh& hfield,std::unordered_set<Site>& pinned_sites,
       hfield(i,j) = UnifProb(mt);
   }
   
-  /* Pinning */
-  int x,y;
-  for (auto it = pinned_sites.begin(); it != pinned_sites.end(); ++it)
-    {
-      x = (*it).getx();
-      y = (*it).gety();
-      hfield(x,y) = h0;
-    }
+  // /* Pinning */
+  // int x,y;
+  // for (auto it = pinned_sites.begin(); it != pinned_sites.end(); ++it)
+  //   {
+  //     x = (*it).getx();
+  //     y = (*it).gety();
+  //     hfield(x,y) = h0;
+  //   }
   
   GhostCopy(hfield);
 }
