@@ -645,7 +645,7 @@ void CalculateTotal(const RectMesh& hfield,const int& DoF,const double& rig,
   sig_energy = sig*tot_area;
   cor_energy = CorrectionEnergyTotal(hfield,alpha);
   pin_energy = PinningEnergyTotal(hfield,pinned_sites,pot_strength,h0);
-  tot_energy = tau_energy + crv_energy + sig_energy + cor_energy;
+  tot_energy = tau_energy + crv_energy + sig_energy + cor_energy + pin_energy;
 }
 
 /*---------------------- WhereIs ---------------------*/
