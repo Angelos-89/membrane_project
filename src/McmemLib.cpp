@@ -918,7 +918,7 @@ void Sample(int& iter,int& total_moves,std::string filename,
   file.open(filename, std::ios::app);
   if (call_sample == 0)
     {
-      file << "iter"                                          << "\t"
+      file << "%iter"                                         << "\t"
 	   << std::right << std::setw(12) <<"total_moves"     << "\t"
 	   << std::right << std::setw(12) <<"total_area"      << "\t"
 	   << std::right << std::setw(12) <<"prj_area"        << "\t"

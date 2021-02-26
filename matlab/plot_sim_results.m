@@ -5,9 +5,10 @@ height  = h5read("hfield_0.h5","/RectMesh");
 height  = inner(height,2);
 
 %% lists of data
-area   = samples(:,3);
-alpha  = samples(:,5);
-energy = samples(:,9);
+area     = samples(:,3);
+prj_area = samples(:,4);
+alpha    = samples(:,5);
+energy   = samples(:,9);
  
 %% plot data
 
@@ -46,7 +47,7 @@ ylabel("alpha (a_0)");
 grid on
 
 %% calculate means, stds and plot histograms
-begin = 2*1e4;
+begin = 4*1e4;
 
 %-----------------------height--------------------------%
 hdata      = height(:) - mean(height(:));
@@ -73,6 +74,12 @@ title("Area per degrees of freedom");
 xlabel("Area per degrees of freedom (a_0^2/N^2)");
 ylabel("Occurances");
 grid on
+
+%---------------------prj_area--------------------------%
+prj_area      = prj_area(begin:end);
+prj_area_mean = mean(prj_area);
+prj_area_std  = std(prj_area);
+prj_area_pd   = normpdf(prj_area,prj_area_mean,prj_area_std)/100;
 
 %------------------lattice spacing----------------------%
 alpha      = alpha(begin:end);
