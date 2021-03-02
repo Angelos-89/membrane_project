@@ -87,10 +87,10 @@ int main(int argc, char* argv[])
   double dElocal = 0.0;        //difference in local energy
   double perturb;              //value of the random perturbation
   
-  bool where;                  //indicator of boundary or bulk point
-  bool pin;                    //indicator of pinned point
-  bool accept;                 //indicates the acceptance of a height move
-  bool lattice_accept;         //indicates the acceptance of a lattice move
+  bool where=0;                //indicator of boundary or bulk point
+  bool pin=0;                  //indicator of pinned point
+  bool accept=0;               //indicates the acceptance of a height move
+  bool lattice_accept=0;       //indicates the acceptance of a lattice move
 
   int lattice_changes = 0;     //number of accepted lattice moves
   int height_changes = 0;      //number of accepted height moves
@@ -184,11 +184,10 @@ int main(int argc, char* argv[])
       
       AcceptOrDecline(hfield,site,accept,where,tot_area,
   		      tot_energy,dAlocal,dElocal,height_changes,perturb);
-
+      
       if (accept) //if the move is accepted update total_moves
 	{
 	  total_moves ++;
-	  
 	  if (total_moves % sample_every == 0) //write every sample_every moves 
 	    Sample(iter,total_moves,output_filename,
 		   tot_energy,crv_energy,cor_energy,pin_energy,
@@ -198,25 +197,26 @@ int main(int argc, char* argv[])
       /* 10) After "attempt_lattice_change" iterations, randomly change 
 	 alpha, compute the new projected area and update the 
 	 total energy.                                                        */
-
-      if (iter % attempt_lattice_change == 0) 
-	lattice_accept = ChangeLattice(hfield,min_change,max_change,
-				       DoF,rig,sig,tau,prj_area,tot_area,
-				       tot_energy,tau_energy,crv_energy,
-				       sig_energy,cor_energy,pin_energy,
-				       alpha,lattice_moves,lattice_changes,
-				       pinned_sites,pot_strength,h0);
       
-      if (lattice_accept) //if the move is accepted update total_moves
-	{  
-	  total_moves ++;
+      if (iter % attempt_lattice_change == 0)
+	{
+	  lattice_accept = ChangeLattice(hfield,min_change,max_change,
+					 DoF,rig,sig,tau,prj_area,tot_area,
+					 tot_energy,tau_energy,crv_energy,
+					 sig_energy,cor_energy,pin_energy,
+					 alpha,lattice_moves,lattice_changes,
+					 pinned_sites,pot_strength,h0);
 	  
-	  if (total_moves % sample_every == 0 ) //write every sample_every moves
-	    Sample(iter,total_moves,output_filename,
-		   tot_energy,crv_energy,cor_energy,pin_energy,
-		   tot_area,prj_area,alpha,DoF);
+	  if (lattice_accept) //if the move is accepted update total_moves
+	    {  
+	      total_moves ++;
+	      if (total_moves % sample_every == 0 )  
+		Sample(iter,total_moves,output_filename,
+		       tot_energy,crv_energy,cor_energy,pin_energy,
+		       tot_area,prj_area,alpha,DoF);
+	    }
 	}
-      
+
       if (total_moves % (int) 1e3 == 0) //write surface every 1e3 accepted moves
 	hfield.writeH5(cc);
     }
@@ -224,7 +224,7 @@ int main(int argc, char* argv[])
   /* 11) Print acceptance ratios and finish                                   */
 
   PrintAcceptance(maxiter,height_changes,lattice_moves,lattice_changes,rank);
-  
+  std::cout << lattice_changes << std::endl;
   MPI_Finalize();
   return 0;
 }
