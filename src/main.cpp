@@ -87,10 +87,10 @@ int main(int argc, char* argv[])
   double dElocal = 0.0;        //difference in local energy
   double perturb;              //value of the random perturbation
   
-  bool where=0;                //indicator of boundary or bulk point
-  bool pin=0;                  //indicator of pinned point
-  bool accept=0;               //indicates the acceptance of a height move
-  bool lattice_accept=0;       //indicates the acceptance of a lattice move
+  bool where = 0;              //indicator of boundary or bulk point
+  bool pin = 0;                //indicator of pinned point
+  bool accept = 0;             //indicates the acceptance of a height move
+  bool lattice_accept = 0;     //indicates the acceptance of a lattice move
 
   int lattice_changes = 0;     //number of accepted lattice moves
   int height_changes = 0;      //number of accepted height moves
@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
 	  if (lattice_accept) //if the move is accepted update total_moves
 	    {  
 	      total_moves ++;
-	      if (total_moves % sample_every == 0 )  
+	      if (total_moves % sample_every == 0)  
 		Sample(iter,total_moves,output_filename,
 		       tot_energy,crv_energy,cor_energy,pin_energy,
 		       tot_area,prj_area,alpha,DoF);
