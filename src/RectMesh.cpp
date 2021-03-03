@@ -172,24 +172,38 @@ void RectMesh::writeH5(H5std_string filename) const
 
 void RectMesh::readH5(const char filename[])
 {
-
   hsize_t DIM0 = cols_x + 2*nghost;
   hsize_t DIM1 = rows_y + 2*nghost;
   
-  hid_t file, space, dset, dcpl;    /* Handles */
+  /* Open file and dataset using the default properties. */
+  
+  hid_t file = H5Fopen (filename, H5F_ACC_RDONLY, H5P_DEFAULT);
+  hid_t dset = H5Dopen (file, "RectMesh", H5P_DEFAULT);
+
+  /* Check if the class instance has same dimensions with the dataset */
+
+  hid_t dspace = H5Dget_space(dset);
+  const int ndims = H5Sget_simple_extent_ndims(dspace);
+  hsize_t dset_dims[ndims];
+  H5Sget_simple_extent_dims(dspace, dset_dims, NULL);
+
+  if (dset_dims[1] != DIM0 or dset_dims[0] != DIM1)
+    {
+      std::cout << "Dimensions do not agree. Cannot read from H5 file. Exiting."
+		<< std::endl;
+      exit(EXIT_FAILURE);
+    }
+
+  /* If dimensions agree */
+  
   herr_t status;
   H5D_layout_t layout;
   hsize_t dims[2] = {DIM0, DIM1};
   
-  /* Open file and dataset using the default properties. */
-  
-  file = H5Fopen (filename, H5F_ACC_RDONLY, H5P_DEFAULT);
-  dset = H5Dopen (file, "RectMesh", H5P_DEFAULT);
-
   /* Retrieve the dataset creation property list, and print the 
      storage layout. */
   
-  dcpl = H5Dget_create_plist (dset);
+  hid_t dcpl = H5Dget_create_plist (dset);
   layout = H5Pget_layout (dcpl);
   printf ("Storage layout for %s is: ", "RectMesh");
   switch (layout) {
