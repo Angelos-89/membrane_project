@@ -119,6 +119,9 @@ xlabel("Energy per degrees of freedom (k_bT/N^2)");
 ylabel("Occurances");
 grid on
 
+%--------------------display excess area mean-----------%
+disp((area_mean-prj_area_mean)/area_mean);
+
 %% define functions
 function samples = LoadSamples(struct)
     samples = struct.data; 
