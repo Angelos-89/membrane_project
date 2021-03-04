@@ -22,11 +22,11 @@ zlabel("z (a_0)")
 zlim([-6,6])
 grid on
 
-%------------energy-------------%
+% %------------energy-------------%
 figure(2)
 plot(energy);
 title("Total energy vs MC steps");
-xlabel("Lattice changes");
+xlabel("MC steps");
 ylabel("Energy (k_bT/N^2)");
 grid on
 
@@ -34,7 +34,7 @@ grid on
 figure(3)
 plot(area);
 title("Total area vs MC steps");
-xlabel("Lattice changes");
+xlabel("MC steps");
 ylabel("Area (a_0^2/N^2)");
 grid on
 
@@ -42,12 +42,12 @@ grid on
 figure(4)
 plot(alpha);
 title("Lattice spacing vs MC steps");
-xlabel("Lattice changes");
+xlabel("MC steps");
 ylabel("alpha (a_0)");
 grid on
 
 %% calculate means, stds and plot histograms
-begin = 4*1e4;
+begin = 1e5;
 
 %-----------------------height--------------------------%
 hdata      = height(:) - mean(height(:));
@@ -81,13 +81,26 @@ prj_area_mean = mean(prj_area);
 prj_area_std  = std(prj_area);
 prj_area_pd   = normpdf(prj_area,prj_area_mean,prj_area_std)/100;
 
+%--------------------excess area------------------------%
+exc_area = (area-prj_area)./area;
+figure(7)
+plot(exc_area);
+title("Excess area vs MC steps");
+xlabel("MC steps");
+ylabel("Excess area (A-A_p) / A");
+grid on
+
+exc_area_mean = mean(exc_area);
+exc_area_std  = std(exc_area);
+exc_area_pd   = normpdf(exc_area,exc_area_mean,exc_area_std)/100;
+
 %------------------lattice spacing----------------------%
 alpha      = alpha(begin:end);
 alpha_mean = mean(alpha);
 alpha_std  = std(alpha);
 alpha_pd   = normpdf(alpha,alpha_mean,alpha_std)/100;
 
-figure(7)
+figure(8)
 histogram(alpha,'DisplayStyle','stairs');
 title("Lattice spacing");
 xlabel("Lattice spacing (a_0)");
@@ -99,7 +112,7 @@ energy      = energy(begin:end);
 energy_mean = mean(energy);
 energy_std  = std(energy);
 energy_pd   = normpdf(energy,energy_mean,energy_std)/100;
-figure(8)
+figure(9)
 histogram(energy,'DisplayStyle','stairs')
 title("Energy per degrees of freedom");
 xlabel("Energy per degrees of freedom (k_bT/N^2)");
