@@ -229,7 +229,7 @@ int main(int argc, char* argv[])
 	  Spectrum(hfield,OutSpec);
 	  SpecRes += OutSpec;
 	}
-      SpecRes = SpecRes/spec_steps;
+      SpecRes = SpecRes/(double)spec_steps;
 
       
       if (total_moves % (int) 1e3 == 0) //write surface every 1e3 accepted moves
@@ -239,7 +239,6 @@ int main(int argc, char* argv[])
   /* 11) Print acceptance ratios and finish                                   */
 
   PrintAcceptance(maxiter,height_changes,lattice_moves,lattice_changes,rank);
-  std::cout << lattice_changes << std::endl;
   MPI_Finalize();
   return 0;
 }
