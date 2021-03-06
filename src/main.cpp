@@ -112,11 +112,11 @@ int main(int argc, char* argv[])
   std::uniform_int_distribution<int>      RandInt(0,N-1);  
   std::uniform_real_distribution<double>  RandDouble(-epsilon,+epsilon);
 
-  AddShift(Eactive); //shift energy in metropolis to implement "activity".
-  RectMesh OutSpec(N+2,N);
-  RectMesh SpecRes(N+2,N);
-  int spec_steps = 0;
-  int spec_every = 1e3;
+  AddShift(Eactive);       //shift energy in metropolis to implement "activity".
+  RectMesh OutSpec(N+2,N); //contains the square of the fftw_execute output
+  RectMesh SpecRes(N+2,N); //contains the averaged over many time steps spectrum
+  int spec_steps=0;        //how many times the spectrum was calculated
+  int spec_every=(int)1e3; //calculate spectrum every spec_every total_moves
   
   /* 2) Initialize pinning and the height field hfield(i,j)                   */
 
@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
 
       /* Compute Spectrum */
 
-      if (total_moves > (int) 1e5)
+      if (total_moves % spec_every == 0)
 	{
 	  spec_steps ++;
 	  Spectrum(hfield,OutSpec);
