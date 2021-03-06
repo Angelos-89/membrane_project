@@ -41,10 +41,12 @@ int main(int argc, char* argv[])
      can be both positive or negative. 
      See Kumar & Dasgupta PRE 102, 2020 */
   
-  std::string input_filename  = "input_"      + std::to_string(rank) + ".txt";
-  std::string output_filename = "timeseries_" + std::to_string(rank) + ".txt";
-  std::string hfield_filename = "hfield_"     + std::to_string(rank) + ".h5";
-  const char* cc = hfield_filename.c_str();
+  std::string input_filename  = "input_"       + std::to_string(rank) + ".txt";
+  std::string output_filename = "timeseries_"  + std::to_string(rank) + ".txt";
+  std::string hfield_filename = "hfield_"      + std::to_string(rank) + ".h5";
+  std::string hspec_filename  = "hfield_spec_" + std::to_string(rank) + ".h5";
+  const char* cfield = hfield_filename.c_str();
+  const char* cspec = hspec_filename.c_str();
 
   ReadInput(input_filename,maxit,s,t,e,
 	    minchange,maxchange,pin_ratio,acc_samples,Eactive);
@@ -229,12 +231,14 @@ int main(int argc, char* argv[])
 	  Spectrum(hfield,OutSpec);
 	  SpecRes += OutSpec;
 	}
-      SpecRes = SpecRes/(double)spec_steps;
-
       
       if (total_moves % (int) 1e3 == 0) //write surface every 1e3 accepted moves
-	hfield.writeH5(cc);
+	hfield.writeH5(cfield);
     }
+
+  /* Average spectrum and write to file */
+  SpecRes = SpecRes/(double)spec_steps;
+  SpecRes.writeH5(cspec);
   
   /* 11) Print acceptance ratios and finish                                   */
 
