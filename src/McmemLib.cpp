@@ -962,6 +962,52 @@ void ReadInput(std::string filename,double& maxiter,double& sig,double& tau,
   infile.close();
 }
 
+/*--------------------------- Spectrum ----------------------------*/
+
+/* This function takes as input a 2D scalar field with dimensions 
+   (Nx,Ny,Nghost) and fills another RectMesh instance "Output" with 
+   the square of the FFT array that is returned by fftw_execute. 
+   The "Output" instance has dimensions (Nx+2,Ny).                 */
+
+void Spectrum(RectMesh& Input_Field,RectMesh& Output)
+{
+  int n0 = Input_Field.getrows(); 
+  int n1 = Input_Field.getcols();
+  int len = n0*(n1+2);
+  fftw_plan x2k;
+  double* in = (double*) fftw_malloc( sizeof(double)*len );
+  fftw_complex* out = (fftw_complex*) in;
+  x2k = fftw_plan_dft_r2c_2d(n0,n1,in,out,FFTW_MEASURE);
+
+  /* Fill the allocated block pointed by 
+     the pointer "in" with the H data */
+  
+  for (int j=0; j<n0; j++){
+    for(int i=0; i<n1; i++)
+      in[ i + j*(n1+2) ] = Input_Field(i,j); //note the (n1+2) term 
+  }
+
+  fftw_execute(x2k);
+ 
+  /* Take the square of the matrix h(q1,q2) */
+
+  double value;
+  for (int j=0; j<n0; j++)
+    for(int i=0; i<n1+2; i++)
+      {
+	value = in[i + j*(n1+2)];
+	Output(i,j) = pow(value,2);
+      }
+
+  /* Destroy plan & release resources */
+
+  fftw_destroy_plan(x2k);
+  fftw_free(in);
+  out = nullptr;
+  in  = nullptr;
+}
+
+
 
 // void ReadTxt(const char filename[], std::vector<double> &data)
 // {

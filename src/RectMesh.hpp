@@ -34,6 +34,10 @@ public:
   double& operator()(int i, int j) const;
   double& operator()(int i, int j);
 
+  /* Algebra */
+  RectMesh& operator+=(const RectMesh& rhs);
+  RectMesh operator/(double value);
+
   /* Other methods */
   void print() const;
   int getcols() const {return cols_x;}

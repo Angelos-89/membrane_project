@@ -111,7 +111,11 @@ int main(int argc, char* argv[])
   std::uniform_real_distribution<double>  RandDouble(-epsilon,+epsilon);
 
   AddShift(Eactive); //shift energy in metropolis to implement "activity".
-
+  RectMesh OutSpec(N+2,N);
+  RectMesh SpecRes(N+2,N);
+  int spec_steps = 0;
+  int spec_every = 1e3;
+  
   /* 2) Initialize pinning and the height field hfield(i,j)                   */
 
   RectMesh hfield(N,N,nghost);
@@ -217,6 +221,17 @@ int main(int argc, char* argv[])
 	    }
 	}
 
+      /* Compute Spectrum */
+
+      if (total_moves > (int) 1e5)
+	{
+	  spec_steps ++;
+	  Spectrum(hfield,OutSpec);
+	  SpecRes += OutSpec;
+	}
+      SpecRes = SpecRes/spec_steps;
+
+      
       if (total_moves % (int) 1e3 == 0) //write surface every 1e3 accepted moves
 	hfield.writeH5(cc);
     }

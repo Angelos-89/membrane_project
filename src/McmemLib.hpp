@@ -91,6 +91,7 @@ void ReadInput(std::string filename,double& maxiter,double& sig,double& tau,
 	       double& epsilon,double& min_change,double& max_change,
 	       double& pin_ratio,int& acc_samples, double& Ea);
 void AddShift(double& dE);
+void Spectrum(RectMesh& Input_Field,RectMesh& Output);
 
 
 // void ReadTxt(const char filename, std::vector<double> &data);

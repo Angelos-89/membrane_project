@@ -6,6 +6,7 @@
 #include "RectMesh.hpp"
 
 /*--------------------- Constructor -----------------------------*/
+
 void RectMesh::CheckConstr(int& cols, int& rows, int& ghost)
 {
   if (cols < 2 || rows < 2 || ghost < 0)
@@ -35,6 +36,7 @@ RectMesh::RectMesh(int cols, int rows, int ghost)
   }
 
 /*------------------- Destructor -----------------------*/
+
 RectMesh::~RectMesh()
 {
   cols_x = rows_y = nghost = 0;
@@ -44,6 +46,7 @@ RectMesh::~RectMesh()
 }
 
 /*----------------- Copy constructor ---------------------------*/
+
 RectMesh::RectMesh(const RectMesh& obj)
   : cols_x(obj.cols_x), rows_y(obj.rows_y),
     nghost(obj.nghost), mesh(nullptr) 
@@ -55,6 +58,7 @@ RectMesh::RectMesh(const RectMesh& obj)
 }
 
 /*------------- Move Constructor ---------------*/
+
 RectMesh::RectMesh(RectMesh&& tmp) noexcept
   : cols_x(tmp.cols_x), rows_y(tmp.rows_y),
     nghost(tmp.nghost), mesh(tmp.mesh)
@@ -65,6 +69,7 @@ RectMesh::RectMesh(RectMesh&& tmp) noexcept
 }
 
 /*--------- Copy assignment operator -----------*/
+
 RectMesh& RectMesh::operator=(const RectMesh& rhs)
 { 
   if (this != &rhs)
@@ -82,6 +87,7 @@ RectMesh& RectMesh::operator=(const RectMesh& rhs)
 }
 
 /*---------------- Move assignment operator -------------*/
+
 RectMesh& RectMesh::operator=(RectMesh&& tmp)
 {
   if (this != &tmp)
@@ -98,32 +104,42 @@ RectMesh& RectMesh::operator=(RectMesh&& tmp)
 }
 
 /*------------- Operator () overloading ---------*/
-// void RectMesh::CheckIndex(int& i, int& j) const
-// {
-//   if ( i < -nghost || i >= cols_x+nghost ||
-//        j < -nghost || j >= rows_y+nghost )
-//     {
-//       std::cout << "Index out of bounds. Exiting."
-// 		<< std::endl;
-//       exit(EXIT_FAILURE);
-//     }
-// }
 
 double& RectMesh::operator()(int i, int j) const
 {
-  //  CheckIndex(i,j);
   int jump = cols_x + 2*nghost;
   return mesh[ (i+nghost) + (j+nghost)*jump ];
 }
 
 double& RectMesh::operator()(int i, int j)
 {
-  //  CheckIndex(i,j);
   int jump = cols_x + 2*nghost;
   return mesh[ (i+nghost) + (j+nghost)*jump ];
 }
 
+/*-------------------- Algebra ------------------------*/
+
+RectMesh& RectMesh::operator+=(const RectMesh& rhs)
+{
+  //check if dimensions agree?
+  int len = (cols_x+2*nghost)*(rows_y+2*nghost);
+  for(int i=0; i<len; i++)
+    mesh[i] += rhs.mesh[i];
+  return *this;
+}
+
+RectMesh RectMesh::operator/(double value)
+{
+  //check for very small or zero value?
+  RectMesh res(cols_x,rows_y,nghost);
+  int len = (cols_x+2*nghost)*(rows_y+2*nghost);
+  for(int i=0; i<len; i++)
+    res.mesh[i] = res.mesh[i]/value;
+  return res;
+}
+
 /*------------------------- Other methods ---------------------*/
+
 void RectMesh::print() const
 {
   int row_end = rows_y + nghost;
@@ -142,9 +158,10 @@ void RectMesh::print() const
 
 void RectMesh::ln()
 {
+  //maybe check if mesh[i] <= 0 
   int len = (cols_x+2*nghost)*(rows_y+2*nghost);
   for(int i=0; i<len; i++)
-    mesh[i] = log(mesh[i]); //maybe check if mesh[i] <= 0 
+    mesh[i] = log(mesh[i]); 
 }
 
 double RectMesh::sum() const
@@ -234,6 +251,3 @@ void RectMesh::readH5(const char filename[])
   status = H5Dclose (dset);
   status = H5Fclose (file);
 }
-
-
-
