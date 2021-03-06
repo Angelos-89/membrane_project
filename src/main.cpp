@@ -28,6 +28,7 @@ int main(int argc, char* argv[])
 
   /* 0) Initialize MPI and read files with the values of internal 
         and frame tensions.                                                   */ 
+
   int rank;
   MPI_Init(&argc,&argv);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
@@ -236,7 +237,7 @@ int main(int argc, char* argv[])
 	hfield.writeH5(cfield);
     }
 
-  /* Average spectrum and write to file */
+  /* Average spectrum and write it to a file */
   SpecRes = SpecRes/(double)spec_steps;
   SpecRes.writeH5(cspec);
   
