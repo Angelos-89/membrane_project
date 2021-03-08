@@ -232,6 +232,8 @@ int main(int argc, char* argv[])
 	  Spectrum(hfield,OutSpec);
 	  SpecRes += OutSpec;
 	}
+
+      /* Write the height field */
       
       if (total_moves % (int) 1e3 == 0) //write surface every 1e3 accepted moves
 	hfield.writeH5(cfield);
