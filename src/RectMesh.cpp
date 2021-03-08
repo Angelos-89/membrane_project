@@ -11,7 +11,7 @@ void RectMesh::CheckConstr(int& cols, int& rows, int& ghost)
 {
   if (cols < 2 || rows < 2 || ghost < 0)
     {
-      std::cout << "The smallest mesh must have dimensions (2x2)"
+      std::cout << "The smallest mesh must have dimensions (2x2) "
 	"and the minimum number of ghost points is zero. Exiting."
 		<< std::endl; 
       exit(EXIT_FAILURE);
@@ -119,6 +119,16 @@ double& RectMesh::operator()(int i, int j)
 
 /*-------------------- Algebra ------------------------*/
 
+RectMesh RectMesh::operator+(const RectMesh& rhs) const
+{
+  int len = (cols_x+2*nghost)*(rows_y+2*nghost);
+  RectMesh temp(rows_y+2*nghost, cols_x+2*nghost);
+  for (int i=0; i<len; i++)
+    temp.mesh[i] = mesh[i] + rhs.mesh[i];
+  return temp;
+}
+
+
 RectMesh& RectMesh::operator+=(const RectMesh& rhs)
 {
   //check if dimensions agree?
@@ -128,17 +138,69 @@ RectMesh& RectMesh::operator+=(const RectMesh& rhs)
   return *this;
 }
 
-RectMesh RectMesh::operator/(double value)
+RectMesh RectMesh::operator-() const
 {
-  //check for very small or zero value?
-  RectMesh res(cols_x,rows_y,nghost);
   int len = (cols_x+2*nghost)*(rows_y+2*nghost);
-  for(int i=0; i<len; i++)
-    res.mesh[i] = res.mesh[i]/value;
-  return res;
+  RectMesh temp(rows_y+2*nghost, cols_x+2*nghost);
+  for (int i=0; i<len; i++)
+    temp.mesh[i] = -1.0*mesh[i];
+  return temp;
 }
 
-/*------------------------- Other methods ---------------------*/
+RectMesh RectMesh::operator-(const RectMesh& rhs) const
+{
+  int len = (cols_x+2*nghost)*(rows_y+2*nghost);  
+  RectMesh temp(rows_y +2*nghost, cols_x+2*nghost);
+  for (int i=0; i<len; i++)
+    temp.mesh[i] = mesh[i] - rhs.mesh[i];  
+  return temp;
+}
+
+RectMesh& RectMesh::operator-=(const RectMesh& rhs) 
+{
+  int len = (cols_x+2*nghost)*(rows_y+2*nghost);
+  for (int i=0; i<len; i++)
+    mesh[i] -= rhs.mesh[i];
+  return *this;
+}
+
+RectMesh operator*(double scalar, const RectMesh& rhs)
+{
+  int rows = rhs.getrows() + 2*rhs.getnghost();
+  int cols = rhs.getcols() + 2*rhs.getnghost();
+  RectMesh temp(rows,cols);
+  for (int i=0; i<rows*cols; i++)
+    temp.mesh[i] = scalar*rhs.mesh[i];
+  return temp;
+}
+
+RectMesh RectMesh::operator*(const RectMesh& rhs) const
+{
+  int len = (cols_x+2*nghost)*(rows_y+2*nghost);
+  RectMesh temp(rows_y+2*nghost, cols_x+2*nghost);
+  for (int i=0; i<len; i++)
+    temp.mesh[i] = mesh[i]*rhs.mesh[i];
+  return temp;
+}
+
+RectMesh RectMesh::operator/(double scalar) const
+{
+  double val = 1./scalar;
+  RectMesh temp(cols_x+2*nghost, rows_y+2*nghost);
+  int len = (cols_x+2*nghost)*(rows_y+2*nghost);
+  for(int i=0; i<len; i++)
+    temp.mesh[i] = mesh[i]*val;
+  return temp;
+}
+
+/*----------------------- Other methods ------------------------*/
+
+void RectMesh::fill(double value) const
+{
+  int rows = rows_y + 2*nghost;
+  int cols = cols_x + 2*nghost;
+  std::fill(mesh, mesh+rows*cols, value);
+}
 
 void RectMesh::print() const
 {
@@ -158,7 +220,6 @@ void RectMesh::print() const
 
 void RectMesh::ln()
 {
-  //maybe check if mesh[i] <= 0 
   int len = (cols_x+2*nghost)*(rows_y+2*nghost);
   for(int i=0; i<len; i++)
     mesh[i] = log(mesh[i]); 

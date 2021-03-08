@@ -19,8 +19,9 @@ private:
 
 public:
 
+  /* Constructor */
   void CheckConstr(int& cols, int& rows, int& ghost);
-  RectMesh(int cols=2, int rows=2, int ghost=0);
+  explicit RectMesh(int cols=2, int rows=2, int ghost=0);
 
   /* Rule of 5 */
   ~RectMesh();
@@ -30,15 +31,21 @@ public:
   RectMesh& operator=(RectMesh&& tmp);
 
   /* Operator () overloading */
-  //  void CheckIndex(int& i, int& j) const;
   double& operator()(int i, int j) const;
   double& operator()(int i, int j);
 
   /* Algebra */
+  RectMesh operator+(const RectMesh& rhs) const;
   RectMesh& operator+=(const RectMesh& rhs);
-  RectMesh operator/(double value);
+  RectMesh operator-() const;
+  RectMesh operator-(const RectMesh& rhs) const;
+  RectMesh& operator-=(const RectMesh& rhs);
+  friend RectMesh operator*(double scalar, const RectMesh& rhs);
+  RectMesh operator*(const RectMesh& rhs) const;
+  RectMesh operator/(double scalar) const;
 
   /* Other methods */
+  void fill(double value) const;
   void print() const;
   int getcols() const {return cols_x;}
   int getrows() const {return rows_y;}
@@ -47,7 +54,6 @@ public:
   void ln();
   double sum() const;
   void writeH5(H5std_string filename) const;
-  void readH5(const char filename[]);
-  
+  void readH5(const char filename[]);  
 };
 #endif
