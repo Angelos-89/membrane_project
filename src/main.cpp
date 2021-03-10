@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
   MPI_Init(&argc,&argv);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
   
-  int acc_samples;
+  int sim,acc_samples;
   double maxit,e,s,t,minchange,maxchange,pin_ratio;
   double Eactive = 0;
   /* Eactive is the active energy, zero by default.
@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
   const char* cfield = hfield_filename.c_str();
   const char* cspec = hspec_filename.c_str();
 
-  ReadInput(input_filename,maxit,s,t,e,
+  ReadInput(input_filename,sim,maxit,s,t,e,
 	    minchange,maxchange,pin_ratio,acc_samples,Eactive);
   
   const int maxiter = maxit;           //max no of iterations
@@ -122,8 +122,13 @@ int main(int argc, char* argv[])
   /* 2) Initialize pinning and the height field hfield(i,j)                   */
 
   RectMesh hfield(N,N,nghost);
-  pinned_sites = InitPinning(N,pn_prcn);      //store pinned sites to a set
-  InitSurface(hfield,pinned_sites,-0.1,+0.1); //initialize a random surface
+  if (sim == 0)
+    {
+    pinned_sites = InitPinning(N,pn_prcn);      //store pinned sites to a set
+    InitSurface(hfield,pinned_sites,-0.1,+0.1); //initialize a random surface
+    }
+  else
+    hfield.readH5(hfield_filename);
     
   /* 3) Calculate the projected membrane area "prj_area", the total area 
      "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
