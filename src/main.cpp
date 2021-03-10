@@ -1,3 +1,4 @@
+#include <string.h>
 #include <mpi.h>
 #include <vector>
 #include <iomanip>
@@ -49,10 +50,17 @@ int main(int argc, char* argv[])
   const char* cfield = hfield_filename.c_str();
   const char* cspec  = hspec_filename.c_str();
   
+  char input_field_filename[25] = {};
+  char srank[2];
+  sprintf(srank, "%d", rank);
+  strcat(input_field_filename, "hfield_eq_");
+  strcat(input_field_filename, srank);    
+  strcat(input_field_filename,".h5"); 
+  
   ReadInput(input_filename,sim,maxit,s,t,e,
 	    minchange,maxchange,pin_ratio,acc_samples,Eactive);
   
-  const int issim = sim;
+  const int issim = sim;               //check if it is equilibration or sim run
   const int maxiter = maxit;           //max no of iterations
   const int N = 80;                    //DoF per dimension
   const int DoF = N*N;                 //number of degrees of freedom
@@ -130,7 +138,7 @@ int main(int argc, char* argv[])
     InitSurface(hfield,pinned_sites,-0.1,+0.1); //initialize a random surface
     }
   else
-    hfield.readH5("hfield.h5");
+    hfield.readH5(input_field_filename);
     
   /* 3) Calculate the projected membrane area "prj_area", the total area 
      "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
