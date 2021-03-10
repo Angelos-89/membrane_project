@@ -41,17 +41,18 @@ int main(int argc, char* argv[])
      membrane is no longer in equilibrium. The value 
      can be both positive or negative. 
      See Kumar & Dasgupta PRE 102, 2020 */
-  
+
   std::string input_filename  = "input_"       + std::to_string(rank) + ".txt";
   std::string output_filename = "timeseries_"  + std::to_string(rank) + ".txt";
   std::string hfield_filename = "hfield_"      + std::to_string(rank) + ".h5";
   std::string hspec_filename  = "hfield_spec_" + std::to_string(rank) + ".h5";
   const char* cfield = hfield_filename.c_str();
-  const char* cspec = hspec_filename.c_str();
-
+  const char* cspec  = hspec_filename.c_str();
+  
   ReadInput(input_filename,sim,maxit,s,t,e,
 	    minchange,maxchange,pin_ratio,acc_samples,Eactive);
   
+  const int issim = sim;
   const int maxiter = maxit;           //max no of iterations
   const int N = 80;                    //DoF per dimension
   const int DoF = N*N;                 //number of degrees of freedom
@@ -69,6 +70,7 @@ int main(int argc, char* argv[])
   int sample_every = acc_samples;      //sample when acc_samples are accepted
   int attempt_lattice_change = 5;      //iterations to attempt a lattice change
   int iter = 0;
+
   
   OutputParams(maxiter,N,DoF,nghost,rig,sig,tau,epsilon,
 	       min_change,max_change,alpha,pn_prcn,sample_every,rank,Eactive);
@@ -122,13 +124,13 @@ int main(int argc, char* argv[])
   /* 2) Initialize pinning and the height field hfield(i,j)                   */
 
   RectMesh hfield(N,N,nghost);
-  if (sim == 0)
+  if (issim == 0)
     {
     pinned_sites = InitPinning(N,pn_prcn);      //store pinned sites to a set
     InitSurface(hfield,pinned_sites,-0.1,+0.1); //initialize a random surface
     }
   else
-    hfield.readH5(hfield_filename);
+    hfield.readH5("hfield.h5");
     
   /* 3) Calculate the projected membrane area "prj_area", the total area 
      "tot_area" and the energies "tau_energy","sig_energy","crv_energy",

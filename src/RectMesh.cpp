@@ -258,17 +258,25 @@ void RectMesh::readH5(const char filename[])
   hid_t file = H5Fopen (filename, H5F_ACC_RDONLY, H5P_DEFAULT);
   hid_t dset = H5Dopen (file, "RectMesh", H5P_DEFAULT);
 
-  /* Check if the class instance has same dimensions with the dataset */
-
+  /* Check if file exists */
+  if (file < 0 )
+    {
+      std::cout << "Input hdf5 file does not exist. Exiting."
+  		<< std::endl;
+      exit(EXIT_FAILURE); 
+    }
+  
   hid_t dspace = H5Dget_space(dset);
   const int ndims = H5Sget_simple_extent_ndims(dspace);
   hsize_t dset_dims[ndims];
   H5Sget_simple_extent_dims(dspace, dset_dims, NULL);
 
+  /* Check if the class instance has same dimensions with the dataset */
+  
   if (dset_dims[1] != DIM0 or dset_dims[0] != DIM1)
     {
       std::cout << "Dimensions do not agree. Cannot read from H5 file. Exiting."
-		<< std::endl;
+  		<< std::endl;
       exit(EXIT_FAILURE);
     }
 
