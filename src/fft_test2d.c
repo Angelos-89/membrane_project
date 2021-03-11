@@ -34,6 +34,17 @@ void main(){
 			printf("%d %d %le %le \n",i,k,hq[kre+(N+2)*i]),hq[kim+(N+2)*i];
 		}
 	}
+	printf(" calculate angle-summed spectra\n");
+        double LL = 2*3.14159;
+        double *S1d = setup_onedspec(N, LL);
+	double aa = LL/N;
+	onedspec2d(S1d, N, hq, aa);
+        printf("------done\n");
+        printf("1dspec\n");
+	for (int iq; iq<qdiag_max;iq++){
+		printf("%le, %le \n", iq*dk, S1d[iq]);
+	}
+        printf("------\n");
 	printf("in-place inverse fft\n");
 	ifft();
 	printf("---done\n");
