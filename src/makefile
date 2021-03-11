@@ -1,6 +1,6 @@
-#include config.local
-FFT_idir = /home/dhruba/Library/include/
-FFT_ldir = /home/dhruba/Library/lib/
+include config.local
+#FFT_idir = /home/dhruba/Library/include/
+#FFT_ldir = /home/dhruba/Library/lib/
 
 objects = main.o Site.o Vec3dLib.o RectMesh.o McmemLib.o
 ffto = fft_test2d.o fftw_lib.o  
@@ -32,4 +32,4 @@ fft_test2d.o : fft_test2d.c
 	gcc -c fft_test2d.c -I$(FFT_idir)
 
 clean :
-	rm  -f membrane.exe $(objects) $(ffto)
+	rm  -f membrane.exe ftest.exe $(objects) $(ffto)

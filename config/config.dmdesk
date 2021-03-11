@@ -6,4 +6,6 @@ CFLAGS = -c -O3
 
 HDF5.h_dir = /home/dhruba/Library/include
 HDF5.a_dir = /home/dhruba/Library/lib
+FFT_idir = /home/dhruba/Library/include/
+FFT_ldir = /home/dhruba/Library/lib/
 
