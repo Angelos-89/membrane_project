@@ -1,7 +1,12 @@
-include config.local
+#include config.local
+FFT_idir = /home/dhruba/Library/include/
+FFT_ldir = /home/dhruba/Library/lib/
 
 objects = main.o Site.o Vec3dLib.o RectMesh.o McmemLib.o
+ffto = fft_test2d.o fftw_lib.o  
 
+ftest : $(ffto)
+	gcc -o ftest.exe $(ffto) -l fftw3  -I$(FFT_idir) -L$(FFT_ldir) -lm 
 membrane.exe : $(objects)
 	$(CC) -o membrane.exe $(objects) -I$(HDF5.h_dir) -L$(HDF5.a_dir) -lhdf5_hl_cpp -lhdf5_cpp -lhdf5_hl -lhdf5 -lfftw3
 
@@ -20,5 +25,11 @@ RectMesh.o : RectMesh.cpp
 McmemLib.o : McmemLib.cpp
 	$(CC) $(CFLAGS) McmemLib.cpp -I$(HDF5.h_dir)
 
+fftw_lib.o : fftw_lib.c
+	gcc -c fftw_lib.c -I$(FFT_idir)
+
+fft_test2d.o : fft_test2d.c
+	gcc -c fft_test2d.c -I$(FFT_idir)
+
 clean :
-	rm  -f membrane.exe $(objects)
+	rm  -f membrane.exe $(objects) $(ffto)
