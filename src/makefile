@@ -5,10 +5,18 @@ include config.local
 objects = main.o Site.o Vec3dLib.o RectMesh.o McmemLib.o
 ffto = fft_test2d.o fftw_lib.o  
 
+r_spec.exe : $(objects)
+	$(CC) -o r_spec.exe $(objects) -I$(HDF5.h_dir) -L$(HDF5.a_dir) -lhdf5_hl_cpp -lhdf5_cpp -lhdf5_hl -lhdf5 -lfftw3
+
+
 ftest : $(ffto)
 	gcc -o ftest.exe $(ffto) -l fftw3  -I$(FFT_idir) -L$(FFT_ldir) -lm 
+
 membrane.exe : $(objects)
 	$(CC) -o membrane.exe $(objects) -I$(HDF5.h_dir) -L$(HDF5.a_dir) -lhdf5_hl_cpp -lhdf5_cpp -lhdf5_hl -lhdf5 -lfftw3
+
+r_spec.o : r_spec.cpp
+	$(CC) $(CFLAGS) main.cpp -I$(HDF5.h_dir)
 
 main.o : main.cpp
 	$(CC) $(CFLAGS) main.cpp -I$(HDF5.h_dir)
