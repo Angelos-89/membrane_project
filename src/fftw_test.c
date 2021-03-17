@@ -31,7 +31,7 @@ for(i=0;i<N;i++){
 	for(k=0;k<N/2+1;k++){
 		kre = 2*k;
 		kim = 2*k+1;
-		printf("%d %d %le %le \n",i,k,omk[kre+(N+2)*i]),omk[kim+(N+2)*i];
+		printf("%d %d %le %le \n",i,k,omk[kre+(N+2)*i],omk[kim+(N+2)*i]);
 	}
 }
 printf("\n");

@@ -6,7 +6,7 @@
 #include <vector>
 #include "RectMesh.hpp"
 
-double PI = 2*acos(0.0);
+double PI = 4*atan(1.0);
 
 /*---------------------------- FFT2d ----------------------------*/
 

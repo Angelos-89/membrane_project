@@ -124,8 +124,11 @@ int main(int argc, char* argv[])
   std::uniform_real_distribution<double>  RandDouble(-epsilon,+epsilon);
 
   AddShift(Eactive);       //shift energy in metropolis to implement "activity".
-  RectMesh OutSpec(N+2,N); //contains the square of the fftw_execute output
-  RectMesh SpecRes(N+2,N); //contains the averaged over many time steps spectrum
+  RectMesh hfft(N+2,N); //hfield for fourier transform
+  /*  fftw_complex *hq;
+  hq = (fftw_complex*)hfft;
+  */
+  //  RectMesh SpecRes(N+2,N); //contains the averaged over many time steps spectrum
   int spec_steps=0;        //how many times the spectrum was calculated
   int spec_every=(int)1e3; //calculate spectrum every spec_every total_moves
   
