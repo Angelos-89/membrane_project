@@ -275,7 +275,7 @@ int main(int argc, char* argv[])
   /* Average spectrum and write it to a file */
 
   std::ofstream radSpecFile;
-  radSpecFile.open("radial_spectrum.txt");
+  radSpecFile.open(hspec_filename);
   for (int i=0; i<qdiag_max; i++)
     radSpecFile << i*dk << "\t" << 2.0*S1d[i]/(double)spec_steps << "\n";
   radSpecFile.close();
