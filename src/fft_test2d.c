@@ -41,7 +41,7 @@ void main(){
 	onedspec2d(S1d, N, hq, aa);
         printf("------done\n");
         printf("1dspec\n");
-	for (int iq; iq<qdiag_max;iq++){
+	for (int iq=0; iq<qdiag_max;iq++){
 		printf("%le, %le \n", iq*dk, S1d[iq]);
 	}
         printf("------\n");
