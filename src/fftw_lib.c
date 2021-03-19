@@ -9,7 +9,7 @@ fftw_plan x2k;
 fftw_plan k2x;
 double dk;
 int qdiag_max;
-double PI =4*atan(1.);
+extern double PI;
 /*------------------------------------*/
 void fft_setup2d(int N, double hh[], fftw_complex hq[]){
 	x2k = fftw_plan_dft_r2c_2d(N,N,hh,hq,FFTW_MEASURE);
@@ -54,8 +54,8 @@ void onedspec2d(double S1d[], int N, double  hq[], double aa, double dk , int qd
 	  q2=k2;
 	  q2re = 2*k2;
 	  q2im = 2*k2+1;
-	  hq_re = hq[q2re+(N+2)*k1];
-	  hq_im = hq[q2im+(N+1)*k1];
+	  hq_re = hq[q2re+(N+2)*k1]/pow(N,2);
+	  hq_im = hq[q2im+(N+2)*k1]/pow(N,2);
 	  double qsqr = (2*PI/(N*aa))*(q1*q1+q2*q2);
 	  //printf("h %le, %le,%le\n",qsqr, hq_re,hq_im);
 	  if (qsqr == 0)

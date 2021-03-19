@@ -2,19 +2,20 @@ include config.local
 #FFT_idir = /home/dhruba/Library/include/
 #FFT_ldir = /home/dhruba/Library/lib/
 
-objects = main.o Site.o Vec3dLib.o RectMesh.o McmemLib.o
+objects = main.o Site.o Vec3dLib.o RectMesh.o McmemLib.o fftw_lib.o
 ffto = test_2dfft.o fftw_lib.o RectMesh.o  
 
-r_spec.exe : $(objects)
-	$(CC) -o r_spec.exe $(objects) -I$(HDF5.h_dir) -L$(HDF5.a_dir) -lhdf5_hl_cpp -lhdf5_cpp -lhdf5_hl -lhdf5 -lfftw3
+# r_spec.exe : $(objects)
+# 	$(CC) -o r_spec.exe $(objects) -I$(HDF5.h_dir) -L$(HDF5.a_dir) -lhdf5_hl_cpp -lhdf5_cpp -lhdf5_hl -lhdf5 -lfftw3
 
 #ftest : $(ffto)
 #	gcc -o ftest.exe $(ffto) -l fftw3  -I$(FFT_idir) -L$(FFT_ldir) -lm 
-ftest : $(ffto)
-	$(CC) -o ftest.exe $(ffto) -I$(HDF5.h_dir) -L$(HDF5.a_dir) -lhdf5_hl_cpp -lhdf5_cpp -lhdf5_hl -lhdf5 -lfftw3
-       
+
 membrane.exe : $(objects)
 	$(CC) -o membrane.exe $(objects) -I$(HDF5.h_dir) -L$(HDF5.a_dir) -lhdf5_hl_cpp -lhdf5_cpp -lhdf5_hl -lhdf5 -lfftw3
+
+ftest : $(ffto)
+	$(CC) -o ftest.exe $(ffto) -I$(HDF5.h_dir) -L$(HDF5.a_dir) -lhdf5_hl_cpp -lhdf5_cpp -lhdf5_hl -lhdf5 -lfftw3
 
 r_spec.o : r_spec.cpp
 	$(CC) $(CFLAGS) r_spec.cpp -I$(HDF5.h_dir)

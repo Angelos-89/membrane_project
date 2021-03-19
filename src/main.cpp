@@ -6,6 +6,7 @@
 #include <string>
 #include <random>
 #include "McmemLib.hpp"
+#include "fft.h"
 
 /* Hash function for the Site class */
 namespace std
@@ -21,6 +22,7 @@ namespace std
   }; 
 }
 
+double PI = 4.*atan(1.0);
 std::random_device RD;
 std::mt19937 MT(RD()); 
 
@@ -124,11 +126,18 @@ int main(int argc, char* argv[])
   std::uniform_real_distribution<double>  RandDouble(-epsilon,+epsilon);
 
   AddShift(Eactive);       //shift energy in metropolis to implement "activity".
-  RectMesh hfft(N+2,N); //hfield for fourier transform
-  /*  fftw_complex *hq;
-  hq = (fftw_complex*)hfft;
-  */
-  //  RectMesh SpecRes(N+2,N); //contains the averaged over many time steps spectrum
+
+  /* Set up spectrum computations */
+
+  double* hx = new double[N*(N+2)]();
+  fftw_complex* hq = (fftw_complex*) hx;
+  fft_setup2d(N,hx,hq);
+
+  int qdiag_max = floor(sqrt(2)*N)+1;
+  double *S1d = new double[qdiag_max]();
+  double L_mean = (double) N;
+  double dk = 2.0*PI/L_mean; 
+  
   int spec_steps=0;        //how many times the spectrum was calculated
   int spec_every=(int)1e3; //calculate spectrum every spec_every total_moves
   
@@ -242,13 +251,19 @@ int main(int argc, char* argv[])
 	    }
 	}
 
-      /* Compute Spectrum */
+      /* Compute radial 1D spectrum */
 
       if (total_moves % spec_every == 0)
 	{
 	  spec_steps ++;
-	  Spectrum(hfield,OutSpec);
-	  SpecRes += OutSpec;
+	  for(int j=0; j<N; j++)
+	    {
+	      for(int i=0; i<N; i++)
+		hx[ i + (N+2)*j ] = hfield(i,j);
+	    }
+
+	  fft();
+	  onedspec2d(S1d,N,hx,alpha,dk,qdiag_max);
 	}
 
       /* Write the height field */
@@ -258,8 +273,12 @@ int main(int argc, char* argv[])
     }
 
   /* Average spectrum and write it to a file */
-  SpecRes = SpecRes/(double)spec_steps;
-  SpecRes.writeH5(cspec);
+
+  std::ofstream radSpecFile;
+  radSpecFile.open("radial_spectrum.txt");
+  for (int i=0; i<qdiag_max; i++)
+    radSpecFile << i*dk << "\t" << 2.0*S1d[i]/(double)spec_steps << "\n";
+  radSpecFile.close();
   
   /* 11) Print acceptance ratios and finish                                   */
 
