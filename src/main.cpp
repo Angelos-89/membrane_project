@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
   std::string input_filename  = "input_"       + std::to_string(rank) + ".txt";
   std::string output_filename = "timeseries_"  + std::to_string(rank) + ".txt";
   std::string hfield_filename = "hfield_"      + std::to_string(rank) + ".h5";
-  std::string hspec_filename  = "hfield_spec_" + std::to_string(rank) + ".h5";
+  std::string hspec_filename  = "hfield_spec_" + std::to_string(rank) + ".txt";
   const char* cfield = hfield_filename.c_str();
   const char* cspec  = hspec_filename.c_str();
   
@@ -146,12 +146,15 @@ int main(int argc, char* argv[])
   RectMesh hfield(N,N,nghost);
   if (issim == 0)
     {
-    pinned_sites = InitPinning(N,pn_prcn);      //store pinned sites to a set
-    InitSurface(hfield,pinned_sites,-0.1,+0.1); //initialize a random surface
+      pinned_sites = InitPinning(N,pn_prcn);      //store pinned sites to a set
+      InitSurface(hfield,pinned_sites,-0.1,+0.1); //initialize a random surface
     }
   else
-    hfield.readH5(input_field_filename);
-    
+    {
+      hfield.readH5(input_field_filename);
+      //put the stored pinned sites here
+    }
+  
   /* 3) Calculate the projected membrane area "prj_area", the total area 
      "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
      "cor_energy" and "tot_energy" and write the data.                        */
@@ -278,7 +281,7 @@ int main(int argc, char* argv[])
   radSpecFile.open(hspec_filename);
   for (int i=0; i<qdiag_max; i++)
     radSpecFile << i*dk << "\t" << 2.0*S1d[i]/(double)spec_steps << "\n";
-  radSpecFile << spec_steps;
+  radSpecFile << spec_steps << "\t" << 0.0;
   radSpecFile.close();
 
   /* 11) Print acceptance ratios and finish                                   */

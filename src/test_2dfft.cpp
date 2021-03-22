@@ -96,7 +96,7 @@ int main(){
   RectMesh H(Nx,Ny);
   for (int j=0; j<Ny; j++){
     for(int i=0; i<Nx; i++)
-      H(i,j) = 20.0*sin(2.0*kx*x[i]) + 12.0*cos(5.0*ky*y[j]);
+      H(i,j) = 2.0*sin(2.0*kx*x[i]) + 3.0*cos(4.0*ky*y[j]);
   }
 
 

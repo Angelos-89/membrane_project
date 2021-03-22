@@ -56,7 +56,8 @@ void onedspec2d(double S1d[], int N, double  hq[], double aa, double dk , int qd
 	  q2im = 2*k2+1;
 	  hq_re = hq[q2re+(N+2)*k1]/pow(N,2);
 	  hq_im = hq[q2im+(N+2)*k1]/pow(N,2);
-	  double qsqr = (2*PI/(N*aa))*(q1*q1+q2*q2);
+	  //	  double qsqr = (2*PI/(N*aa))*(q1*q1+q2*q2);
+	  double qsqr = (4*PI*PI/(N*N*aa*aa))*(q1*q1+q2*q2);
 	  //printf("h %le, %le,%le\n",qsqr, hq_re,hq_im);
 	  if (qsqr == 0)
 	    {
