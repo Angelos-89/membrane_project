@@ -1,7 +1,7 @@
 %% import data
-datastruct = importdata("timeseries_0.txt");
+datastruct = importdata("timeseries_2.txt");
 samples = LoadSamples(datastruct);
-height  = h5read("hfield_0.h5","/RectMesh");
+height  = h5read("hfield_2.h5","/RectMesh");
 height  = inner(height,2);
 
 %% lists of data
@@ -47,7 +47,7 @@ ylabel("alpha (a_0)");
 grid on
 
 %% calculate means, stds and plot histograms
-begin = 1e5;
+begin = 1;
 
 %-----------------------height--------------------------%
 hdata      = height(:) - mean(height(:));

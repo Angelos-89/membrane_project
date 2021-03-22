@@ -72,11 +72,11 @@
 // }
 /*-----------------------------------*/
 
-double pi = 4*atan(1.0);
+double PI = 4*atan(1.0);
 
 int main(){
 
-  double L = 2*pi;
+  double L = 2*PI;
   int N = 16;
   int Nx = N;
   int Ny = N;
@@ -84,8 +84,8 @@ int main(){
   double Ly = L;
   double dx = Lx/Nx;
   double dy = Ly/Ny;
-  double kx = 2*pi/Lx;
-  double ky = 2*pi/Ly;
+  double kx = 2*PI/Lx;
+  double ky = 2*PI/Ly;
   
   std::vector<double> x,y;
   for (int i=0; i<Nx; i++)
@@ -96,7 +96,7 @@ int main(){
   RectMesh H(Nx,Ny);
   for (int j=0; j<Ny; j++){
     for(int i=0; i<Nx; i++)
-      H(i,j) = 2.0*sin(2.0*kx*x[i]) + 1.0*cos(5.0*ky*y[j]);
+      H(i,j) = 20.0*sin(2.0*kx*x[i]) + 12.0*cos(5.0*ky*y[j]);
   }
 
 
@@ -113,7 +113,7 @@ int main(){
   fft();
   printf("---done\n");
   
-  double dk = 2*pi/L; 
+  double dk = 2*PI/L; 
   int qdiag_max = floor(sqrt(2)*N)+1;
   printf("diag_max=%d\n",qdiag_max);
   double *S1d = new double[qdiag_max]();

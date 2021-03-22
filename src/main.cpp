@@ -278,8 +278,9 @@ int main(int argc, char* argv[])
   radSpecFile.open(hspec_filename);
   for (int i=0; i<qdiag_max; i++)
     radSpecFile << i*dk << "\t" << 2.0*S1d[i]/(double)spec_steps << "\n";
+  radSpecFile << spec_steps;
   radSpecFile.close();
-  
+
   /* 11) Print acceptance ratios and finish                                   */
 
   PrintAcceptance(maxiter,height_changes,lattice_moves,lattice_changes,rank);
