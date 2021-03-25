@@ -280,7 +280,7 @@ int main(int argc, char* argv[])
   std::ofstream radSpecFile;
   radSpecFile.open(hspec_filename);
   for (int i=0; i<qdiag_max; i++)
-    radSpecFile << i*dk << "\t" << 2.0*S1d[i]/(double)spec_steps << "\n";
+    radSpecFile << i*dk << "\t" << 4.0*S1d[i]/(double)spec_steps << "\n";
   radSpecFile << spec_steps << "\t" << 0.0;
   radSpecFile.close();
 
