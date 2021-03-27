@@ -1,6 +1,6 @@
-load("hfield_0_spec.txt");
-k  = hfield_0_spec(1:end-1,1);
-sp = hfield_0_spec(1:end-1,2);
+load("hfield_spec_0.txt");
+k  = hfield_spec_0(1:end-1,1);
+sp = hfield_spec_0(1:end-1,2);
 figure(1)
 plot(k,sp,"bo-")
 grid on

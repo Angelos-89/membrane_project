@@ -286,6 +286,7 @@ int main(int argc, char* argv[])
 
   /* 11) Print acceptance ratios and finish                                   */
 
+  hfield.writeH5(cfield);
   PrintAcceptance(maxiter,height_changes,lattice_moves,lattice_changes,rank);
   MPI_Finalize();
   return 0;

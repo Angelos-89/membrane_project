@@ -1,7 +1,7 @@
 %% import data
-datastruct = importdata("timeseries_2.txt");
+datastruct = importdata("timeseries_0.txt");
 samples = LoadSamples(datastruct);
-height  = h5read("hfield_2.h5","/RectMesh");
+height  = h5read("hfield_0.h5","/RectMesh");
 height  = inner(height,2);
 
 %% lists of data
@@ -16,8 +16,8 @@ energy   = samples(:,9);
 figure(1)
 surf(height)
 title("Membrane height field")
-xlabel("x");
-ylabel("y")
+xlabel("x (a_0)");
+ylabel("y (a_0)")
 zlabel("z (a_0)")
 zlim([-6,6])
 grid on
@@ -47,7 +47,7 @@ ylabel("alpha (a_0)");
 grid on
 
 %% calculate means, stds and plot histograms
-begin = 1;
+begin = 1e6;
 
 %-----------------------height--------------------------%
 hdata      = height(:) - mean(height(:));
