@@ -127,7 +127,7 @@ figure(7)
 plot(exc_area);
 % title("Excess area vs MC steps");
 xlabel("MC time");
-ylabel("Excess area (A-A_p) / A");
+ylabel("Excess area");
 grid on
 hold on
 yline(exc_area_mean,'r');
