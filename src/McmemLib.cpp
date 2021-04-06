@@ -953,7 +953,7 @@ void ReadInput(std::string filename,int& sim,double& maxiter,
   infile.open(filename);
   if(!infile.is_open())
     {
-      std::cout << "File is not open. Exiting." << std::endl;
+      std::cout << "File" <<"\t"<< filename <<"\t" <<  "is not open. Exiting." << std::endl;
       exit(EXIT_FAILURE);
     }
   while(!infile.eof())
