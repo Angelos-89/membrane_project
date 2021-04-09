@@ -16,7 +16,7 @@ semilogy(exc_area_pin_10,tau,'bo-');
 hold on
 semilogy(exc_area_pin_50,tau,'go-');
 hold on
-semilogy(exc_area_pin_0,sigma_pin_50,'go--','MarkerFaceColor', 'g','HandleVisibility','off');
+semilogy(exc_area_pin_50,sigma_pin_50,'go--','MarkerFaceColor', 'g','HandleVisibility','off');
 xlabel("\langle{A-A_p}/{A}\rangle");
 ylabel("\tau,\sigma(k_B/a_0^2)");
 legend('unpinned','10% pinning','50% pinning','location','northwest');

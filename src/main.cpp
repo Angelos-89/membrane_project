@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
   double dk = 2.0*PI/L_mean; 
   
   int spec_steps=0;        //how many times the spectrum was calculated
-  int spec_every=(int)1e3; //calculate spectrum every spec_every total_moves
+  //int spec_every=(int)1e3; //calculate spectrum every spec_every total_moves
   
   /* 2) Initialize pinning and the height field hfield(i,j)                   */
 
@@ -256,7 +256,7 @@ int main(int argc, char* argv[])
 
       /* Compute radial 1D spectrum */
 
-      if (total_moves % spec_every == 0)
+      if (total_moves % sample_every == 0)
 	{
 	  spec_steps ++;
 	  for(int j=0; j<N; j++)
@@ -264,7 +264,6 @@ int main(int argc, char* argv[])
 	      for(int i=0; i<N; i++)
 		hx[ i + (N+2)*j ] = hfield(i,j);
 	    }
-
 	  fft();
 	  onedspec2d(S1d,N,hx,alpha,dk,qdiag_max);
 	}
@@ -275,13 +274,13 @@ int main(int argc, char* argv[])
 	hfield.writeH5(cfield);
     }
 
-  /* Average spectrum and write it to a file */
+  /* Average power spectrum and write it to a file */
 
   std::ofstream radSpecFile;
   radSpecFile.open(hspec_filename);
   for (int i=0; i<qdiag_max; i++)
     radSpecFile << i*dk << "\t" << 4.0*S1d[i]/(double)spec_steps << "\n";
-  radSpecFile << spec_steps << "\t" << 0.0;
+  radSpecFile << spec_steps << "\t" << 0.0; // last row of file contains the number of times that the power spectrum was calculated!
   radSpecFile.close();
 
   /* 11) Print acceptance ratios and finish                                   */
