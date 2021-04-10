@@ -1,9 +1,9 @@
 %% import data
-datastruct = importdata("timeseries_0.txt");
+datastruct = importdata("timeseries_2.txt");
 samples = LoadSamples(datastruct);
 height  = h5read("hfield_0.h5","/RectMesh");
 height  = inner(height,2);
-begin = 1e5;
+begin = 2e3;
 
 %% lists of data
 Area     = samples(:,3);
@@ -46,7 +46,7 @@ energy_pd   = normpdf(energy,energy_mean,energy_std)/100;
 figure(9)
 histogram(energy,'DisplayStyle','stairs')
 % title("Energy per degrees of freedom");
-xlabel("Energy per degrees of freedom (k_bT/N^2)");
+xlabel("Energy per degrees of freedom (k_BT/N^2)");
 ylabel("Occurances");
 grid on
 hold on
@@ -56,7 +56,7 @@ figure(2)
 plot(Energy);
 % title("Total energy vs MC steps");
 xlabel("MC time");
-ylabel("Energy (k_bT/N^2)");
+ylabel("Energy (k_BT/N^2)");
 grid on
 hold on
 yline(energy_mean,'r');
@@ -102,7 +102,7 @@ hold on
 xline(alpha_mean,'r')
 
 figure(4)
-plot(alpha);
+plot(Alpha);
 % title("Lattice spacing vs MC steps");
 xlabel("MC time");
 ylabel("alpha (a_0)");
@@ -127,7 +127,7 @@ figure(7)
 plot(exc_area);
 % title("Excess area vs MC steps");
 xlabel("MC time");
-ylabel("Excess area");
+ylabel("Excess area \langle{A-A_p}/{A}\rangle");
 grid on
 hold on
 yline(exc_area_mean,'r');
@@ -138,9 +138,9 @@ disp((area_mean-prj_area_mean)/area_mean);
 %% define functions
 function samples = LoadSamples(struct)
     samples = struct.data; 
-    if length(samples(:,1)) < 1e4
-        error("Samples must be more than 1e4. Exiting.")
-    end
+%     if length(samples(:,1)) < 1e4
+%         error("Samples must be more than 1e4. Exiting.")
+%     end
 end
 
 function field = inner(hfield,nghost)
