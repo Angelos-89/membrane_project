@@ -1,6 +1,6 @@
 tau = [0.01, 0.1, 1.0, 10., 100., 1000.];
 sigma_pin_0 = [0.500,0.570,1.440,10.280,100.070,1000.008];
-% sigma_pin_10 = [0.453,0.5353,1.408,10.280,100.070,1000.008];
+sigma_pin_10 = [0.453,0.5353,1.408,10.263,100.060,1000.01];
 sigma_pin_50 = [0.264,0.350,1.30,10.16,100.040,1000.0057];
 
 exc_area_pin_0  = [0.0757, 0.0711, 0.0488, 0.0216, 0.0044, 4.67*1e-4];
@@ -13,6 +13,8 @@ hold on
 semilogy(exc_area_pin_0,sigma_pin_0,'ro--','MarkerFaceColor', 'r','HandleVisibility','off');
 hold on
 semilogy(exc_area_pin_10,tau,'bo-');
+hold on
+semilogy(exc_area_pin_10,sigma_pin_10,'bo--','MarkerFaceColor', 'b','HandleVisibility','off');
 hold on
 semilogy(exc_area_pin_50,tau,'go-');
 hold on
