@@ -1,5 +1,5 @@
 %% import data
-datastruct = importdata("timeseries_2.txt");
+datastruct = importdata("timeseries_0.txt");
 samples = LoadSamples(datastruct);
 height  = h5read("hfield_0.h5","/RectMesh");
 height  = inner(height,2);

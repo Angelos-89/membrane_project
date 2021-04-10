@@ -49,6 +49,8 @@ int main(int argc, char* argv[])
   std::string output_filename = "timeseries_"  + std::to_string(rank) + ".txt";
   std::string hfield_filename = "hfield_"      + std::to_string(rank) + ".h5";
   std::string hspec_filename  = "hfield_spec_" + std::to_string(rank) + ".txt";
+  std::string pinset_filename = "pinned_set_"  + std::to_string(rank) + ".txt";
+
   const char* cfield = hfield_filename.c_str();
   const char* cspec  = hspec_filename.c_str();
   
@@ -138,8 +140,7 @@ int main(int argc, char* argv[])
   double L_mean = (double) N;
   double dk = 2.0*PI/L_mean; 
   
-  int spec_steps=0;        //how many times the spectrum was calculated
-  //int spec_every=(int)1e3; //calculate spectrum every spec_every total_moves
+  int spec_steps = 0; //how many times the spectrum was calculated
   
   /* 2) Initialize pinning and the height field hfield(i,j)                   */
 
@@ -147,12 +148,40 @@ int main(int argc, char* argv[])
   if (issim == 0)
     {
       pinned_sites = InitPinning(N,pn_prcn);      //store pinned sites to a set
+
+      /* write the set containing pinned sites to txt */
+      std::ofstream pinned;
+      pinned.open(pinset_filename);
+      for (auto it = pinned_sites.begin(); it != pinned_sites.end(); it++)
+	pinned << (*it).getx() << " " << (*it).gety() << "\n";
+      pinned.close();
+     
       InitSurface(hfield,pinned_sites,-0.1,+0.1); //initialize a random surface
     }
   else
     {
       hfield.readH5(input_field_filename);
-      //put the stored pinned sites here
+
+      /* put the stored pinned sites */
+
+      Site st;
+      int xs,s;
+      std::ifstream pinset(pinset_filename);
+      if (pinset.is_open())
+	{
+	  while (!pinset.eof())
+	    {
+	      pinset >> x >> y;
+	      st.set(x,y);
+	      pinned_sites.insert(st);
+	    }
+	}
+      else
+	{
+	  std::cout << "File pinned_set_rank.txt is not found." << std::endl;
+	  exit(EXIT_FAILURE);
+	}
+      
     }
   
   /* 3) Calculate the projected membrane area "prj_area", the total area 
