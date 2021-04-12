@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
   Site neighbors_area[len_area] = {};
   Site neighbors_corr[len_corr] = {};
   Site neighbors_ener[len_ener] = {};
-  std::unordered_set<Site> pinned_sites;
+  std::unordered_set<Site> pinned_sites={};
   
   std::uniform_int_distribution<int>      RandInt(0,N-1);  
   std::uniform_real_distribution<double>  RandDouble(-epsilon,+epsilon);
@@ -150,47 +150,54 @@ int main(int argc, char* argv[])
       pinned_sites = InitPinning(N,pn_prcn);      //store pinned sites to a set
 
       /* write the set containing pinned sites to txt */
-      std::ofstream pinned;
-      pinned.open(pinset_filename);
-      for (auto it = pinned_sites.begin(); it != pinned_sites.end(); it++)
-	pinned << (*it).getx() << " " << (*it).gety() << "\n";
-      pinned.close();
-     
+      if (pn_prcn != 0)
+	{
+	  std::ofstream pinned;
+	  pinned.open(pinset_filename);
+	  for (auto it = pinned_sites.begin(); it != pinned_sites.end(); it++)
+	    pinned << (*it).getx() << " " << (*it).gety() << "\n";
+	  pinned.close();
+	}
       InitSurface(hfield,pinned_sites,-0.1,+0.1); //initialize a random surface
     }
   else
     {
       hfield.readH5(input_field_filename);
-
-      /* put the stored pinned sites */
-
-      Site st;
-      int xs,s;
-      std::ifstream pinset(pinset_filename);
-      if (pinset.is_open())
+      
+      if (pn_prcn != 0)
 	{
-	  while (!pinset.eof())
+	  /* put the stored pinned sites */
+	  Site st;
+	  int xs,s;
+	  std::ifstream pinset(pinset_filename);
+	  if (pinset.is_open())
 	    {
-	      pinset >> x >> y;
-	      st.set(x,y);
-	      pinned_sites.insert(st);
+	      while (!pinset.eof())
+		{
+		  pinset >> x >> y;
+		  st.set(x,y);
+		  pinned_sites.insert(st);
+		}
+	    }
+	  else
+	    {
+	      std::cout << "File pinned_set_rank.txt is not found." << std::endl;
+	      exit(EXIT_FAILURE);
 	    }
 	}
-      else
-	{
-	  std::cout << "File pinned_set_rank.txt is not found." << std::endl;
-	  exit(EXIT_FAILURE);
-	}
-      
     }
-  
+    
   /* 3) Calculate the projected membrane area "prj_area", the total area 
      "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
      "cor_energy" and "tot_energy" and write the data.                        */
+  std::cout << "ha" << std::endl;
     
   CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
   		 sig_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,
 		 pinned_sites,pot_strength,h0);
+
+  std::cout << "ha" << std::endl;
+
   
   Sample(iter,total_moves,output_filename,tot_energy,crv_energy,
 	 cor_energy,pin_energy,tot_area,prj_area,alpha,DoF);
