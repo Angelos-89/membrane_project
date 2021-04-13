@@ -190,14 +190,10 @@ int main(int argc, char* argv[])
   /* 3) Calculate the projected membrane area "prj_area", the total area 
      "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
      "cor_energy" and "tot_energy" and write the data.                        */
-  std::cout << "ha" << std::endl;
     
   CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
   		 sig_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,
 		 pinned_sites,pot_strength,h0);
-
-  std::cout << "ha" << std::endl;
-
   
   Sample(iter,total_moves,output_filename,tot_energy,crv_energy,
 	 cor_energy,pin_energy,tot_area,prj_area,alpha,DoF);
