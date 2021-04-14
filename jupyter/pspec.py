@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as P
-spec = np.loadtxt('hfield_spec_0.txt')
+#dir='./'
+dir='/home/angelos-89/runs/pinned/long_runs/pin_0/tau_2.5/'
+spec = np.loadtxt(dir+'hfield_spec_0.txt')
 N=80
 aa = 1.
 LL = aa*N
