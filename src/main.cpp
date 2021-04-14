@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
   fftw_complex* hq = (fftw_complex*) hx;
   fft_setup2d(N,hx,hq);
 
-  int qdiag_max = floor(sqrt(2)*N)+1;
+  int qdiag_max = floor(sqrt(2)*(N/2))+1;
   double *S1d = new double[qdiag_max]();
   double L_mean = (double) N;
   double dk = 2.0*PI/L_mean; 
