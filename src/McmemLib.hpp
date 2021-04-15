@@ -73,7 +73,8 @@ void AcceptOrDecline(RectMesh& hfield,Site site,bool accept,
 		     double& dAlocal,double& dElocal,
 		     int& height_moves,double& perturb);
 void PrintAcceptance(const int maxiter, int height_moves,
-		     int lattice_moves, int lattice_changes, int rank);
+		     int lattice_moves, int lattice_changes,
+		     int spec_steps,int rank);
 bool ChangeLattice(const RectMesh& hfield,const double& min_change,
 		   const double& max_change,const int& DoF,const double& rig,
 		   const double& sig, const double& tau,double& prj_area,

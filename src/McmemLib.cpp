@@ -831,9 +831,9 @@ void AcceptOrDecline(RectMesh& hfield,Site site,bool accept,bool where,
 
 /* It prints the acceptance rations of both height and lattice size 
    trial moves.                                                      */
-
 void PrintAcceptance(const int maxiter, int height_changes,
-		     int lattice_moves, int lattice_changes,int rank)
+		     int lattice_moves, int lattice_changes,
+		     int spec_steps,int rank)
 {
   double accept_ratio = (double) height_changes/maxiter;
   double lattice_moves_ratio = (double) lattice_changes/lattice_moves; 
@@ -842,7 +842,8 @@ void PrintAcceptance(const int maxiter, int height_changes,
 	 << " is finished: \n-------------------------\n"
 	 << "Height move ratio: " << accept_ratio << "\n"
 	 << "Lattice spacing move ratio: "
-	 << lattice_moves_ratio
+	 << lattice_moves_ratio << "\n"
+	 << "Power spectrum averaged over: " << spec_steps << "\n"
 	 << "\n--------------------------------------------\n";
   std::cout << stream.str();
 
@@ -850,9 +851,7 @@ void PrintAcceptance(const int maxiter, int height_changes,
   std::ofstream file;
   std::string filename = "ACCEPTANCES_" + std::to_string(rank) + ".txt";
   file.open(filename);
-  file << "Simulation No: " << rank+1 << "\n"
-       << "Height moves ratio: " << accept_ratio << "\n"
-       << "Lattice spacing moves ratio: " << lattice_moves_ratio << "\n";
+  file << stream.str();
   file.close();  
 }
 
@@ -962,86 +961,3 @@ void ReadInput(std::string filename,int& sim,double& maxiter,
 
   infile.close();
 }
-
-/*--------------------------- Spectrum ----------------------------*/
-
-/* This function takes as input a 2D scalar field with dimensions 
-   (Nx,Ny,Nghost) and fills another RectMesh instance "Output" with 
-   the square of the FFT array that is returned by fftw_execute. 
-   The "Output" instance has dimensions (Nx+2,Ny).                 */
-
-void Spectrum(RectMesh& Input_Field,RectMesh& Output)
-{
-  int n0 = Input_Field.getrows(); 
-  int n1 = Input_Field.getcols();
-  int len = n0*(n1+2);
-  fftw_plan x2k;
-  double* in = (double*) fftw_malloc( sizeof(double)*len );
-  fftw_complex* out = (fftw_complex*) in;
-  x2k = fftw_plan_dft_r2c_2d(n0,n1,in,out,FFTW_MEASURE);
-
-  /* Fill the allocated block pointed by 
-     the pointer "in" with the H data */
-  
-  for (int j=0; j<n0; j++){
-    for(int i=0; i<n1; i++)
-      in[ i + j*(n1+2) ] = Input_Field(i,j); //note the (n1+2) term 
-  }
-
-  fftw_execute(x2k);
- 
-  /* Take the square of the matrix h(q1,q2) */
-
-  double value;
-  for (int j=0; j<n0; j++)
-    for(int i=0; i<n1+2; i++)
-      {
-	value = in[i + j*(n1+2)];
-	Output(i,j) = pow(value,2);
-      }
-
-  /* Destroy plan & release resources */
-
-  fftw_destroy_plan(x2k);
-  fftw_free(in);
-  out = nullptr;
-  in  = nullptr;
-}
-
-
-
-// void ReadTxt(const char filename[], std::vector<double> &data)
-// {
-//   double number;
-//   std::ifstream myfile(filename);
-//   if (myfile.is_open())
-//     {
-//       while (myfile >> number)
-// 	data.push_back(number);
-//       myfile.close();
-//     }
-
-//   else
-//     {
-//       std::cout << "Unable to open file. Exiting." << std::endl; 
-//       exit(EXIT_FAILURE);
-//     }
-// }
-
-// void ReadTxtInt(const char filename[], std::vector<int> &data)
-// {
-//   int number;
-//   std::ifstream myfile(filename);
-//   if (myfile.is_open())
-//     {
-//       while (myfile >> number)
-// 	data.push_back(number);
-//       myfile.close();
-//     }
-
-//   else
-//     {
-//       std::cout << "Unable to open file. Exiting." << std::endl; 
-//       exit(EXIT_FAILURE);
-//     }
-// }

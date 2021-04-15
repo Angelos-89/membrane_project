@@ -135,7 +135,8 @@ int main(int argc, char* argv[])
   fftw_complex* hq = (fftw_complex*) hx;
   fft_setup2d(N,hx,hq);
 
-  int qdiag_max = floor(sqrt(2)*(N/2))+1;
+  //  int qdiag_max = floor(sqrt(2)*(N/2))+1;
+  int qdiag_max = floor(sqrt(2)*N)+1;
   double *S1d = new double[qdiag_max]();
   double L_mean = (double) N;
   double dk = 2.0*PI/L_mean; 
@@ -312,13 +313,13 @@ int main(int argc, char* argv[])
   radSpecFile.open(hspec_filename);
   for (int i=0; i<qdiag_max; i++)
     radSpecFile << i*dk << "\t" << 4.0*S1d[i]/(double)spec_steps << "\n";
-  radSpecFile << spec_steps << "\t" << 0.0; // last row of file contains the number of times that the power spectrum was calculated!
   radSpecFile.close();
 
   /* 11) Print acceptance ratios and finish                                   */
 
   hfield.writeH5(cfield);
-  PrintAcceptance(maxiter,height_changes,lattice_moves,lattice_changes,rank);
+  PrintAcceptance(maxiter,height_changes,lattice_moves,
+  		  lattice_changes,spec_steps,rank);
   MPI_Finalize();
   return 0;
 }
