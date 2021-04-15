@@ -1,0 +1,14 @@
+
+# Configuration for beskow.
+# We need the following modules to be loaded:
+#module add PrgEnv-gnu
+#module add cray-hdf5/1.10.6.1
+#module add cray-fftw/3.3.8.6
+# if there are conflicts, you may need to unload a module before 
+# the "add" above. 
+# April 2021 : The intel compiler in beskow gives core dump
+#-----------------------------------------#
+CC = CC 
+CFLAGS = -c -O3
+HDF5_IDIR = /opt/cray/pe/hdf5/1.10.6.1/CRAYCLANG/9.0/include/
+FFT_IDIR = /pdc/vol/intel/18.0.0.128/compilers_and_libraries_2018.0.128/linux/mkl/include/fftw/
