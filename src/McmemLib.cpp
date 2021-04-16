@@ -413,7 +413,7 @@ double SNodeCurvature(const RectMesh& h,Site site,double alpha)
   double h_x2 = h_x*h_x;
   double h_y2 = h_y*h_y;
   double numerator = (1.+h_x2)*h_yy + (1.+h_y2)*h_xx - 2.*h_x*h_y*h_xy;
-  double denominator = 2.*pow(1.0+h_x2+h_y2, 3./2.);
+  double denominator = pow(1.0+h_x2+h_y2, 3./2.);
   double curvature = numerator/denominator;
   return curvature;
 }
