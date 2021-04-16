@@ -88,10 +88,10 @@ void Sample(int& iter,int& total_moves,std::string filename,
 	    double& tot_energy,double& crv_energy,
 	    double& cor_energy,double& pin_energy,double& tot_area,
 	    double& prj_area,double& alpha,const int& DoF);
-void ReadInput(std::string filename,int& sim,double& maxiter,
+void ReadInput(std::string filename,int& sim, int& acc_samples, double& maxiter,
 	       double& sig,double& tau,double& epsilon,
 	       double& min_change,double& max_change,
-	       double& pin_ratio,int& acc_samples, double& Ea);
+	       double& pin_ratio,double& Ea);
 void AddShift(double& dE);
 void Spectrum(RectMesh& Input_Field,RectMesh& Output);
 
