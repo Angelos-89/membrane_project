@@ -961,3 +961,142 @@ void ReadInput(std::string filename,int& sim,double& maxiter,
 
   infile.close();
 }
+
+/*-------------------write_to_extendible_H5----------------------*/
+
+void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield)
+{
+  hsize_t ndims = 2;
+  hsize_t nrows = hfield.getrows() + 2*hfield.getnghost();
+  hsize_t ncols = hfield.getcols() + 2*hfield.getnghost();
+
+  /* Create a memory dataspace to indicate the 
+     size of our buffer to be written in memory. 
+     The dimensions of the buffer do not change 
+     during code execution. */
+
+  hsize_t mbuff_dims[ndims];
+  mbuff_dims[0] = nrows;
+  mbuff_dims[1] = ncols;
+  hid_t mem_space = H5Screate_simple(ndims, mbuff_dims, NULL);
+  std::cout << "- Memory dataspace created" << std::endl;
+ 
+  /* Open the file. */
+  
+  hid_t file = H5Fopen(FILENAME, H5F_ACC_RDWR, H5P_DEFAULT);
+
+  if (file<0)
+    {
+      std::cout << "HDF5 file to contain extendible dataset does not exist. Exiting. " << std::endl;
+      exit(EXIT_FAILURE);
+    }
+
+  else
+    {
+  
+      /* Check if there is a dataset. */
+  
+      if ( !H5Lexists(file,"dset1",H5P_DEFAULT) )
+	{
+	  /* Dataset does not exist. Create it and
+	     write the first buffer. */
+	  
+	  // Create a 2D dataspace.
+	  
+	  hsize_t dims[ndims] = {nrows, ncols};
+	  hsize_t max_dims[ndims] = {H5S_UNLIMITED, ncols};
+	  hid_t file_space = H5Screate_simple(ndims, dims, max_dims);
+	  std::cout << "- Dataspace created" << std::endl;
+	  
+	  // Then create a dataset creation property list.  
+	  
+	  hid_t plist = H5Pcreate(H5P_DATASET_CREATE);
+	  H5Pset_layout(plist, H5D_CHUNKED);
+	  hsize_t chunk_dims[ndims] = {nrows, ncols};
+	  H5Pset_chunk(plist, ndims, chunk_dims);
+	  std::cout << "- Property list created" << std::endl;
+	  
+	  // Create the dataset.
+	  
+	  hid_t dset = H5Dcreate(file, "dset1", H5T_NATIVE_DOUBLE,
+				 file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+	  std::cout << "- Dataset 'dset1' created" << std::endl;
+	  
+	  /* Close resources. */
+	  
+	  H5Pclose(plist);
+	  	  
+	  /* Write the first buffer */
+	  
+	  // Select hyperslab on file dataset.
+	  
+	  file_space = H5Dget_space(dset);
+	  hsize_t start[2] = {0, 0};
+	  hsize_t count[2] = {nrows, ncols};
+	  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start,
+			      NULL, count, NULL);
+	  std::cout << "- First hyperslab selected" << std::endl;
+	  
+	  /* Write buffer to dataset. */
+	  
+	  H5Dwrite(dset, H5T_NATIVE_DOUBLE, mem_space, file_space,
+		   H5P_DEFAULT, hfield.getmemory());
+	  std::cout << "- First buffer written" << std::endl;
+	  
+	  /*We can now release resources. */
+	  
+	  H5Sclose(mem_space);
+	  H5Dclose(dset);
+	  H5Sclose(file_space);
+	  H5Fclose(file);
+	}
+      else
+	{
+	  /* Dataset already exists. Extend it and write 
+	     the next buffer. */
+	  
+	  // Open the dataset and get the dimensions of the existing dataset.
+	  
+	  hid_t dset = H5Dopen(file,"dset1",H5P_DEFAULT);
+	  hid_t file_space = H5Dget_space(dset);
+	  hsize_t dims[ndims];
+	  H5Sget_simple_extent_dims(file_space, dims, NULL);
+	  std::cout << "- The dataset dimensions before extension are:" << std::endl;
+	  std::cout << "No of rows: " << dims[0] << std::endl;
+	  std::cout << "No of cols: " << dims[1] << std::endl;
+	  
+	  // Extend the dimensions.
+	  
+	  dims[0] += nrows;      
+	  dims[1] = ncols;
+	  H5Dset_extent(dset, dims);
+	  file_space = H5Dget_space(dset);
+	  
+	  std::cout << "- Dataset extended" << std::endl;
+	  std::cout << "- The dataset dimensions after extension are:" << std::endl;
+	  std::cout << "No of rows: " << dims[0] << std::endl;
+	  std::cout << "No of cols: " << dims[1] << std::endl;
+	  
+	  // Select hyperslab
+	  
+	  hsize_t start[2] = {dims[0]-nrows, 0};
+	  hsize_t count[2] = {nrows, ncols};
+	  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start,
+			      NULL, count, NULL);
+	  std::cout << "- Next hyperslab selected" << std::endl;
+	  
+	  // Write buffer
+	  
+	  H5Dwrite(dset, H5T_NATIVE_DOUBLE, mem_space, file_space,
+		   H5P_DEFAULT, hfield.getmemory());
+	  std::cout << "- Next buffer written" << std::endl;
+	  
+	  /*We can now release resources. */
+
+	  H5Sclose(mem_space);
+	  H5Dclose(dset);
+	  H5Sclose(file_space);
+	  H5Fclose(file);
+	}
+    }    
+}

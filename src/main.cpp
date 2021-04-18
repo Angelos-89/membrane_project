@@ -170,7 +170,7 @@ int main(int argc, char* argv[])
 	  /* put the stored pinned sites */
 	  Site st;
 	  int xs,s;
-	  std::ifstream pinset(pinset_filename);
+	  std::ifstream pinset(pinset_filename); 
 	  if (pinset.is_open())
 	    {
 	      while (!pinset.eof())

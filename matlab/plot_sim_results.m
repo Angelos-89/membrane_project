@@ -3,7 +3,7 @@ datastruct = importdata("timeseries_0.txt");
 samples = LoadSamples(datastruct);
 height  = h5read("hfield_0.h5","/RectMesh");
 height  = inner(height,2);
-begin = 2.5e4;
+begin = 1;
 
 %% lists of data
 Area     = samples(:,3);

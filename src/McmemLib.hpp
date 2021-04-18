@@ -94,9 +94,6 @@ void ReadInput(std::string filename,int& sim,double& maxiter,
 	       double& pin_ratio,int& acc_samples, double& Ea);
 void AddShift(double& dE);
 void Spectrum(RectMesh& Input_Field,RectMesh& Output);
-
-
-// void ReadTxt(const char filename, std::vector<double> &data);
-// void ReadTxtInt(const char filename[], std::vector<int> &data);
+void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield);
 
 #endif
