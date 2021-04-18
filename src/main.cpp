@@ -61,8 +61,8 @@ int main(int argc, char* argv[])
   strcat(input_field_filename, srank);    
   strcat(input_field_filename,".h5"); 
   
-  ReadInput(input_filename,sim,maxit,s,t,e,
-	    minchange,maxchange,pin_ratio,acc_samples,Eactive);
+  ReadInput(input_filename,sim,acc_samples,maxit,s,t,e,
+	    minchange,maxchange,pin_ratio,Eactive);
   
   const int issim = sim;               //check if it is equilibration or sim run
   const int maxiter = maxit;           //max no of iterations
