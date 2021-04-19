@@ -4,8 +4,8 @@
 % height fields. Then the script removes the ghost zones and selects the
 % individual snapshots.
 
-data = h5read("test.h5","/data")';
-metadata = h5read("test.h5","/metadata")';
+data = h5read("height_snapshots.h5","/data")';
+metadata = h5read("height_snapshots.h5","/metadata")';
 
 samples = metadata.Value(1);
 nrows   = metadata.Value(7);

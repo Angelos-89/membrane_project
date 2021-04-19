@@ -978,8 +978,7 @@ void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield)
   mbuff_dims[0] = nrows;
   mbuff_dims[1] = ncols;
   hid_t mem_space = H5Screate_simple(ndims, mbuff_dims, NULL);
-  std::cout << "- Memory dataspace created" << std::endl;
- 
+  
   /* Open the file. */
   
   hid_t file = H5Fopen(FILENAME, H5F_ACC_RDWR, H5P_DEFAULT);
@@ -1031,13 +1030,11 @@ void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield)
 	  hsize_t count[2] = {nrows, ncols};
 	  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start,
 			      NULL, count, NULL);
-	  std::cout << "- First hyperslab selected" << std::endl;
 	  
 	  /* Write buffer to dataset. */
 	  
 	  H5Dwrite(dset, H5T_NATIVE_DOUBLE, mem_space, file_space,
 		   H5P_DEFAULT, hfield.getmemory());
-	  std::cout << "- First buffer written" << std::endl;
 	  
 	  /*We can now release resources. */
 	  
@@ -1057,9 +1054,6 @@ void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield)
 	  hid_t file_space = H5Dget_space(dset);
 	  hsize_t dims[ndims];
 	  H5Sget_simple_extent_dims(file_space, dims, NULL);
-	  std::cout << "- The dataset dimensions before extension are:" << std::endl;
-	  std::cout << "No of rows: " << dims[0] << std::endl;
-	  std::cout << "No of cols: " << dims[1] << std::endl;
 	  
 	  // Extend the dimensions.
 	  
@@ -1068,24 +1062,17 @@ void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield)
 	  H5Dset_extent(dset, dims);
 	  file_space = H5Dget_space(dset);
 	  
-	  std::cout << "- Dataset extended" << std::endl;
-	  std::cout << "- The dataset dimensions after extension are:" << std::endl;
-	  std::cout << "No of rows: " << dims[0] << std::endl;
-	  std::cout << "No of cols: " << dims[1] << std::endl;
-	  
 	  // Select hyperslab
 	  
 	  hsize_t start[2] = {dims[0]-nrows, 0};
 	  hsize_t count[2] = {nrows, ncols};
 	  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start,
 			      NULL, count, NULL);
-	  std::cout << "- Next hyperslab selected" << std::endl;
 	  
 	  // Write buffer
 	  
 	  H5Dwrite(dset, H5T_NATIVE_DOUBLE, mem_space, file_space,
 		   H5P_DEFAULT, hfield.getmemory());
-	  std::cout << "- Next buffer written" << std::endl;
 	  
 	  /*We can now release resources. */
 
@@ -1100,7 +1087,7 @@ void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield)
 
 /*-----------------------------------------------------------------------*/
 
-void write_metadata_to_H5_file(const char* FILENAME, hfield_metadata* wdata, hsize_t DIM0 = 9) 
+void write_metadata_to_H5_file(const char* FILENAME, hfield_metadata* wdata, hsize_t DIM0) 
 {
   
   hid_t   file, filetype, memtype, strtype, space, dset;
