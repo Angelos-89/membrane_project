@@ -12,6 +12,13 @@
 #include <vector>
 #include <string>
 
+typedef struct
+{  
+  const char*  field;
+  double value;
+  
+}hfield_metadata;                       
+
 void OutputParams(const int maxiter,const int N,const int DoF,
 		  const int nghost,const double rig,const double sig,
 		  const double tau,const double epsilon,
@@ -95,5 +102,7 @@ void ReadInput(std::string filename,int& sim, int& acc_samples, double& maxiter,
 void AddShift(double& dE);
 void Spectrum(RectMesh& Input_Field,RectMesh& Output);
 void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield);
+void write_metadata_to_H5_file(const char* FILENAME,
+			       hfield_metadata* wdata, hsize_t DIM0); 
 
 #endif

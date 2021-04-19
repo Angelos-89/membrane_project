@@ -995,7 +995,7 @@ void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield)
   
       /* Check if there is a dataset. */
   
-      if ( !H5Lexists(file,"dset1",H5P_DEFAULT) )
+      if ( !H5Lexists(file,"data",H5P_DEFAULT) )
 	{
 	  /* Dataset does not exist. Create it and
 	     write the first buffer. */
@@ -1005,7 +1005,6 @@ void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield)
 	  hsize_t dims[ndims] = {nrows, ncols};
 	  hsize_t max_dims[ndims] = {H5S_UNLIMITED, ncols};
 	  hid_t file_space = H5Screate_simple(ndims, dims, max_dims);
-	  std::cout << "- Dataspace created" << std::endl;
 	  
 	  // Then create a dataset creation property list.  
 	  
@@ -1013,13 +1012,11 @@ void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield)
 	  H5Pset_layout(plist, H5D_CHUNKED);
 	  hsize_t chunk_dims[ndims] = {nrows, ncols};
 	  H5Pset_chunk(plist, ndims, chunk_dims);
-	  std::cout << "- Property list created" << std::endl;
 	  
 	  // Create the dataset.
 	  
-	  hid_t dset = H5Dcreate(file, "dset1", H5T_NATIVE_DOUBLE,
+	  hid_t dset = H5Dcreate(file, "data", H5T_NATIVE_DOUBLE,
 				 file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
-	  std::cout << "- Dataset 'dset1' created" << std::endl;
 	  
 	  /* Close resources. */
 	  
@@ -1056,7 +1053,7 @@ void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield)
 	  
 	  // Open the dataset and get the dimensions of the existing dataset.
 	  
-	  hid_t dset = H5Dopen(file,"dset1",H5P_DEFAULT);
+	  hid_t dset = H5Dopen(file,"data",H5P_DEFAULT);
 	  hid_t file_space = H5Dget_space(dset);
 	  hsize_t dims[ndims];
 	  H5Sget_simple_extent_dims(file_space, dims, NULL);
@@ -1098,4 +1095,59 @@ void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield)
 	  H5Fclose(file);
 	}
     }    
+}
+
+
+/*-----------------------------------------------------------------------*/
+
+void write_metadata_to_H5_file(const char* FILENAME, hfield_metadata* wdata, hsize_t DIM0 = 9) 
+{
+  
+  hid_t   file, filetype, memtype, strtype, space, dset;
+  herr_t  status;
+  hsize_t  dims[1] = {DIM0};
+  
+  /* Open file using the default properties. */
+
+  file = H5Fopen(FILENAME, H5F_ACC_RDWR, H5P_DEFAULT);
+
+  /* Create variable-length string datatype. */
+
+  strtype = H5Tcopy (H5T_C_S1);
+  status = H5Tset_size (strtype, H5T_VARIABLE);
+  
+  /* Create the compound datatype for memory.*/
+  
+  memtype = H5Tcreate (H5T_COMPOUND, sizeof (hfield_metadata));
+  status  = H5Tinsert (memtype, "Value",
+		       HOFFSET (hfield_metadata, value), H5T_NATIVE_DOUBLE);
+  status  = H5Tinsert (memtype, "Field", HOFFSET (hfield_metadata, field),
+		       strtype);
+  
+  /* Create the compound datatype for the file. Because the standard
+     types we are using for the file may have different sizes than
+     the corresponding native types, we must manually calculate the
+     offset of each member. */
+
+  filetype = H5Tcreate (H5T_COMPOUND, 8 + sizeof (hvl_t) + 8 + 8);
+  status = H5Tinsert (filetype, "Value", 0, H5T_NATIVE_DOUBLE);
+  status = H5Tinsert (filetype, "Field", 8, strtype);
+  
+  /* Create dataspace.  Setting maximum size to NULL sets the maximum
+     size to be the current size. */
+
+  space = H5Screate_simple (1, dims, NULL);
+
+    /* Create the dataset and write the compound data to it.*/
+
+  dset = H5Dcreate (file, "metadata", filetype, space,
+		    H5P_DEFAULT, H5P_DEFAULT,H5P_DEFAULT);
+  status = H5Dwrite (dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, wdata);
+
+  /* Close and release resources. */
+
+  status = H5Dclose (dset);
+  status = H5Sclose (space);
+  status = H5Tclose (filetype);
+  status = H5Fclose (file);
 }
