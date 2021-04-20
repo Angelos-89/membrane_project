@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
   const char* cspec  = hspec_filename.c_str();
   
   char input_field_filename[25] = {};
-  char srank[2];
+  char srank[4];
   sprintf(srank, "%d", rank);
   strcat(input_field_filename, "hfield_eq_");
   strcat(input_field_filename, srank);    
