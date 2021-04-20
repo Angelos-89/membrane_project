@@ -103,6 +103,6 @@ void AddShift(double& dE);
 void Spectrum(RectMesh& Input_Field,RectMesh& Output);
 void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield);
 void write_metadata_to_H5_file(const char* FILENAME,
-			       hfield_metadata* wdata, hsize_t DIM0=9); 
+			       hfield_metadata* wdata, hsize_t DIM0); 
 
 #endif

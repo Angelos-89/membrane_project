@@ -119,9 +119,9 @@ int main(int argc, char* argv[])
   int len_area = 5; 
   int len_corr = 4*nghost+1;
   int len_ener = pow((2*nghost+1),2); 
-  Site neighbors_area[len_area] = {};
-  Site neighbors_corr[len_corr] = {};
-  Site neighbors_ener[len_ener] = {};
+  Site neighbors_area[len_area];
+  Site neighbors_corr[len_corr];
+  Site neighbors_ener[len_ener];
   std::unordered_set<Site> pinned_sites={};
   
   std::uniform_int_distribution<int>      RandInt(0,N-1);  

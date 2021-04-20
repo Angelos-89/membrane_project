@@ -1001,15 +1001,18 @@ void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield)
 	  
 	  // Create a 2D dataspace.
 	  
-	  hsize_t dims[ndims] = {nrows, ncols};
-	  hsize_t max_dims[ndims] = {H5S_UNLIMITED, ncols};
+	  hsize_t dims[ndims];
+	  dims[0]=nrows; dims[1]=ncols;
+	  hsize_t max_dims[ndims];
+	  max_dims[0]=H5S_UNLIMITED; max_dims[1]=ncols;
 	  hid_t file_space = H5Screate_simple(ndims, dims, max_dims);
 	  
 	  // Then create a dataset creation property list.  
 	  
 	  hid_t plist = H5Pcreate(H5P_DATASET_CREATE);
 	  H5Pset_layout(plist, H5D_CHUNKED);
-	  hsize_t chunk_dims[ndims] = {nrows, ncols};
+	  hsize_t chunk_dims[ndims];
+	  chunk_dims[0]=nrows; chunk_dims[1]=ncols;
 	  H5Pset_chunk(plist, ndims, chunk_dims);
 	  
 	  // Create the dataset.
