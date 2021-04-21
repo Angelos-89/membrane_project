@@ -95,11 +95,74 @@ def pArea(all_ts,all_htext,ax,kdir=0,kproc=0,window=0.8):
 #----------------------------------------#
 def pEnergy(all_ts,all_htext,ax,kdir=0,kproc=0):
     time,energy=get_ts_data(all_ts,all_htext,kdir=kdir,kproc=kproc,string='tot_energy')
+    ntmax=np.shape(energy)[0]
+    ntmin=np.int(ntmax*0.8)
+    print(ntmin,ntmax)
+    meanE=np.mean(energy[ntmin:ntmax-1])
     ax.plot(time,energy)
+    return ax,meanE
+#----------------------------------------#
+def ptension(all_param,ax,nproc=16,kdir=0):
+    sigma = np.empty(nproc)
+    tau = np.empty(nproc)
+    for iproc in range(0,nproc):
+#    ax,area=pArea(all_ts,all_htext,ax,kdir=idir,kproc=iproc)
+        sigma[iproc] = all_param[kdir][iproc][3]
+        tau[iproc] = all_param[kdir][iproc][4]
+    ax.loglog(tau,sigma,'o-')
+    return ax,sigma,tau
+#----------------------------------------#
+def cArea(all_ts,all_htext,ax,nproc=16,kdir=0):
+    for iproc in range(0,nproc):
+        ax,meanA=pArea(all_ts,all_htext,ax,kdir=kdir,kproc=iproc)
+        sigma = all_param[kdir][iproc][3]
+        tau = all_param[kdir][iproc][4]
+        print('tau,sigma,area=\t',tau,sigma,meanA)
+    ax.set_xlabel('time')
+    ax.set_ylabel('Area')
     return ax
 #----------------------------------------#
-#iread = 0
-ddir=np.array(['active_m2','active_zero','active_2'])
+def cEn(all_ts,all_htext,ax,nproc=16,kdir=0):
+    for iproc in range(0,nproc):
+        ax,meanE=pEnergy(all_ts,all_htext,ax,kdir=idir,kproc=iproc)
+        sigma = all_param[idir][iproc][3]
+        tau = all_param[idir][iproc][4]
+        print('tau,sigma,Energy=\t',tau,sigma,meanE)
+    ax.set_xlabel('time')
+    ax.set_ylabel('Energy')
+    return ax
+#-------------------------------------------
+def ctension(all_param,ndir,ax,nproc=16):
+    sigma = np.zeros([ndir,nproc])
+    tau = np.zeros([ndir,nproc])
+    for idir in range(ndir):
+        for iproc in range(0,nproc):
+#    ax,area=pArea(all_ts,all_htext,ax,kdir=idir,kproc=iproc)
+            sigma[idir][iproc] = all_param[idir][iproc][3]
+            tau[idir][iproc] = all_param[idir][iproc][4]
+    for idir in range(ndir):
+        ax.loglog(tau[idir][:],sigma[idir][:],'o-')
+    return ax
+#-------------------------------------------
+def pten():
+    fig = P.figure()
+    ax=fig.add_subplot(111)
+    sigma0 = [0.5,  0.515, 0.525, 0.545, 0.58, 0.69, 0.85, 1.28, 1.48, 2.45, 4.1, 8.5, 10.4, 20.3, 40.05, 80.1]
+    sigma2 = [0.28, 0.28, 0.28, 0.32, 0.34, 0.43, 0.6, 1.10, 1.1, 2.1, 4.1, 8.01, 10.01, 20.01, 40.01, 80.1]
+    sigma4 = [0.1, 0.105, 0.15, 0.155, 0.18, 0.22, 0.25, 0.81, 1.1, 2.1, 4.1, 8.1, 10.1, 20.1, 40.1, 80.1]
+    tau = [0.01, 0.02, 0.04, 0.08, 0.1, 0.2, 0.4, 0.8, 1., 2., 4., 8., 10., 20., 40., 80.] 
+    ax.loglog(tau,sigma0,'s-',label='equi')
+    ax.loglog(tau,sigma2,'s-',label=r'$E_{\rm A} = 2$')
+    ax.loglog(tau,sigma4,'s-',label=r'$E_{\rm A} = 4$')
+    ax.set_xlabel(r'$\tau$')
+    ax.set_ylabel(r'$\sigma$')
+    ax.legend()
+    ax.grid(True)
+    return ax
+#-------------------------------------------
+iread = 0
+ddir=np.array(['active_2'])
+#ddir=np.array(['active_4'])
 nproc=16
 nparam=10
 if (iread == 0) :
@@ -108,22 +171,12 @@ if (iread == 0) :
     print('read parameters, time series and spectra')
 else:
     print('data already read')
+ndir = np.shape(ddir)[0]
+#--------------------------------------
 fig = P.figure()
 ax=fig.add_subplot(111)
-#ndir=np.shape(ddir)[0]
-#iproc=4
-#for idir in range(1,ndir):
-#@    ax=pEnergy(all_ts,all_htext,ax,kdir=idir,kproc=iproc)
-#    tau = all_param[idir][iproc][4]
-#    print('tau=',tau)
-#ax = pArea(all_ts,all_htext,ax,kdir=0)
-#ax = pArea(all_ts,all_htext,ax,kdir=1)
-#ax = pArea(all_ts,all_htext,ax,kdir=2)
-idir=2
-for iproc in range(0,nproc-1):
-    ax,area=pArea(all_ts,all_htext,ax,kdir=idir,kproc=iproc)
-    sigma = all_param[idir][iproc][3]
-    tau = all_param[idir][iproc][4]
-    print('tau,sigma,area=\t',tau,sigma,area)
-P.grid()
+ax = cArea(all_ts,all_htext,ax,nproc=nproc,kdir=0)
+#ax.legend()
+#ax=pten()
 P.show()
+#P.savefig('sigma_tau.pdf')
