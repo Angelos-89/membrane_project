@@ -26,5 +26,8 @@ public:
     std::cout << "(" << x << "," << y << ")" << std::endl;
     std::cout << std::endl;
   }
+
+  double dist(const Site& a_site);
+  
 };
 #endif
