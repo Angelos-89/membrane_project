@@ -104,5 +104,7 @@ void Spectrum(RectMesh& Input_Field,RectMesh& Output);
 void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield);
 void write_metadata_to_H5_file(const char* FILENAME,
 			       hfield_metadata* wdata, hsize_t DIM0); 
+int CHECK_CMD_ARG(int argc, char* argv[]);
+
 
 #endif

@@ -2,6 +2,7 @@
    "Monte Carlo study of the frame fluctuation and internal tensions of 
    fluctuating membranes with fixed area" by Shiba et al. (2016). */
 
+#include <stdio.h>
 #include <sstream>
 #include <fstream>
 #include <iomanip>
@@ -10,6 +11,7 @@
 #include <string>
 #include "Vec3dLib.hpp"
 #include "McmemLib.hpp"
+using std::strtol;
 
 namespace std
 {
@@ -792,13 +794,14 @@ void AddShift(double& dE)
 
 bool Metropolis(double& dElocal)
 {
-  dElocal += ShiftInEnergy;
-  if(dElocal < 0) return 1;
+  double dE = dElocal + ShiftInEnergy;
+  //dElocal += ShiftInEnergy;
+  if(dE < 0) return 1;
   else
     {
       std::uniform_real_distribution<double> UnifProb(0,1);
       double r = UnifProb(mt);
-      if (r < exp(-dElocal)) return 1;
+      if (r < exp(-dE)) return 1;
       else return 0;
     }
 }
@@ -1140,4 +1143,29 @@ void write_metadata_to_H5_file(const char* FILENAME, hfield_metadata* wdata, hsi
   status = H5Sclose (space);
   status = H5Tclose (filetype);
   status = H5Fclose (file);
+}
+
+/*---------------------------------------------------------------------*/
+
+int CHECK_CMD_ARG(int argc, char* argv[])
+{  
+  if (argc == 1 or argc > 2)
+    {
+      std::cout << "One command line argument is needed: The number of degrees" 
+	"of freedom per dimension. Exiting." << std::endl;
+      exit(-1);
+    }
+  else
+    {
+      int N = strtol(argv[1], nullptr, 0);
+      if( (N>0) and (N%2 == 0) )       
+	return N;
+      else
+	{
+	  std::cout << "The number of degrees of freedom per" 
+	    " dimension must be a positive and even number. Exiting."
+		    << std::endl;
+	  exit(-1);
+	}
+    }
 }

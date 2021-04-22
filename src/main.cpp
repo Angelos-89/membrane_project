@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
   
   const int issim = sim;               //check if it is equilibration or sim run
   const int maxiter = maxit;           //max no of iterations
-  const int N = 80;                    //DoF per dimension
+  const int N = CHECK_CMD_ARG(argc,argv); //DoF per dimension
   const int DoF = N*N;                 //number of degrees of freedom
   const int nghost = 2;                //ghost points per boundary point
   const double rig = 10.0;             //bending rigidity
