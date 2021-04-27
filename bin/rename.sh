@@ -1,11 +1,18 @@
-#used to rename the files hfield_0.h5 to hfield_eq_0.h5
+#---------------------------------------#
+#This script is used to rename the files hfield_0.h5 to hfield_eq_0.h5
 #so that we can start a simulation from an earlier one.
-#uncomment the following and change the directory according
-#the .h5 files location.
+#Uncomment the following code and change the directory according
+#to the .h5 files location.
 #---------------------------------------#
 
-#FP="/home/angelos-89/bash_scripting"
-#for file in $FP/*.h5
+#FILEPATH="/home/angelos-89/bash_scripting"
+#SUBSTR2="eq_"
+#SUBSTR4=".h5"
+#for FILE in $FILEPATH/*.h5
 #do
-#    mv $file ${file%.h5}_eq.h5
+#    FILENAME=${FILE##*/}
+#    VAR1=${FILENAME#*_}
+#    SUBSTR3=${VAR1%???}
+#    SUBSTR1="${FILENAME:0:7}"
+#    mv $FILENAME $SUBSTR1$SUBSTR2$SUBSTR3$SUBSTR4
 #done
