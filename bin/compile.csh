@@ -4,11 +4,11 @@ make
 mv membrane.exe $MC_WD
 cd $MC_WD
 if ( -f gen_input.py ) then
-  echo "you have  a copy of gen_input"
+  echo "You have  a copy of gen_input.py."
 else
-  echo " copying python file to generate input file in theis directory"
+  echo " Copying python file to generate input files in this directory."
   cp $MC_HOME/bin/gen_input.py .
-  echo "------done ----"
+  echo "---- DONE ----"
 endif
-echo "Create input files using this python script"
-echo "------------------------------------"
+echo "Create input files using this python script."
+echo "--------------------------------------------"

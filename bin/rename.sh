@@ -1,8 +1,12 @@
+#!/bin/bash
+
 #---------------------------------------#
-#This script is used to rename the files hfield_0.h5 to hfield_eq_0.h5
-#so that we can start a simulation from an earlier one.
-#Uncomment the following code and change the directory according
-#to the .h5 files location.
+# This script is used to rename the files
+# hfield_rank.h5 to hfield_eq_rank.h5
+# so that we can start a simulation from
+# an earlier one. Uncomment the following
+# code and change the FILEPATH according
+# to the .h5 files location.
 #---------------------------------------#
 
 #FILEPATH="/home/angelos-89/bash_scripting"
