@@ -1,4 +1,3 @@
-/*-- Include Libraries --*/
 #include <string.h>
 #include <mpi.h>
 #include <vector>
@@ -8,9 +7,8 @@
 #include <random>
 #include "McmemLib.hpp"
 #include "fft.h"
-/*-----------------------*/
 
-/*------ Hash function for the Site class -------*/
+/*------------------------ Hash function for the Site class ------------------*/
 namespace std
 {
   template <>
@@ -18,12 +16,11 @@ namespace std
   {
     size_t operator()( const Site& p ) const
     {
-      return((53 + std::hash<int>()(p.getx()))*53
-	     + std::hash<int>()(p.gety()));
+      return((53 + std::hash<int>()(p.getx()))*53 + std::hash<int>()(p.gety()));
     }
   }; 
 }
-/*-----------------------------------------------*/
+/*----------------------------------------------------------------------------*/
 
 /*-- Global variables --*/
 double PI = 4.*atan(1.0);
@@ -31,34 +28,31 @@ std::random_device RD;
 std::mt19937 MT(RD());
 /*----------------------*/
 
-
-/*--------------------------- Main Function --------------------------------*/
+/*---------------------------- Main Function ---------------------------------*/
 int main(int argc, char* argv[])
 {
-  /* Initialize MPI. */
-  
+
+  /*------ Initialize MPI. -------- */
   int rank;
   MPI_Init(&argc,&argv);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
-  /*----------------- Define strings needed for filenames. -----------------*/
-  
-  std::string input_filename  = "input_"      + std::to_string(rank) + ".txt";
-  std::string output_filename = "timeseries_" + std::to_string(rank) + ".txt";
-  std::string hfield_filename = "hfield_"     + std::to_string(rank) +  ".h5";
-  std::string hspec_filename  = "hspec_"      + std::to_string(rank) + ".txt";
-  std::string pinset_filename = "pinned_set_" + std::to_string(rank) + ".txt";
+  /*----------------- Define strings needed for filenames. -------------------*/
+  std::string input_filename  = "input_"        + std::to_string(rank) + ".txt";
+  std::string output_filename = "timeseries_"   + std::to_string(rank) + ".txt";
+  std::string hfield_filename = "hfield_"       + std::to_string(rank) +  ".h5";
+  std::string hspec_filename  = "hspec_"        + std::to_string(rank) + ".txt";
+  std::string pinset_filename = "pinned_sites_" + std::to_string(rank) + ".txt";
   const char* cfield = hfield_filename.c_str();
   const char* cspec  =  hspec_filename.c_str();
-
-  // These are needed to read equilibrated height fields if is_sim==1. //
+  // These below are needed to read equilibrated height fields if is_sim==1.
   char input_field_filename[25] = {};
   char srank[5];
   sprintf(srank, "%d", rank);
   strcat(input_field_filename , "hfield_eq_");
   strcat(input_field_filename , srank);    
   strcat(input_field_filename , ".h5");
-  /*------------------------------------------------------------------------*/
+  /*--------------------------------------------------------------------------*/
 
   /*------------------ Input variables declaration --------------*/
   // These are read from an input file.
@@ -73,13 +67,14 @@ int main(int argc, char* argv[])
   double pin_ratio;   // Ratio of the total DoFs to be pinned
   double Eactive;     // Membrane activity (k_BT)
   /*-------------------------------------------------------------*/
-  
+
+  //why not read these from a file too and the Output to txt is done in Python?
   /*-------------------------- Variable definition --------------------------*/
   int N = Input_DoFs(argc,argv);   // Degrees of freedom (DoFs) per dimension
   int DoFs = pow(N,2);             // Total number of DoFs
   int Nghost = 2;                  // Ghost points per boundary point
   int attempt_lattice_change = 5;  // Iterations to attempt a lattice change
-  int iter = 0;
+  int iter = 0;                    
   double rig = 10.0;               // Bending rigidity (k_BT)
   double pot_strength = 14000.;    // Strength of the pinning potential
   double h0 = 0.;                  // Equilibrium position of pinned sites
@@ -89,7 +84,7 @@ int main(int argc, char* argv[])
   /* Read the input files. */ 
   
   ReadInput(input_filename, is_sim, sample_every, maxiter, sig, tau, epsilon,
-	    minchange, maxchange, pin_ratio, Eactive);
+	    min_change, max_change, pin_ratio, Eactive);
    
   /* Make txt files with the parameters of the run. */
   
@@ -112,24 +107,36 @@ int main(int argc, char* argv[])
   double dA_local = 0.0;         // Difference in local area
   double dE_local = 0.0;         // Difference in local energy
   double perturb;                // Value of the random perturbation
-  bool where = 0;                // Indicator of boundary or bulk point
-  bool pin = 0;                  // Indicator of pinned point
-  bool accept = 0;               // Indicates the acceptance of a height move
-  bool lattice_accept = 0;       // Indicates the acceptance of a lattice move
+  int lattice_attempts = 0;      // Number of lattice change attempts
   int lattice_changes = 0;       // Number of accepted lattice moves
   int height_changes = 0;        // Number of accepted height moves
-  int lattice_attempts = 0;      // Number of lattice change attempts
   int total_moves = 0;           // Total accepted moves
-  int x,y;
-  int len_area = 5;               
-  int len_corr = 4*nghost+1;
-  int len_ener = pow( (2*nghost+1) ,2); 
+  int x,y;                       // Coordinates of selected site
+  bool lattice_accept = 0;       // Indicates the acceptance of a lattice move
+  bool accept = 0;               // Indicates the acceptance of a height move
+  bool where = 0;                // Indicator of boundary or bulk point
+  bool pin = 0;                  // Indicator of pinned point
+  
+  /*--------------------------------------*/
+  /* Different number of neighbors are
+     needed for the calculation
+     of the change of a local quantity. 
+     See GetNeighbors in McmemLib.cpp.    */
+  int len_area = 5;              
+  int len_corr = 4*Nghost+1;
+  int len_ener = pow( (2*Nghost+1) ,2);
   Site site;
   Site neighbors_area[len_area];
   Site neighbors_corr[len_corr];
   Site neighbors_ener[len_ener];
   std::unordered_set<Site> pinned_sites={};
   /*--------------------------------------*/
+
+  /*--------- Block-pinning ----------*/
+  int radius = 4;
+  int length = pow( (2*radius+1) ,2);
+  Site neighbors[length];
+  /*----------------------------------*/
   
   /*-- Set up spectrum computations --*/
   int qdiag_max = floor(sqrt(2)*N)+1;
@@ -141,189 +148,162 @@ int main(int argc, char* argv[])
   fft_setup2d(N,hx,hq);
   /*----------------------------------*/
   
-  /*------- Random numbers generators and activity addition ------------*/
+  /*-------- Random number generators and activity addition ------------*/
   std::uniform_int_distribution<int> RandInt(0 , N-1);  
   std::uniform_real_distribution<double>  RandDouble(-epsilon , +epsilon);
   AddShift(Eactive); // Shifts energy in metropolis
   /*--------------------------------------------------------------------*/
 
-  /* Initialize pinning and the height field hfield(i,j). */
+  /*-- Initialize pinning and the height field hfield(i,j) --*/
+  RectMesh hfield(N,N,Nghost);
+  if (is_sim == 0 and pin_ratio == 0)
+    InitSurface(hfield,pinned_sites,-0.1,+0.1);
+  
+  if (is_sim == 0 and pin_ratio != 0){
+    pinned_sites = InitPinning(hfield, pin_ratio, neighbors, radius); 
+    WritePinnedSites(pinset_filename,pinned_sites,N,N);
+    InitSurface(hfield,pinned_sites,-0.1,+0.1);}
 
-  RectMesh hfield(N,N,nghost);
-  if (issim == 0)
-    {
-      pinned_sites = InitPinning(N,pn_prcn);      //store pinned sites to a set
-
-      /* write the set containing pinned sites to txt */
-      if (pn_prcn != 0)
-	{
-	  std::ofstream pinned;
-	  pinned.open(pinset_filename);
-	  for (auto it = pinned_sites.begin(); it != pinned_sites.end(); it++)
-	    pinned << (*it).getx() << " " << (*it).gety() << "\n";
-	  pinned.close();
-	}
-      InitSurface(hfield,pinned_sites,-0.1,+0.1); //initialize a random surface
-    }
-  else
-    {
+  if (is_sim == 1 and pin_ratio == 0)
       hfield.readH5(input_field_filename);
-      
-      if (pn_prcn != 0)
-	{
-	  /* put the stored pinned sites */
-	  Site st;
-	  int xs,s;
-	  std::ifstream pinset(pinset_filename); 
-	  if (pinset.is_open())
-	    {
-	      while (!pinset.eof())
-		{
-		  pinset >> x >> y;
-		  st.set(x,y);
-		  pinned_sites.insert(st);
-		}
-	    }
-	  else
-	    {
-	      std::cout << "File pinned_set_rank.txt is not found." << std::endl;
-	      exit(EXIT_FAILURE);
-	    }
-	}
-    }
+
+  if (is_sim == 1 and pin_ratio != 0){
+    ReadPinnedSites(pinset_filename, pinned_sites);
+    hfield.readH5(input_field_filename);}
+  /*---------------------------------------------------------*/
     
-  /* 3) Calculate the projected membrane area "prj_area", the total area 
-     "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
-     "cor_energy" and "tot_energy" and write the data.                        */
+  // /* 3) Calculate the projected membrane area "prj_area", the total area 
+  //    "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
+  //    "cor_energy" and "tot_energy" and write the data.                        */
     
-  CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
-  		 sig_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,
-		 pinned_sites,pot_strength,h0);
+  // CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
+  // 		 sig_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,
+  // 		 pinned_sites,pot_strength,h0);
   
-  Sample(iter,total_moves,output_filename,tot_energy,crv_energy,
-	 cor_energy,pin_energy,tot_area,prj_area,alpha,DoF);
+  // Sample(iter,total_moves,output_filename,tot_energy,crv_energy,
+  // 	 cor_energy,pin_energy,tot_area,prj_area,alpha,DoF);
   
-  /*----------------------------------MC Loop---------------------------------*/
+  // /*----------------------------------MC Loop---------------------------------*/
   
-  for (iter=1; iter<maxiter+1; iter++)
-    {
+  // for (iter=1; iter<maxiter+1; iter++)
+  //   {
       
-      /* 4) Randomly choose a lattice site (i,j) and check whether it 
-  	 belongs to the boundaries or to the bulk, and if it is a pinned
-	 site. Also find and store all its neighbors.                         */
+  //     /* 4) Randomly choose a lattice site (i,j) and check whether it 
+  // 	 belongs to the boundaries or to the bulk, and if it is a pinned
+  // 	 site. Also find and store all its neighbors.                         */
 
-      x = RandInt(MT);
-      y = RandInt(MT);
-      site.set(x,y);
-      GetNeighbors(hfield,site,neighbors_area,neighbors_corr,neighbors_ener);
-      where = WhereIs(site,N,N,nghost);
-      pin = Ispinned(site,pinned_sites);
+  //     x = RandInt(MT);
+  //     y = RandInt(MT);
+  //     site.set(x,y);
+  //     GetNeighbors(hfield,site,neighbors_area,neighbors_corr,neighbors_ener);
+  //     where = WhereIs(site,N,N,nghost);
+  //     pin = Ispinned(site,pinned_sites);
       
-      /* 5) Calculate the local area and energy of that point.                */
+  //     /* 5) Calculate the local area and energy of that point.                */
 
-      local_energy_pre = LocalEnergy(hfield,neighbors_area,
-  				     neighbors_corr,
-  				     neighbors_ener,
-  				     alpha,rig,sig,tau,
-				     pot_strength,h0,pin);
+  //     local_energy_pre = LocalEnergy(hfield,neighbors_area,
+  // 				     neighbors_corr,
+  // 				     neighbors_ener,
+  // 				     alpha,rig,sig,tau,
+  // 				     pot_strength,h0,pin);
 
-      local_area_pre = LocalArea(hfield,neighbors_area,alpha);
+  //     local_area_pre = LocalArea(hfield,neighbors_area,alpha);
       
-      /* 6) Randomly perturbate the height of the chosen point.               */
+  //     /* 6) Randomly perturbate the height of the chosen point.               */
 
-      perturb = RandDouble(MT); 
-      hfield(x,y) += perturb;
-      if (where==1)
-	GhostCopy(hfield);
+  //     perturb = RandDouble(MT); 
+  //     hfield(x,y) += perturb;
+  //     if (where==1)
+  // 	GhostCopy(hfield);
       
-      /* 7) Calculate the new local energy and local area.                    */
+  //     /* 7) Calculate the new local energy and local area.                    */
 
-      local_energy_aft = LocalEnergy(hfield,neighbors_area,
-  				     neighbors_corr,
-  				     neighbors_ener,
-  				     alpha,rig,sig,tau,
-				     pot_strength,h0,pin);
+  //     local_energy_aft = LocalEnergy(hfield,neighbors_area,
+  // 				     neighbors_corr,
+  // 				     neighbors_ener,
+  // 				     alpha,rig,sig,tau,
+  // 				     pot_strength,h0,pin);
 
-      local_area_aft = LocalArea(hfield,neighbors_area,alpha);
+  //     local_area_aft = LocalArea(hfield,neighbors_area,alpha);
       
-      /* 8) Calculate the energy difference and check whether the 
-  	 move is accepted or not.                                             */
+  //     /* 8) Calculate the energy difference and check whether the 
+  // 	 move is accepted or not.                                             */
 
-      dAlocal = local_area_aft - local_area_pre;
-      dElocal = local_energy_aft - local_energy_pre;
-      accept  = Metropolis(dElocal);
+  //     dAlocal = local_area_aft - local_area_pre;
+  //     dElocal = local_energy_aft - local_energy_pre;
+  //     accept  = Metropolis(dElocal);
       
-      /* 9) If the move is accepted, update total area and energy.
-  	 Otherwise return to previous state.                                  */
+  //     /* 9) If the move is accepted, update total area and energy.
+  // 	 Otherwise return to previous state.                                  */
       
-      AcceptOrDecline(hfield,site,accept,where,tot_area,
-  		      tot_energy,dAlocal,dElocal,height_changes,perturb);
+  //     AcceptOrDecline(hfield,site,accept,where,tot_area,
+  // 		      tot_energy,dAlocal,dElocal,height_changes,perturb);
       
-      if (accept) //if the move is accepted update total_moves
-	{
-	  total_moves ++;
-	  if (total_moves % sample_every == 0) //write every sample_every moves 
-	    Sample(iter,total_moves,output_filename,
-		   tot_energy,crv_energy,cor_energy,pin_energy,
-		   tot_area,prj_area,alpha,DoF);
-	}
+  //     if (accept) //if the move is accepted update total_moves
+  // 	{
+  // 	  total_moves ++;
+  // 	  if (total_moves % sample_every == 0) //write every sample_every moves 
+  // 	    Sample(iter,total_moves,output_filename,
+  // 		   tot_energy,crv_energy,cor_energy,pin_energy,
+  // 		   tot_area,prj_area,alpha,DoF);
+  // 	}
       
-      /* 10) After "attempt_lattice_change" iterations, randomly change 
-	 alpha, compute the new projected area and update the 
-	 total energy.                                                        */
+  //     /* 10) After "attempt_lattice_change" iterations, randomly change 
+  // 	 alpha, compute the new projected area and update the 
+  // 	 total energy.                                                        */
       
-      if (iter % attempt_lattice_change == 0)
-	{
-	  lattice_accept = ChangeLattice(hfield,min_change,max_change,
-					 DoF,rig,sig,tau,prj_area,tot_area,
-					 tot_energy,tau_energy,crv_energy,
-					 sig_energy,cor_energy,pin_energy,
-					 alpha,lattice_moves,lattice_changes,
-					 pinned_sites,pot_strength,h0);
+  //     if (iter % attempt_lattice_change == 0)
+  // 	{
+  // 	  lattice_accept = ChangeLattice(hfield,min_change,max_change,
+  // 					 DoF,rig,sig,tau,prj_area,tot_area,
+  // 					 tot_energy,tau_energy,crv_energy,
+  // 					 sig_energy,cor_energy,pin_energy,
+  // 					 alpha,lattice_moves,lattice_changes,
+  // 					 pinned_sites,pot_strength,h0);
 	  
-	  if (lattice_accept) //if the move is accepted update total_moves
-	    {  
-	      total_moves ++;
-	      if (total_moves % sample_every == 0)  
-		Sample(iter,total_moves,output_filename,
-		       tot_energy,crv_energy,cor_energy,pin_energy,
-		       tot_area,prj_area,alpha,DoF);
-	    }
-	}
+  // 	  if (lattice_accept) //if the move is accepted update total_moves
+  // 	    {  
+  // 	      total_moves ++;
+  // 	      if (total_moves % sample_every == 0)  
+  // 		Sample(iter,total_moves,output_filename,
+  // 		       tot_energy,crv_energy,cor_energy,pin_energy,
+  // 		       tot_area,prj_area,alpha,DoF);
+  // 	    }
+  // 	}
 
-      /* Compute radial 1D spectrum */
+  //     /* Compute radial 1D spectrum */
 
-      if (total_moves % sample_every == 0)
-	{
-	  spec_steps ++;
-	  for(int j=0; j<N; j++)
-	    {
-	      for(int i=0; i<N; i++)
-		hx[ i + (N+2)*j ] = hfield(i,j);
-	    }
-	  fft();
-	  onedspec2d(S1d,N,hx,alpha,dk,qdiag_max);
-	}
+  //     if (total_moves % sample_every == 0)
+  // 	{
+  // 	  spec_steps ++;
+  // 	  for(int j=0; j<N; j++)
+  // 	    {
+  // 	      for(int i=0; i<N; i++)
+  // 		hx[ i + (N+2)*j ] = hfield(i,j);
+  // 	    }
+  // 	  fft();
+  // 	  onedspec2d(S1d,N,hx,alpha,dk,qdiag_max);
+  // 	}
 
-      /* Write the height field */
+  //     /* Write the height field */
       
-      if (total_moves % (int) 1e3 == 0) //write surface every 1e3 accepted moves
-	hfield.writeH5(cfield);
-    }
+  //     if (total_moves % (int) 1e3 == 0) //write surface every 1e3 accepted moves
+  // 	hfield.writeH5(cfield);
+  //   }
 
-  /* Average power spectrum and write it to a file */
+  // /* Average power spectrum and write it to a file */
 
-  std::ofstream radSpecFile;
-  radSpecFile.open(hspec_filename);
-  for (int i=0; i<qdiag_max; i++)
-    radSpecFile << i*dk << "\t" << 4.0*S1d[i]/(double)spec_steps << "\n";
-  radSpecFile.close();
+  // std::ofstream radSpecFile;
+  // radSpecFile.open(hspec_filename);
+  // for (int i=0; i<qdiag_max; i++)
+  //   radSpecFile << i*dk << "\t" << 4.0*S1d[i]/(double)spec_steps << "\n";
+  // radSpecFile.close();
 
-  /* 11) Print acceptance ratios and finish                                   */
+  // /* 11) Print acceptance ratios and finish                                   */
 
-  hfield.writeH5(cfield);
-  PrintAcceptance(maxiter,height_changes,lattice_moves,
-  		  lattice_changes,spec_steps,rank);
+  // hfield.writeH5(cfield);
+  // PrintAcceptance(maxiter,height_changes,lattice_moves,
+  // 		  lattice_changes,spec_steps,rank);
   MPI_Finalize();
   return 0;
 }

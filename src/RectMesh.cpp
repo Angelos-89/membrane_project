@@ -261,8 +261,8 @@ void RectMesh::readH5(const char filename[])
   /* Check if file exists */
   if (file < 0 )
     {
-      std::cout << "Input hdf5 file does not exist. Exiting."
-  		<< std::endl;
+      std::cout << "Input hdf5 file does not exist. You probably need"
+	" a file called 'hfield_eq_rank.h5'. Exiting." << std::endl;
       exit(EXIT_FAILURE); 
     }
   
@@ -314,6 +314,7 @@ void RectMesh::readH5(const char filename[])
   
   status = H5Dread (dset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT,
 		    mesh);
+  std::cout << "Input hdf5 file read successfully." << std::endl;
   
   /*  Close and release resources. */
   status = H5Pclose (dcpl);

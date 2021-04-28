@@ -72,36 +72,148 @@ void OutputParams(const int maxiter,const int N,const int DoF,
   file.close();
 }
 
+/*------------------------------ TileOfNeighbors ----------------------*/
+
+/* Returns a set of neighbors of a site, which form a square of a certain 
+   length. The neighbors are stored inside neighbors[] and the site
+   is included. */
+
+void TileOfNeighbors(Site neighbors[], RectMesh& field, Site site, int radius)
+{
+  int cols = field.getcols();
+  int rows = field.getrows();
+  int nghost = field.getnghost();
+  int x = site.getx();
+  int y = site.gety();
+  int k=0;
+  for(int j=y-radius; j<=y+radius; j++)
+    {
+      for(int i=x-radius; i<=x+radius; i++)
+	{
+	  site.set(i, j);
+	  neighbors[k] = site;
+	  k++;
+	}
+    } 
+}
+
 /*---------------------------- InitPinning ------------------------*/
 
 /* Given the percentage of the total DoF that will be pinned, it 
    fills the vector with all the pinned sites. N = sqrt(DoF)       */
 
-std::unordered_set<Site> InitPinning(int N,double pn_prcn) 
+std::unordered_set<Site> InitPinning(RectMesh& hfield,double pin_ratio,
+				     Site neighbors[],int radius) 
 {
-  int len = pow(N,2)*pn_prcn;
-  if ( len < 0 )
-    {
-      std::cout << "InitPinning: Length of vector must be greater or equal "
-	"to zero. Exiting."
-		<< std::endl;
-      exit(EXIT_FAILURE);
-    }
+  int Nx = hfield.getcols();
+  int Ny = hfield.getrows();
+  int N2 = Nx*Ny;
+  int len = N2*pin_ratio;
+  if ( len < 0 ){
+    std::cout << "InitPinning: Length of array containing pinned sites"
+      "must be greater or equal to zero. Exiting." << std::endl;
+    exit(EXIT_FAILURE);}
   
-  Site site;
+  Site site_a,site_b;
   int x,y;
   std::unordered_set<Site> set = {}; 
-  
+  int length = pow(2*radius+1 , 2);
+
   while (set.size() < len)
     {
-      std::uniform_int_distribution<int> RandInt(0,N-1);
-      x = RandInt(mt);
-      y = RandInt(mt);
-      site.set(x,y);
-      set.insert(site);
+      std::uniform_int_distribution<int> RandIntX(0,Nx-1);
+      std::uniform_int_distribution<int> RandIntY(0,Ny-1);
+      x = RandIntX(mt);
+      y = RandIntY(mt);
+      site_a.set(x,y);
+      set.insert(site_a);
+      if (set.find(site_a) != set.end()) 
+	{
+	  TileOfNeighbors(neighbors,hfield,site_a,radius);
+	  for (int k=0; k<length; k++)
+	    {
+	      site_b = neighbors[k];
+	      if (site_a.dist(site_b) <= radius)
+		set.insert(site_b);
+	    }
+	}
     }
   return set;  
 }
+
+
+
+// /*---------------------------- InitPinning ------------------------*/
+
+// /* Given the percentage of the total DoF that will be pinned, it 
+//    fills the vector with all the pinned sites. N = sqrt(DoF)       */
+
+// std::unordered_set<Site> InitPinning(RectMesh& hfield, double pin_ratio,
+// 				     Site neighbors[],int radius) 
+// {
+//   int Nx = hfield.getcols();
+//   int Ny = hfield.getrows();
+//   int N = Nx*Ny;
+//   int len = N*pin_ratio;
+
+//   if ( len < 0 ){
+//       std::cout << "InitPinning: Length of vector must be greater or equal "
+// 	"to zero. Exiting."
+// 		<< std::endl;
+//       exit(EXIT_FAILURE);}
+
+//   Site site_a,site_b;
+//   int x,y;
+//   std::unordered_set<Site> set = {}; 
+//   int length = pow( (2*radius+1) , 2);
+//   while (set.size() < len)
+//     {
+//       std::uniform_int_distribution<int> RandInt(0,N-1);
+//       x = RandInt(mt);
+//       y = RandInt(mt);
+//       site_a.set(x,y);
+//       set.insert(site_a);
+//       if (set.find(site_a) != set.end()) 
+// 	{
+// 	  TileOfNeighbors(neighbors,hfield,site_a,radius);
+// 	  for (int kk=0; kk<length; kk++)
+// 	    {
+// 	      site_b = neighbors[kk];
+// 	      if (site_a.dist(site_b) <= radius)
+// 		set.insert(site_b);
+// 	    }
+// 	}
+//     }
+//   return set;  
+// }
+
+
+
+// std::unordered_set<Site> InitPinning(int N,double pn_prcn) 
+// {
+//   int len = pow(N,2)*pn_prcn;
+//   if ( len < 0 )
+//     {
+//       std::cout << "InitPinning: Length of vector must be greater or equal "
+// 	"to zero. Exiting."
+// 		<< std::endl;
+//       exit(EXIT_FAILURE);
+//     }
+  
+//   Site site;
+//   int x,y;
+//   std::unordered_set<Site> set = {}; 
+  
+//   while (set.size() < len)
+//     {
+//       std::uniform_int_distribution<int> RandInt(0,N-1);
+//       x = RandInt(mt);
+//       y = RandInt(mt);
+//       site.set(x,y);
+//       set.insert(site);
+//     }
+//   return set;  
+// }
 
 /*------------------------ InitSurface ---------------------*/
 
@@ -1147,7 +1259,7 @@ void write_metadata_to_H5_file(const char* FILENAME, hfield_metadata* wdata, hsi
 
 /*---------------------------------------------------------------------*/
 
-int CHECK_CMD_ARG(int argc, char* argv[])
+int Input_DoFs(int argc, char* argv[])
 {  
   if (argc == 1 or argc > 2)
     {
@@ -1167,5 +1279,40 @@ int CHECK_CMD_ARG(int argc, char* argv[])
 		    << std::endl;
 	  exit(-1);
 	}
+    }
+}
+
+
+/* WritePinnedSites------------- */
+void WritePinnedSites(std::string pinset_filename,
+		      std::unordered_set<Site>& set, int Nx, int Ny)
+{
+  std::ofstream pinned;
+  pinned.open(pinset_filename);
+  for (auto it = set.begin(); it != set.end(); it++)
+    pinned << ((*it).getx()+Nx)%Nx << " " << ((*it).gety()+Ny)%Ny << "\n";
+  pinned.close();
+}
+/*------------------------*/
+
+void ReadPinnedSites(std::string pinset_filename,
+		      std::unordered_set<Site>& pinned_set)
+{
+  Site site;
+  int x,y;
+  std::ifstream pinset(pinset_filename); 
+  if (pinset.is_open())
+    {
+      while (!pinset.eof())
+	{
+	  pinset >> x >> y;
+	  site.set(x,y);
+	  pinned_set.insert(site);
+	}
+    }
+  else
+    {
+      std::cout << "File pinned_sites_rank.txt is not found." << std::endl;
+      exit(EXIT_FAILURE);
     }
 }

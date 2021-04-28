@@ -24,7 +24,10 @@ void OutputParams(const int maxiter,const int N,const int DoF,
 		  const double tau,const double epsilon,
 		  const double min_change,const double max_change,
 		  double alpha,double pn_prcn,int sample_every,int rank, double Eactive);
-std::unordered_set<Site> InitPinning(int N,double pn_prcn);
+//std::unordered_set<Site> InitPinning(int N,double pn_prcn);
+std::unordered_set<Site> InitPinning(RectMesh& hfield, double pin_ratio,
+				    Site neighbors[],int radius);
+
 void InitSurface(RectMesh& hfield,std::unordered_set<Site>&,
 		 const double min,const double max);
 void GhostCopy(RectMesh& mesh);
@@ -104,7 +107,11 @@ void Spectrum(RectMesh& Input_Field,RectMesh& Output);
 void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield);
 void write_metadata_to_H5_file(const char* FILENAME,
 			       hfield_metadata* wdata, hsize_t DIM0); 
-int CHECK_CMD_ARG(int argc, char* argv[]);
-
+int Input_DoFs(int argc, char* argv[]);
+void ReadPinnedSites(std::string pinset_filename,
+		     std::unordered_set<Site>& pinned_set);
+void WritePinnedSites(std::string pinset_filename,
+		      std::unordered_set<Site>& set, int Nx, int Ny);
+void TileOfNeighbors(Site neighbors[], RectMesh& field, Site site, int radius);
 
 #endif
