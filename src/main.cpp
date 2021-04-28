@@ -1,3 +1,4 @@
+/*-- Include Libraries --*/
 #include <string.h>
 #include <mpi.h>
 #include <vector>
@@ -7,8 +8,9 @@
 #include <random>
 #include "McmemLib.hpp"
 #include "fft.h"
+/*-----------------------*/
 
-/* Hash function for the Site class */
+/*------ Hash function for the Site class -------*/
 namespace std
 {
   template <>
@@ -17,133 +19,135 @@ namespace std
     size_t operator()( const Site& p ) const
     {
       return((53 + std::hash<int>()(p.getx()))*53
-	         + std::hash<int>()(p.gety()));
+	     + std::hash<int>()(p.gety()));
     }
   }; 
 }
+/*-----------------------------------------------*/
 
+/*-- Global variables --*/
 double PI = 4.*atan(1.0);
 std::random_device RD;
-std::mt19937 MT(RD()); 
+std::mt19937 MT(RD());
+/*----------------------*/
 
+
+/*--------------------------- Main Function --------------------------------*/
 int main(int argc, char* argv[])
 {
-
-  /* 0) Initialize MPI and read files with the values of internal 
-        and frame tensions.                                                   */ 
-
+  /* Initialize MPI. */
+  
   int rank;
   MPI_Init(&argc,&argv);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+
+  /*----------------- Define strings needed for filenames. -----------------*/
   
-  int sim,acc_samples;
-  double maxit,e,s,t,minchange,maxchange,pin_ratio;
-  double Eactive = 0;
-  /* Eactive is the active energy, zero by default.
-     If you set the Eactive to non-zero values the 
-     membrane is no longer in equilibrium. The value 
-     can be both positive or negative. 
-     See Kumar & Dasgupta PRE 102, 2020 */
-
-  std::string input_filename  = "input_"       + std::to_string(rank) + ".txt";
-  std::string output_filename = "timeseries_"  + std::to_string(rank) + ".txt";
-  std::string hfield_filename = "hfield_"      + std::to_string(rank) + ".h5";
-  std::string hspec_filename  = "hfield_spec_" + std::to_string(rank) + ".txt";
-  std::string pinset_filename = "pinned_set_"  + std::to_string(rank) + ".txt";
-
+  std::string input_filename  = "input_"      + std::to_string(rank) + ".txt";
+  std::string output_filename = "timeseries_" + std::to_string(rank) + ".txt";
+  std::string hfield_filename = "hfield_"     + std::to_string(rank) +  ".h5";
+  std::string hspec_filename  = "hspec_"      + std::to_string(rank) + ".txt";
+  std::string pinset_filename = "pinned_set_" + std::to_string(rank) + ".txt";
   const char* cfield = hfield_filename.c_str();
-  const char* cspec  = hspec_filename.c_str();
-  
+  const char* cspec  =  hspec_filename.c_str();
+
+  // These are needed to read equilibrated height fields if is_sim==1. //
   char input_field_filename[25] = {};
-  char srank[4];
+  char srank[5];
   sprintf(srank, "%d", rank);
-  strcat(input_field_filename, "hfield_eq_");
-  strcat(input_field_filename, srank);    
-  strcat(input_field_filename,".h5"); 
+  strcat(input_field_filename , "hfield_eq_");
+  strcat(input_field_filename , srank);    
+  strcat(input_field_filename , ".h5");
+  /*------------------------------------------------------------------------*/
+
+  /*------------------ Input variables declaration --------------*/
+  // These are read from an input file.
+  int is_sim;         // Check if we start from earlier simulation
+  int sample_every;   // Sample every these accepted moves
+  double maxiter;     // Max number of iterations
+  double sig;         // Internal tension (k_BT/a_0^2)
+  double tau;         // Frame tension    (k_BT/a_0^2)
+  double epsilon;     // Maximum height perturbation
+  double min_change;  // Min fraction of lattice size change
+  double max_change;  // Max fraction of lattice size change
+  double pin_ratio;   // Ratio of the total DoFs to be pinned
+  double Eactive;     // Membrane activity (k_BT)
+  /*-------------------------------------------------------------*/
   
-  ReadInput(input_filename,sim,acc_samples,maxit,s,t,e,
-	    minchange,maxchange,pin_ratio,Eactive);
-  
-  const int issim = sim;               //check if it is equilibration or sim run
-  const int maxiter = maxit;           //max no of iterations
-  const int N = CHECK_CMD_ARG(argc,argv); //DoF per dimension
-  const int DoF = N*N;                 //number of degrees of freedom
-  const int nghost = 2;                //ghost points per boundary point
-  const double rig = 10.0;             //bending rigidity
-  const double sig = s;                //internal tension
-  const double tau = t;                //frame tension
-  const double epsilon = e;            //maximum possible height perturbation
-  const double min_change = minchange; //min percentage of lattice size change
-  const double max_change = maxchange; //max percentage of lattice size change
-  const double pn_prcn = pin_ratio;    //ratio of the total DoF to be pinned
-  const double pot_strength = 14000;   //strength of the pinning potential
-  const double h0 = 0;                 //equilibrium position of pinned sites
-  double alpha = 1.0;                  //lattice spacing(distance between 2 DoF)
-  int sample_every = acc_samples;      //sample when acc_samples are accepted
-  int attempt_lattice_change = 5;      //iterations to attempt a lattice change
+  /*-------------------------- Variable definition --------------------------*/
+  int N = Input_DoFs(argc,argv);   // Degrees of freedom (DoFs) per dimension
+  int DoFs = pow(N,2);             // Total number of DoFs
+  int Nghost = 2;                  // Ghost points per boundary point
+  int attempt_lattice_change = 5;  // Iterations to attempt a lattice change
   int iter = 0;
+  double rig = 10.0;               // Bending rigidity (k_BT)
+  double pot_strength = 14000.;    // Strength of the pinning potential
+  double h0 = 0.;                  // Equilibrium position of pinned sites
+  double alpha = 1.0;              // Lattice spacing (distance between 2 DoFs)
+  /*-------------------------------------------------------------------------*/
 
+  /* Read the input files. */ 
   
-  OutputParams(maxiter,N,DoF,nghost,rig,sig,tau,epsilon,
-	       min_change,max_change,alpha,pn_prcn,sample_every,rank,Eactive);
+  ReadInput(input_filename, is_sim, sample_every, maxiter, sig, tau, epsilon,
+	    minchange, maxchange, pin_ratio, Eactive);
+   
+  /* Make txt files with the parameters of the run. */
   
-  double prj_area = 0.0;
-  double tot_area = 0.0;
-  double tau_energy = 0.0;
-  double crv_energy = 0.0;
-  double sig_energy = 0.0;
-  double cor_energy = 0.0;
-  double pin_energy = 0.0;
-  double tot_energy = 0.0;
-  
-  double local_energy_pre = 0.0;
-  double local_energy_aft = 0.0;
-  double local_area_pre = 0.0;
-  double local_area_aft = 0.0;
-  double dAlocal = 0.0;        //difference in local area
-  double dElocal = 0.0;        //difference in local energy
-  double perturb;              //value of the random perturbation
-  
-  bool where = 0;              //indicator of boundary or bulk point
-  bool pin = 0;                //indicator of pinned point
-  bool accept = 0;             //indicates the acceptance of a height move
-  bool lattice_accept = 0;     //indicates the acceptance of a lattice move
+  OutputParams(maxiter, N, DoFs, Nghost, rig, sig, tau, epsilon, min_change,
+	       max_change, alpha, pin_ratio, sample_every, rank, Eactive);
 
-  int lattice_changes = 0;     //number of accepted lattice moves
-  int height_changes = 0;      //number of accepted height moves
-  int lattice_moves = 0;       //number of lattice change attempts
-  int total_moves = 0;         //total accepted moves
-  
-  Site site;
+  /*---------- Definition of variables needed for Monte Carlo --------------*/
+  double prj_area = 0.0;         // Projected membrane area
+  double tot_area = 0.0;         // Total membrane area
+  double tau_energy = 0.0;       // Energy due to frame tension
+  double crv_energy = 0.0;       // Energy due to curvature
+  double sig_energy = 0.0;       // Energy due to internal tension
+  double cor_energy = 0.0;       // Entropy correction energy
+  double pin_energy = 0.0;       // Pinning energy
+  double tot_energy = 0.0;       // Total energy
+  double local_energy_pre = 0.0; // Local energy before the attempted move
+  double local_energy_aft = 0.0; // Local energy after the attempted move
+  double local_area_pre = 0.0;   // Local area before the attempted move
+  double local_area_aft = 0.0;   // Local area before the attempted move
+  double dA_local = 0.0;         // Difference in local area
+  double dE_local = 0.0;         // Difference in local energy
+  double perturb;                // Value of the random perturbation
+  bool where = 0;                // Indicator of boundary or bulk point
+  bool pin = 0;                  // Indicator of pinned point
+  bool accept = 0;               // Indicates the acceptance of a height move
+  bool lattice_accept = 0;       // Indicates the acceptance of a lattice move
+  int lattice_changes = 0;       // Number of accepted lattice moves
+  int height_changes = 0;        // Number of accepted height moves
+  int lattice_attempts = 0;      // Number of lattice change attempts
+  int total_moves = 0;           // Total accepted moves
   int x,y;
-  int len_area = 5; 
+  int len_area = 5;               
   int len_corr = 4*nghost+1;
-  int len_ener = pow((2*nghost+1),2); 
+  int len_ener = pow( (2*nghost+1) ,2); 
+  Site site;
   Site neighbors_area[len_area];
   Site neighbors_corr[len_corr];
   Site neighbors_ener[len_ener];
   std::unordered_set<Site> pinned_sites={};
+  /*--------------------------------------*/
   
-  std::uniform_int_distribution<int>      RandInt(0,N-1);  
-  std::uniform_real_distribution<double>  RandDouble(-epsilon,+epsilon);
-
-  AddShift(Eactive);       //shift energy in metropolis to implement "activity".
-
-  /* Set up spectrum computations */
-
-  double* hx = new double[N*(N+2)]();
+  /*-- Set up spectrum computations --*/
+  int qdiag_max = floor(sqrt(2)*N)+1;
+  double L_mean = (double) N;
+  double dk = 2.0*PI/L_mean;
+  double* hx  = new double[N*(N+2)]();
+  double* S1d = new double[qdiag_max]();
   fftw_complex* hq = (fftw_complex*) hx;
   fft_setup2d(N,hx,hq);
+  /*----------------------------------*/
+  
+  /*------- Random numbers generators and activity addition ------------*/
+  std::uniform_int_distribution<int> RandInt(0 , N-1);  
+  std::uniform_real_distribution<double>  RandDouble(-epsilon , +epsilon);
+  AddShift(Eactive); // Shifts energy in metropolis
+  /*--------------------------------------------------------------------*/
 
-  //  int qdiag_max = floor(sqrt(2)*(N/2))+1;
-  int qdiag_max = floor(sqrt(2)*N)+1;
-  double *S1d = new double[qdiag_max]();
-  double L_mean = (double) N;
-  double dk = 2.0*PI/L_mean; 
-  
-  int spec_steps = 0; //how many times the spectrum was calculated
-  
-  /* 2) Initialize pinning and the height field hfield(i,j)                   */
+  /* Initialize pinning and the height field hfield(i,j). */
 
   RectMesh hfield(N,N,nghost);
   if (issim == 0)
