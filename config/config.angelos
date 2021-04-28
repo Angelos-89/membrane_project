@@ -1,5 +1,6 @@
-
+#----------------------------------#
 # Configuration for Angelos' laptop.
+#----------------------------------#
 
 CC = /usr/bin/mpic++
 CFLAGS = -c -O3

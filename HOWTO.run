@@ -1,37 +1,60 @@
-
+#-----------------------------------------------------------------------------------------------#
 Note, $MC corresponds to the directory where the project is located.
 For example: /home/angelos/GIT/membrane_project
 
-1) Create a run directory <rundir>
-2) cd <rundir>
-3) Execute: source $MC/bin/setup.csh
-4) You end up inside the src directory. Now choose a config file
-   from the $MC/config directory.
-5) Then run:
-   ln -s $MC/config/config.angelos config.local
-6) If you want to run:
-   make -f makefile
+1) Create a run directory <rundir>.
+
+2) cd <rundir>.
+
+3) Execute: source $MC/bin/setup.csh or setup.sh.
+
+4) Now you are inside the /src directory.
+
+5) Now choose a configuration file from the $MC/config directory.
+
+6) Then run:
+   ln -s $MC/config/config.<your-choice> config.local
+
+7) Then:
+
+   make
    mv membrane.exe ../
    cd ..
 
-7) Create the input files input0.txt,input1.txt,input2.txt and input3.txt
-with the values of sigma and tau tensions like the following example:
-the following entries must be included
-first entry 0 or 1  (if 1 then start from an existing run)
-second entry number of iterations
-third entry sigma
-fourth entry tau
-fifth entry maximum height perturbation, start with a guess varies from 0.3 (small tension) 
-down to 0.05 (large tension)
-sixth entry  min lattice perturbation 0.98 (small tension) to 0.94 (large tension) 
-seventh entry max lattice perturbation 1.02 (small tension) to 1.12 (large tension) 
-8th entry  fraction of pinning
-9th entry  how often we sample (calculating FFTs)
-10th entry activity 
+8) Create the input files input_0.txt,input_1.txt etc.
+   To do so, use the gen_input.py file inside $MC/bin.
 
-Note that if we choose 1 in the first entry above then the code looks for
-an input hdf5 file with the name : hfield_eq_0.h5
+   1st entry: 0 or 1. (If set to 1 then start from an existing run. Then, there must be
+   	 	     	files named hfield_eq_rank.h5 inside the directory.)
 
-8a) Execute mpirun -n 4 ./membrane.exe > console &
-8b) If you are running on server: nohup mpirun -n 4 ./membrane.exe > console &
+   2nd entry: Number of accepted Monte Carlo steps to sample and calculate FFTs.  
 
+   3rd entry: Number of iterations in the form 1e7.
+   
+   4th entry: Surface tension sigma
+
+   4th entry: Frame tension tau
+   
+   6th entry: Maximum height perturbation. Start with a guess. It varies from 0.2 (small tension) 
+   	 	down to 0.05 (large tension).
+		
+   7th entry: Min lattice perturbation. 0.98 (small tension) to 0.93 (large tension).
+   
+   8th entry: Max lattice perturbation. 1.02 (small tension) to 1.12 (large tension). 
+
+   9th entry: Fraction of pinning. Goes from 0 to 1.
+   
+   10th entry: Activity.
+
+Note: If we choose 1 in the 1st entry, the code looks for
+      an input HDF5 file with filename : hfield_eq_rank.h5
+      where rank is the process number.
+
+9a) Execute:
+
+    mpirun -n <no-of-ranks> ./membrane.exe > mem.out &
+
+9b) If you are running on server: nohup mpirun -n <no-of-ranks> ./membrane.exe > mem.out &
+
+9c) If running on HPC system, contact system support.
+#-----------------------------------------------------------------------------------------------#

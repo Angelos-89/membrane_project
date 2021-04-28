@@ -1,9 +1,9 @@
-
+#-------------------------------#
 # Configuration for DM's desktop.
+#-------------------------------#
 
 CC = /usr/bin/mpic++ -I/home/dhruba/Library/include/ 
 CFLAGS = -c -O3
-
 HDF5_IDIR = /home/dhruba/Library/include
 HDF5_LDIR = /home/dhruba/Library/lib
 FFT_IDIR = /home/dhruba/Library/include/
