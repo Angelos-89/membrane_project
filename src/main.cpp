@@ -133,9 +133,9 @@ int main(int argc, char* argv[])
   /*--------------------------------------*/
 
   /*--------- Block-pinning ----------*/
-  int radius = 4;
-  int length = pow( (2*radius+1) ,2);
-  Site neighbors[length];
+  int block_radius = 4;
+  int block_length = pow( (2*block_radius+1) ,2);
+  Site neighbors[block_length];
   /*----------------------------------*/
   
   /*-- Set up spectrum computations --*/
@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
     InitSurface(hfield,pinned_sites,-0.1,+0.1);
   
   if (is_sim == 0 and pin_ratio != 0){
-    pinned_sites = InitPinning(hfield, pin_ratio, neighbors, radius); 
+    pinned_sites = InitPinning(hfield, pin_ratio, neighbors, block_radius); 
     WritePinnedSites(pinset_filename,pinned_sites,N,N);
     InitSurface(hfield,pinned_sites,-0.1,+0.1);}
 
