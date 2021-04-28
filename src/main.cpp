@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
   std::string pinset_filename = "pinned_sites_" + std::to_string(rank) + ".txt";
   const char* cfield = hfield_filename.c_str();
   const char* cspec  =  hspec_filename.c_str();
-  // These below are needed to read equilibrated height fields if is_sim==1.
+  // The lines below are needed to read equilibrated height fields if is_sim==1.
   char input_field_filename[25] = {};
   char srank[5];
   sprintf(srank, "%d", rank);
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
   /*--------------------------------------*/
   /* Different number of neighbors are
      needed for the calculation
-     of the change of a local quantity. 
+     of the change in a local quantity. 
      See GetNeighbors in McmemLib.cpp.    */
   int len_area = 5;              
   int len_corr = 4*Nghost+1;
@@ -132,11 +132,11 @@ int main(int argc, char* argv[])
   std::unordered_set<Site> pinned_sites={};
   /*--------------------------------------*/
 
-  /*--------- Block-pinning ----------*/
+  /*------------- Block-pinning ---------------*/
   int block_radius = 4;
   int block_length = pow( (2*block_radius+1) ,2);
   Site neighbors[block_length];
-  /*----------------------------------*/
+  /*-------------------------------------------*/
   
   /*-- Set up spectrum computations --*/
   int qdiag_max = floor(sqrt(2)*N)+1;
@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
   AddShift(Eactive); // Shifts energy in metropolis
   /*--------------------------------------------------------------------*/
 
-  /*-- Initialize pinning and the height field hfield(i,j) --*/
+  /*------- (1) Initialize pinning and the height field hfield(i,j) ------*/
   RectMesh hfield(N,N,Nghost);
   if (is_sim == 0 and pin_ratio == 0)
     InitSurface(hfield,pinned_sites,-0.1,+0.1);
@@ -170,7 +170,7 @@ int main(int argc, char* argv[])
   if (is_sim == 1 and pin_ratio != 0){
     ReadPinnedSites(pinset_filename, pinned_sites);
     hfield.readH5(input_field_filename);}
-  /*---------------------------------------------------------*/
+  /*----------------------------------------------------------------------*/
     
   // /* 3) Calculate the projected membrane area "prj_area", the total area 
   //    "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
