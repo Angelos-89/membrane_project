@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
   /*--------------------------------------*/
 
   /*------------- Block-pinning ---------------*/
-  int block_radius = 4;
+  int block_radius = 0;
   int block_length = pow( (2*block_radius+1) ,2);
   Site neighbors[block_length];
   /*-------------------------------------------*/
@@ -172,16 +172,16 @@ int main(int argc, char* argv[])
     hfield.readH5(input_field_filename);}
   /*----------------------------------------------------------------------*/
     
-  // /* 3) Calculate the projected membrane area "prj_area", the total area 
-  //    "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
-  //    "cor_energy" and "tot_energy" and write the data.                        */
-    
-  // CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
-  // 		 sig_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,
-  // 		 pinned_sites,pot_strength,h0);
+  /* 3) Calculate the projected membrane area "prj_area", the total area 
+     "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
+     "cor_energy" and "tot_energy" and write the data.                        */
   
-  // Sample(iter,total_moves,output_filename,tot_energy,crv_energy,
-  // 	 cor_energy,pin_energy,tot_area,prj_area,alpha,DoF);
+  CalculateTotal(hfield,DoFs,rig,sig,tau,tot_energy,tau_energy,crv_energy,
+   		 sig_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,
+   		 pinned_sites,pot_strength,h0);
+  
+   Sample(iter,total_moves,output_filename,tot_energy,crv_energy,
+	  cor_energy,pin_energy,tot_area,prj_area,alpha,DoFs);
   
   // /*----------------------------------MC Loop---------------------------------*/
   
@@ -304,6 +304,7 @@ int main(int argc, char* argv[])
   // hfield.writeH5(cfield);
   // PrintAcceptance(maxiter,height_changes,lattice_moves,
   // 		  lattice_changes,spec_steps,rank);
+  
   MPI_Finalize();
   return 0;
 }

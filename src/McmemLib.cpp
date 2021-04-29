@@ -97,47 +97,49 @@ void TileOfNeighbors(Site neighbors[], RectMesh& field, Site site, int radius)
     } 
 }
 
-/*---------------------------- InitPinning ------------------------*/
+/*---------------------------- InitPinning -------------------------*/
 
-/* Given the percentage of the total DoF that will be pinned, it 
-   fills the vector with all the pinned sites. N = sqrt(DoF)       */
+/* Given the fraction (0.0 - 1.0) of the total DoFs that will be 
+   pinned, it fills a set with all the pinned sites. N = sqrt(DoFs) */
 
 std::unordered_set<Site> InitPinning(RectMesh& hfield,double pin_ratio,
 				     Site neighbors[],int radius) 
 {
+  if (pin_ratio > 1.0 or pin_ratio < 0){
+    std::cout << "InitPinning: Pinning fraction must be in the range "
+      "0.0 <= pin_fraction <= 1.0. Exiting." << std::endl;
+    exit(EXIT_FAILURE);}
+  
   int Nx = hfield.getcols();
   int Ny = hfield.getrows();
   int N2 = Nx*Ny;
-  int len = N2*pin_ratio;
-  if ( len < 0 ){
-    std::cout << "InitPinning: Length of array containing pinned sites"
-      "must be greater or equal to zero. Exiting." << std::endl;
-    exit(EXIT_FAILURE);}
-  
-  Site site_a,site_b;
-  int x,y;
-  std::unordered_set<Site> set = {}; 
-  int length = pow(2*radius+1 , 2);
+  int LEN = N2*pin_ratio;
 
-  while (set.size() < len)
+  Site site_a,site_b;
+  std::unordered_set<Site> set = {}; 
+  int length = pow( (2*radius+1) ,2);
+  int x,y;
+  while (set.size() < LEN)
     {
       std::uniform_int_distribution<int> RandIntX(0,Nx-1);
       std::uniform_int_distribution<int> RandIntY(0,Ny-1);
-      x = RandIntX(mt);
-      y = RandIntY(mt);
-      site_a.set(x,y);
-      set.insert(site_a);
-      if (set.find(site_a) != set.end()) 
+      x = RandIntX(mt); y = RandIntY(mt);
+      site_a.set(x,y); set.insert(site_a);
+
+      if (set.find(site_a) != set.end()) //if site_a does not already exist 
 	{
-	  TileOfNeighbors(neighbors,hfield,site_a,radius);
-	  for (int k=0; k<length; k++)
+	  TileOfNeighbors(neighbors,hfield,site_a,radius); //find the neighbors
+	  for (int k=0; k<length; k++) // find the distance between site_a and all neighbors 
 	    {
 	      site_b = neighbors[k];
-	      if (site_a.dist(site_b) <= radius)
+	      if (site_a.dist(site_b) <= radius) //if in correct range, insert
 		set.insert(site_b);
-	    }
-	}
-    }
+	    }//end for
+	}//end if
+    }//end while
+
+  while (set.size() > LEN) //erase some sites to get the correct percentage
+    set.erase(set.begin());
   return set;  
 }
 
@@ -654,23 +656,19 @@ double LocalPinEnergy(const RectMesh& hfield,Site& site,
 
 double CorrectionEnergyTotal(const RectMesh& hfield,double alpha)
 {
-  //edw giati na mhn kanw mia for kai kanw temp = NormalZ..?
+  Site site;
+  double sum = 0.0;
+  for(int j=0; j<hfield.getrows(); j++)
+    {
+      for(int i=0; i<hfield.getcols(); i++){
+	site.set(i,j);
+	sum += log(SNodeNormalZ(hfield,site,alpha));}
+    }
+  return -sum;
 
-  // Site site;
-  // double sum = 0.0;
-  // for(int j=0; j<hfield.getrows(); j++)
-  //   {
-  //     for(int i=0; i<hfield.getcols(); i++)
-  // 	{
-  // 	  site.set(i,j);
-  // 	  sum += log(SNodeNormalZ(hfield,site,alpha));
-  // 	}
-  //   }
-  //return -sum;
-
-  RectMesh temp = NormalZ(hfield,alpha);
-  temp.ln();
-  return -temp.sum();
+  // RectMesh temp = NormalZ(hfield,alpha);
+  // temp.ln();
+  // return -temp.sum();
 }
 
 /*------------------------- PinningEnergyTotal --------------------------*/
@@ -716,28 +714,11 @@ double LocalEnergy(const RectMesh& hfield,
   double sig_ener = sig*LocalArea(hfield,neighbors_area,alpha);
   double cor_ener = LocalCorrectionEnergy(hfield,neighbors_corr,alpha);
   double pin_energy = 0;
-  if (pin)
-    {
+  if (pin){
       Site site; site = neighbors_area[0];
-      pin_energy = LocalPinEnergy(hfield,site,pot_strength,h0);
-    }
+      pin_energy = LocalPinEnergy(hfield,site,pot_strength,h0);}
   return tau_ener + crv_ener + sig_ener + cor_ener + pin_energy;
 }
-
-/*--------------------- TotalEnergy -----------------------*/
-
-/* This function returns the total enegry of the membrane. */
-
-// double TotalEnergy(RectMesh& hfield,double& tot_area,
-// 		   double& prj_area,double alpha,
-// 		   double rig, double sig,double tau)
-// {
-//   double tau_ener = -tau*prj_area;
-//   double crv_ener = CurvatureEnergyTotal(hfield,alpha,rig);
-//   double sig_ener = sig*tot_area;
-//   double cor_ener = CorrectionEnergyTotal(hfield,alpha);
-//   return tau_ener + crv_ener + sig_ener + cor_ener;
-// }
 
 /*-------------------------------- CalculateTotal --------------------------*/
 
@@ -1066,7 +1047,7 @@ void ReadInput(std::string filename,int& sim, int& acc_samples, double& maxiter,
   infile.open(filename);
   if(!infile.is_open())
     {
-      std::cout << "File" <<"\t"<< filename <<"\t" <<  "is not open. Exiting." << std::endl;
+      std::cout << "File "<< filename <<  " is not open. Exiting." << std::endl;
       exit(EXIT_FAILURE);
     }
   while(!infile.eof())
