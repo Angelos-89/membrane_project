@@ -152,8 +152,7 @@ int Input_DoFs(int argc, char* argv[]);
 void ReadPinnedSites(std::string pinset_filename,
 		     std::unordered_set<Site>& pinned_set);
 
-void WritePinnedSites(std::string pinset_filename,
-		      std::unordered_set<Site>& set, int Nx, int Ny);
+void WritePinnedSites(std::string pinset_filename,std::unordered_set<Site>& set);
 
 void TileOfNeighbors(Site neighbors[], RectMesh& field, Site site, int radius);
 

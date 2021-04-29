@@ -157,7 +157,7 @@ int main(int argc, char* argv[])
   
   if (is_sim == 0 and pin_ratio != 0){
     pinned_sites = InitPinning(hfield, pin_ratio, neighbors, block_radius); 
-    WritePinnedSites(pinset_filename,pinned_sites,N,N);
+    WritePinnedSites(pinset_filename,pinned_sites);
     InitSurface(hfield,pinned_sites,-0.1,+0.1);}
 
   if (is_sim == 1 and pin_ratio == 0)
