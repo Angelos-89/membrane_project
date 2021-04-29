@@ -123,7 +123,7 @@ std::unordered_set<Site> InitPinning(RectMesh& hfield,double pin_ratio,
       std::uniform_int_distribution<int> RandIntX(0,Nx-1);
       std::uniform_int_distribution<int> RandIntY(0,Ny-1);
       x = RandIntX(mt); y = RandIntY(mt);
-      site_a.set(x,y); set.insert(site_a);
+      site_a.set(x,y); pinned_sites.insert(site_a);
 
       if (pinned_sites.find(site_a) != pinned_sites.end()) //if site_a does not already exist 
 	{
