@@ -29,7 +29,6 @@ namespace std
 std::random_device rd;
 std::mt19937 mt(rd());
 
-static int call_sample = 0;
 static double ShiftInEnergy = 0.;
 
 /*------------------------- OutputParams ---------------------------*/
@@ -725,7 +724,7 @@ double LocalEnergy(const RectMesh& hfield,
 /* This function updates the total energy, total area and total projected
    area of the membrane. It also updates the different energies involved.   */ 
 
-void CalculateTotal(const RectMesh& hfield,const int& DoF,const double& rig,
+void CalculateTotal(const RectMesh& hfield,const double& rig,
 		    const double& sig,const double& tau,double& tot_energy,
 		    double& tau_energy,double& crv_energy,double& sig_energy,
 		    double& cor_energy,double& pin_energy,double& tot_area,
@@ -733,7 +732,8 @@ void CalculateTotal(const RectMesh& hfield,const int& DoF,const double& rig,
 		    std::unordered_set<Site>& pinned_sites,
 		    const double& pot_strength,const double& h0)
 {
-  prj_area = (double)DoF*alpha*alpha;
+  int DoFs = hfield.getcols()*hfield.getrows();
+  prj_area = (double)DoFs*alpha*alpha;
   tot_area = TotalArea(hfield,alpha);
   tau_energy = -tau*prj_area;
   crv_energy = CurvatureEnergyTotal(hfield,alpha,rig);
@@ -754,15 +754,15 @@ bool WhereIs(Site site, int cols, int rows, int nghost)
 {
   int i = site.getx();
   int j = site.gety();
-  if (i>=cols || i<0 || j>=rows || j<0)
-  {
-    std::cout << "WhereIs: It must hold that 0<=i<cols and 0<=j<rows."
-      "Exiting." << std::endl;
-    exit(EXIT_FAILURE);
-  }
-  if (i<nghost || i>=cols-nghost || j<nghost || j>=rows-nghost) //boundary point
-    return 1;    
-  else return 0; 
+  // if (i>=cols || i<0 || j>=rows || j<0)
+  // {
+  //   std::cout << "WhereIs: It must hold that 0<=i<cols and 0<=j<rows."
+  //     "Exiting." << std::endl;
+  //   exit(EXIT_FAILURE);
+  // }
+  if (i<nghost || i>=cols-nghost || j<nghost || j>=rows-nghost)
+    return 1; //boundary point
+  else return 0; //bulk 
 }
 
 /*------------------------- Ispinned ------------------------*/
@@ -899,13 +899,13 @@ bool Metropolis(double& dElocal)
     }
 }
 
-/*------------------------- AcceptOrdecline -----------------------------*/
+/*------------------------- UpdateState -----------------------------*/
 
 /* This function updates the total energy and total area of the membrane
    if a height trial move is accepted. Otherwise it returns the membrane
    to its previous state.                                                */
 
-void AcceptOrDecline(RectMesh& hfield,Site site,bool accept,bool where,
+void UpdateState(RectMesh& hfield,Site site,bool accept,bool where,
 		     double& tot_area,double& tot_energy,double& dAlocal,
 		     double& dElocal,int& height_changes,double& perturb)
 {  
@@ -923,13 +923,15 @@ void AcceptOrDecline(RectMesh& hfield,Site site,bool accept,bool where,
     }
 }
 
-/*-------------------------- PrintAcceptance ------------------------*/
+/*-------------------------- Wstats ------------------------*/
 
 /* It prints the acceptance rations of both height and lattice size 
-   trial moves.                                                      */
-void PrintAcceptance(const int maxiter, int height_changes,
-		     int lattice_moves, int lattice_changes,
-		     int spec_steps,int rank)
+   trial moves, the number of times the spectrum was averaged, and 
+   also writes them to file. */
+
+void WStats(const int maxiter, int height_changes,
+	    int lattice_moves, int lattice_changes,
+	    int spec_steps,int rank)
 {
   double accept_ratio = (double) height_changes/maxiter;
   double lattice_moves_ratio = (double) lattice_changes/lattice_moves; 
@@ -939,13 +941,13 @@ void PrintAcceptance(const int maxiter, int height_changes,
 	 << "Height move ratio: " << accept_ratio << "\n"
 	 << "Lattice spacing move ratio: "
 	 << lattice_moves_ratio << "\n"
-	 << "Power spectrum averaged over: " << spec_steps << "\n"
+	 << "Power spectrum averaged " << spec_steps << " times"<< "\n"
 	 << "\n--------------------------------------------\n";
   std::cout << stream.str();
 
   /*Now damp to a file*/ 
   std::ofstream file;
-  std::string filename = "ACCEPTANCES_" + std::to_string(rank) + ".txt";
+  std::string filename = "stats_" + std::to_string(rank) + ".txt";
   file.open(filename);
   file << stream.str();
   file.close();  
@@ -958,7 +960,7 @@ void PrintAcceptance(const int maxiter, int height_changes,
    the membrane to its previous state.                                  */
 
 bool ChangeLattice(const RectMesh& hfield,const double& min_change,
-		   const double& max_change,const int& DoF,const double& rig,
+		   const double& max_change,const double& rig,
 		   const double& sig, const double& tau,double& prj_area,
 		   double& tot_area,double& tot_energy,double& tau_energy,
 		   double& crv_energy,double& sig_energy,double& cor_energy,
@@ -968,74 +970,82 @@ bool ChangeLattice(const RectMesh& hfield,const double& min_change,
 		   const double& pot_strength,const double& h0)
 {
   lattice_moves ++;
-
   std::uniform_real_distribution<double> RandDouble(min_change,max_change); 
-
   double old_prj_area = prj_area;
   double old_tot_area = tot_area;
   double old_energy = tot_energy;
-  double old_alpha  = alpha;
-  double percentage = RandDouble(mt);
-  alpha *= percentage;
+  double old_alpha = alpha;
+  double fraction = RandDouble(mt);
+  alpha *= fraction;
   
-  CalculateTotal(hfield,DoF,rig,sig,tau,tot_energy,tau_energy,crv_energy,
-		 sig_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,
-		 pinned_sites,pot_strength,h0);
+  CalculateTotal(hfield, rig, sig, tau, tot_energy, tau_energy, crv_energy,
+		 sig_energy, cor_energy, pin_energy, tot_area, prj_area, alpha,
+		 pinned_sites, pot_strength, h0);
 
-  double dE = tot_energy - old_energy; 
+  double dE = tot_energy-old_energy; 
   bool accept = Metropolis(dE);
 
-  if (accept == 1)
-    {
-      lattice_changes ++;
-      return 1;
-    }
-  else
-    {
-      tot_energy = old_energy;
-      prj_area = old_prj_area;
-      tot_area = old_tot_area;
-      alpha = old_alpha;
-      return 0;
-    }
+  if (accept == 1){
+    lattice_changes ++;
+    return 1;}
+  else{
+    tot_energy = old_energy;
+    prj_area = old_prj_area;
+    tot_area = old_tot_area;
+    alpha = old_alpha;
+    return 0;}
 }
 
 /*--------------------------- Sample -------------------------*/
 
-/* Stores the data in a txt file.                             */
+/* Stores the data in a txt file. */
 
-void Sample(int& iter,int& total_moves,std::string filename,
+int first_call = 1;
+void WriteData(std::string filename,int& iter,int& total_moves,
 	    double& tot_energy,double& crv_energy,
 	    double& cor_energy,double& pin_energy,double& tot_area,
-	    double& prj_area,double& alpha,const int& DoF)
+	    double& prj_area,double& alpha,int& DoFs)
 {
   std::ofstream file;
   file.open(filename, std::ios::app);
-  if (call_sample == 0)
+  if (first_call == 1)
     {
-      file << "%iter"                                         << "\t"
-	   << std::right << std::setw(12) <<"total_moves"     << "\t"
-	   << std::right << std::setw(12) <<"total_area"      << "\t"
-	   << std::right << std::setw(12) <<"prj_area"        << "\t"
-	   << std::right << std::setw(12) <<"alpha"           << "\t"
-	   << std::right << std::setw(15) <<"curv_energy"     << "\t"
-	   << std::right << std::setw(15) <<"entropic_corr"   << "\t"
-	   << std::right << std::setw(15) <<"pinning_energy"  << "\t"
-	   << std::right << std::setw(15) <<"tot_energy"      << "\n";
+      file << "%iter"                                     << "\t"
+	   << std::right<<std::setw(12)<<"total_moves"    << "\t"
+	   << std::right<<std::setw(12)<<"total_area"     << "\t"
+	   << std::right<<std::setw(12)<<"prj_area"       << "\t"
+	   << std::right<<std::setw(12)<<"alpha"          << "\t"
+	   << std::right<<std::setw(15)<<"curv_energy"    << "\t"
+	   << std::right<<std::setw(15)<<"entropic_corr"  << "\t"
+	   << std::right<<std::setw(15)<<"pinning_energy" << "\t"
+	   << std::right<<std::setw(15)<<"tot_energy"     << "\n";
+      first_call = 0;
     }
-  double DOF = (double) DoF;
-  file << iter                                                                    << "\t"
-       << std::right << std::setw(12) << total_moves                              << "\t"
-       << std::right << std::setw(12) << std::setprecision(6) << tot_area/DOF     << "\t"
-       << std::right << std::setw(12) << std::setprecision(6) << prj_area/DOF     << "\t"
-       << std::right << std::setw(12) << std::setprecision(6) << alpha            << "\t"
-       << std::right << std::setw(15) << std::setprecision(6) << crv_energy/DOF   << "\t"
-       << std::right << std::setw(15) << std::setprecision(6) << cor_energy/DOF   << "\t"
-       << std::right << std::setw(15) << std::setprecision(6) << pin_energy/DOF   << "\t"
-       << std::right << std::setw(15) << std::setprecision(6) << tot_energy/DOF   << "\n";
+  double DOF = (double) DoFs;
+  file << iter                                                           << "\t"
+       <<std::right<<std::setw(12)<<total_moves                          << "\t"
+       <<std::right<<std::setw(12)<<std::setprecision(6)<< tot_area/DOF  << "\t"
+       <<std::right<<std::setw(12)<<std::setprecision(6)<< prj_area/DOF  << "\t"
+       <<std::right<<std::setw(12)<<std::setprecision(6)<< alpha         << "\t"
+       <<std::right<<std::setw(15)<<std::setprecision(6)<< crv_energy/DOF<< "\t"
+       <<std::right<<std::setw(15)<<std::setprecision(6)<< cor_energy/DOF<< "\t"
+       <<std::right<<std::setw(15)<<std::setprecision(6)<< pin_energy/DOF<< "\t"
+       <<std::right<<std::setw(15)<<std::setprecision(6)<< tot_energy/DOF<< "\n";
   file.close();
-  call_sample ++;
 }
+
+void Sample(std::string output_filename, int& sample_every, int& iter,
+	    int& total_moves, double& tot_energy, double& crv_energy,
+	    double& cor_energy, double& pin_energy, double& tot_area,
+	    double& prj_area, double& alpha, int& DoFs)
+{
+  if (total_moves % sample_every == 0)  
+    WriteData(output_filename, iter, total_moves, tot_energy, crv_energy,
+	   cor_energy, pin_energy, tot_area, prj_area, alpha, DoFs);      
+}
+
+
+
 
 /*-------------------------------- ReadInput -----------------------------*/
 
@@ -1297,3 +1307,14 @@ void ReadPinnedSites(std::string pinset_filename,
       exit(EXIT_FAILURE);
     }
 }
+
+void CopyFieldToArray(RectMesh& hfield, double* hx)
+{
+  int Nx = hfield.getcols();
+  int Ny = hfield.getrows();
+  for(int j=0; j<Ny; j++){
+    for(int i=0; i<Nx; i++)
+      hx[ i + (Nx+2)*j ] = hfield(i,j);
+  }
+}
+

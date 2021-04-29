@@ -139,6 +139,7 @@ int main(int argc, char* argv[])
   /*-------------------------------------------*/
   
   /*-- Set up spectrum computations --*/
+  int spec_steps = 0;
   int qdiag_max = floor(sqrt(2)*N)+1;
   double L_mean = (double) N;
   double dk = 2.0*PI/L_mean;
@@ -171,141 +172,110 @@ int main(int argc, char* argv[])
     ReadPinnedSites(pinset_filename, pinned_sites);
     hfield.readH5(input_field_filename);}
   /*----------------------------------------------------------------------*/
-    
-  /* 3) Calculate the projected membrane area "prj_area", the total area 
-     "tot_area" and the energies "tau_energy","sig_energy","crv_energy",
-     "cor_energy" and "tot_energy" and write the data.                        */
   
-  CalculateTotal(hfield,DoFs,rig,sig,tau,tot_energy,tau_energy,crv_energy,
-   		 sig_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,
-   		 pinned_sites,pot_strength,h0);
+  /* (2) Calculate energies and areas of the membrane and write the data. */
+  CalculateTotal(hfield, rig, sig, tau, tot_energy, tau_energy, crv_energy,
+		 sig_energy, cor_energy, pin_energy, tot_area, prj_area, alpha,
+   		 pinned_sites, pot_strength, h0);
   
-   Sample(iter,total_moves,output_filename,tot_energy,crv_energy,
-	  cor_energy,pin_energy,tot_area,prj_area,alpha,DoFs);
+  WriteData(output_filename, iter, total_moves, tot_energy, crv_energy,
+	    cor_energy, pin_energy, tot_area, prj_area, alpha, DoFs);
+  /*----------------------------------------------------------------------*/
+
   
-  // /*----------------------------------MC Loop---------------------------------*/
+  /*----------------------------------MC Loop---------------------------------*/
   
-  // for (iter=1; iter<maxiter+1; iter++)
-  //   {
+  for (iter=1; iter<maxiter+1; iter++)
+    {
       
-  //     /* 4) Randomly choose a lattice site (i,j) and check whether it 
-  // 	 belongs to the boundaries or to the bulk, and if it is a pinned
-  // 	 site. Also find and store all its neighbors.                         */
+       /* (3) Randomly choose a lattice site (i,j), check whether it 
+   	 belongs to the boundaries or to the bulk, if it is a pinned
+   	 site or not, and find and store all its neighbors. */
 
-  //     x = RandInt(MT);
-  //     y = RandInt(MT);
-  //     site.set(x,y);
-  //     GetNeighbors(hfield,site,neighbors_area,neighbors_corr,neighbors_ener);
-  //     where = WhereIs(site,N,N,nghost);
-  //     pin = Ispinned(site,pinned_sites);
+       x = RandInt(MT); y = RandInt(MT); site.set(x,y);
+       GetNeighbors(hfield, site, neighbors_area, neighbors_corr, neighbors_ener);
+       where = WhereIs(site,N,N,Nghost); pin = Ispinned(site,pinned_sites);
       
-  //     /* 5) Calculate the local area and energy of that point.                */
+       /* (4) Calculate the local area and energy of that point. */
 
-  //     local_energy_pre = LocalEnergy(hfield,neighbors_area,
-  // 				     neighbors_corr,
-  // 				     neighbors_ener,
-  // 				     alpha,rig,sig,tau,
-  // 				     pot_strength,h0,pin);
+       local_energy_pre = LocalEnergy(hfield, neighbors_area, neighbors_corr,
+				      neighbors_ener, alpha, rig, sig, tau,
+				      pot_strength, h0, pin);
 
-  //     local_area_pre = LocalArea(hfield,neighbors_area,alpha);
+       local_area_pre = LocalArea(hfield, neighbors_area, alpha);
       
-  //     /* 6) Randomly perturbate the height of the chosen point.               */
+       /* (5) Randomly perturbate the height of the chosen point. */
 
-  //     perturb = RandDouble(MT); 
-  //     hfield(x,y) += perturb;
-  //     if (where==1)
-  // 	GhostCopy(hfield);
+       perturb = RandDouble(MT); hfield(x,y) += perturb;
+       if (where==1){GhostCopy(hfield);}
       
-  //     /* 7) Calculate the new local energy and local area.                    */
+       /* (6) Calculate the new local energy and local area. */
 
-  //     local_energy_aft = LocalEnergy(hfield,neighbors_area,
-  // 				     neighbors_corr,
-  // 				     neighbors_ener,
-  // 				     alpha,rig,sig,tau,
-  // 				     pot_strength,h0,pin);
+       local_energy_aft = LocalEnergy(hfield, neighbors_area, neighbors_corr,
+				      neighbors_ener, alpha, rig, sig, tau,
+				      pot_strength, h0, pin);
 
-  //     local_area_aft = LocalArea(hfield,neighbors_area,alpha);
+       local_area_aft = LocalArea(hfield, neighbors_area, alpha);
       
-  //     /* 8) Calculate the energy difference and check whether the 
-  // 	 move is accepted or not.                                             */
+       /* (7) Calculate the energy difference and check whether the 
+	  move is accepted or not. */
 
-  //     dAlocal = local_area_aft - local_area_pre;
-  //     dElocal = local_energy_aft - local_energy_pre;
-  //     accept  = Metropolis(dElocal);
+       dA_local = local_area_aft-local_area_pre;
+       dE_local = local_energy_aft-local_energy_pre;
+       accept = Metropolis(dE_local);
       
-  //     /* 9) If the move is accepted, update total area and energy.
-  // 	 Otherwise return to previous state.                                  */
+       /* (8) If the move is accepted, update total area and energy and sample.
+	  Otherwise, return to previous state. */
+       
+       UpdateState(hfield, site, accept, where, tot_area, tot_energy,
+		   dA_local, dE_local, height_changes, perturb);
+       
+       if (accept){
+	 total_moves++;
+	 Sample(output_filename,sample_every,iter,total_moves,tot_energy,
+		crv_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,DoFs);}
+       
+       /* (9) After "attempt_lattice_change" iterations, randomly change 
+   	 alpha, compute the new projected area and update the 
+   	 total energy. */
       
-  //     AcceptOrDecline(hfield,site,accept,where,tot_area,
-  // 		      tot_energy,dAlocal,dElocal,height_changes,perturb);
-      
-  //     if (accept) //if the move is accepted update total_moves
-  // 	{
-  // 	  total_moves ++;
-  // 	  if (total_moves % sample_every == 0) //write every sample_every moves 
-  // 	    Sample(iter,total_moves,output_filename,
-  // 		   tot_energy,crv_energy,cor_energy,pin_energy,
-  // 		   tot_area,prj_area,alpha,DoF);
-  // 	}
-      
-  //     /* 10) After "attempt_lattice_change" iterations, randomly change 
-  // 	 alpha, compute the new projected area and update the 
-  // 	 total energy.                                                        */
-      
-  //     if (iter % attempt_lattice_change == 0)
-  // 	{
-  // 	  lattice_accept = ChangeLattice(hfield,min_change,max_change,
-  // 					 DoF,rig,sig,tau,prj_area,tot_area,
-  // 					 tot_energy,tau_energy,crv_energy,
-  // 					 sig_energy,cor_energy,pin_energy,
-  // 					 alpha,lattice_moves,lattice_changes,
-  // 					 pinned_sites,pot_strength,h0);
-	  
-  // 	  if (lattice_accept) //if the move is accepted update total_moves
-  // 	    {  
-  // 	      total_moves ++;
-  // 	      if (total_moves % sample_every == 0)  
-  // 		Sample(iter,total_moves,output_filename,
-  // 		       tot_energy,crv_energy,cor_energy,pin_energy,
-  // 		       tot_area,prj_area,alpha,DoF);
-  // 	    }
-  // 	}
+       if (iter % attempt_lattice_change == 0){
+	 lattice_accept = ChangeLattice(hfield, min_change, max_change, rig, sig,
+					tau, prj_area, tot_area, tot_energy,
+					tau_energy, crv_energy, sig_energy,
+					cor_energy, pin_energy, alpha,
+					lattice_attempts, lattice_changes,
+					pinned_sites, pot_strength, h0);
+	 if (lattice_accept){
+	   total_moves++;
+	   Sample(output_filename,sample_every,iter,total_moves,tot_energy,
+		  crv_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,DoFs);} 
+       }
+       
+       /* Compute radial 1D spectrum and write the height field.*/
+       
+       if (total_moves % sample_every == 0){
+	 spec_steps ++;
+	 CopyFieldToArray(hfield,hx);
+	 fft();
+	 onedspec2d(S1d,N,hx,alpha,dk,qdiag_max);
+       	 hfield.writeH5(cfield);}
+       
+    }// end of MC-loop
 
-  //     /* Compute radial 1D spectrum */
+  /* Average power spectrum and write it to a file */
 
-  //     if (total_moves % sample_every == 0)
-  // 	{
-  // 	  spec_steps ++;
-  // 	  for(int j=0; j<N; j++)
-  // 	    {
-  // 	      for(int i=0; i<N; i++)
-  // 		hx[ i + (N+2)*j ] = hfield(i,j);
-  // 	    }
-  // 	  fft();
-  // 	  onedspec2d(S1d,N,hx,alpha,dk,qdiag_max);
-  // 	}
-
-  //     /* Write the height field */
-      
-  //     if (total_moves % (int) 1e3 == 0) //write surface every 1e3 accepted moves
-  // 	hfield.writeH5(cfield);
-  //   }
-
-  // /* Average power spectrum and write it to a file */
-
-  // std::ofstream radSpecFile;
-  // radSpecFile.open(hspec_filename);
-  // for (int i=0; i<qdiag_max; i++)
-  //   radSpecFile << i*dk << "\t" << 4.0*S1d[i]/(double)spec_steps << "\n";
-  // radSpecFile.close();
-
-  // /* 11) Print acceptance ratios and finish                                   */
-
-  // hfield.writeH5(cfield);
-  // PrintAcceptance(maxiter,height_changes,lattice_moves,
-  // 		  lattice_changes,spec_steps,rank);
+  std::ofstream radSpecFile;
+  radSpecFile.open(hspec_filename);
+  for (int i=0; i<qdiag_max; i++)
+    radSpecFile << i*dk << "\t" << 4.0*S1d[i]/(double)spec_steps << "\n";
+  radSpecFile.close();
   
+   /* (11) Write acceptance ratios and number of spectrum calculations. */
+
+  WStats(maxiter,height_changes,lattice_attempts,lattice_changes,spec_steps,rank);
   MPI_Finalize();
   return 0;
 }
+
 
