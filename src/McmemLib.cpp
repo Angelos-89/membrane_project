@@ -942,7 +942,7 @@ void WStats(const int maxiter, int height_changes,
 	 << "Lattice spacing move ratio: "
 	 << lattice_moves_ratio << "\n"
 	 << "Power spectrum averaged " << spec_steps << " times"<< "\n"
-	 << "\n--------------------------------------------\n";
+	 << "--------------------------------------------\n";
   std::cout << stream.str();
 
   /*Now damp to a file*/ 
@@ -1318,3 +1318,56 @@ void CopyFieldToArray(RectMesh& hfield, double* hx)
   }
 }
 
+void WriteSpectrum(std::string hspec_filename, double* S1d, int spec_steps,
+		   int qdiag_max, double dk)
+{
+  std::ofstream radSpecFile;
+  radSpecFile.open(hspec_filename); 
+  for (int i=0; i<qdiag_max/2; i++)
+    radSpecFile << i*dk << "\t" << 4.0*S1d[i]/(double)spec_steps << "\n";
+  radSpecFile.close();
+}
+
+void PrintOut(int choose, int rank)
+{
+  std::stringstream strm;
+  switch (choose)
+    {
+    case 1:
+
+      strm << "Simulation " + std::to_string(rank) + ": Input file is read.\n";
+      std::cout << strm.str();
+      break;
+      
+    case 2:
+
+      strm << "Simulation " + std::to_string(rank) + ": Height field"
+	" initialized.\n";
+      std::cout << strm.str();
+      break;
+      
+    case 3:
+      
+      strm << "Simulation " + std::to_string(rank) + ": MC-loop started.\n";
+      std::cout << strm.str();
+      break;
+      
+    case 4:
+      
+      strm << "Simulation " + std::to_string(rank) + ": Termination of"
+	" MC-loop.\n";
+      std::cout << strm.str();
+      break;
+
+    case 5: 
+
+      strm << "Simulation " + std::to_string(rank) + ": Program finished"
+	" successfully.\n";
+      std::cout << strm.str();
+      break;
+      
+    default:
+      std::cout << "Here is a cookie as PrintOut" << std::endl;
+      
+    }
+}

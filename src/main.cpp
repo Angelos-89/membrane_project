@@ -85,7 +85,9 @@ int main(int argc, char* argv[])
   
   ReadInput(input_filename, is_sim, sample_every, maxiter, sig, tau, epsilon,
 	    min_change, max_change, pin_ratio, Eactive);
-   
+  
+  PrintOut(1,rank);
+
   /* Make txt files with the parameters of the run. */
   
   OutputParams(maxiter, N, DoFs, Nghost, rig, sig, tau, epsilon, min_change,
@@ -151,10 +153,12 @@ int main(int argc, char* argv[])
   
   /*-------- Random number generators and activity addition ------------*/
   std::uniform_int_distribution<int> RandInt(0 , N-1);  
-  std::uniform_real_distribution<double>  RandDouble(-epsilon , +epsilon);
+  std::uniform_real_distribution<double>  RandDouble(-epsilon,epsilon);
   AddShift(Eactive); // Shifts energy in metropolis
   /*--------------------------------------------------------------------*/
 
+  // START OF ALGORITHM
+  
   /*------- (1) Initialize pinning and the height field hfield(i,j) ------*/
   RectMesh hfield(N,N,Nghost);
   if (is_sim == 0 and pin_ratio == 0)
@@ -171,6 +175,9 @@ int main(int argc, char* argv[])
   if (is_sim == 1 and pin_ratio != 0){
     ReadPinnedSites(pinset_filename, pinned_sites);
     hfield.readH5(input_field_filename);}
+
+  PrintOut(2,rank);
+
   /*----------------------------------------------------------------------*/
   
   /* (2) Calculate energies and areas of the membrane and write the data. */
@@ -182,6 +189,7 @@ int main(int argc, char* argv[])
 	    cor_energy, pin_energy, tot_area, prj_area, alpha, DoFs);
   /*----------------------------------------------------------------------*/
 
+  PrintOut(3,rank);
   
   /*----------------------------------MC Loop---------------------------------*/
   
@@ -252,30 +260,37 @@ int main(int argc, char* argv[])
 		  crv_energy,cor_energy,pin_energy,tot_area,prj_area,alpha,DoFs);} 
        }
        
-       /* Compute radial 1D spectrum and write the height field.*/
+       /* (10) Compute radial 1D spectrum and write the height field.*/
        
-       if (total_moves % sample_every == 0){
+       if (total_moves % sample_every == 0)
+       {
 	 spec_steps ++;
-	 CopyFieldToArray(hfield,hx);
-	 fft();
+	 CopyFieldToArray(hfield,hx); fft();
 	 onedspec2d(S1d,N,hx,alpha,dk,qdiag_max);
-       	 hfield.writeH5(cfield);}
+       	 hfield.writeH5(cfield);
+       }
        
     }// end of MC-loop
 
+  // END OF ALGORITHM
+  
+  PrintOut(4,rank);
+
   /* Average power spectrum and write it to a file */
 
-  std::ofstream radSpecFile;
-  radSpecFile.open(hspec_filename);
-  for (int i=0; i<qdiag_max; i++)
-    radSpecFile << i*dk << "\t" << 4.0*S1d[i]/(double)spec_steps << "\n";
-  radSpecFile.close();
-  
-   /* (11) Write acceptance ratios and number of spectrum calculations. */
+  WriteSpectrum(hspec_filename, S1d, spec_steps, qdiag_max, dk);
 
-  WStats(maxiter,height_changes,lattice_attempts,lattice_changes,spec_steps,rank);
+   /* Write acceptance ratios and number of spectrum calculations. */
+
+  WStats(maxiter,height_changes,lattice_attempts,
+	 lattice_changes,spec_steps,rank);
+
   MPI_Finalize();
+  
+  PrintOut(5,rank);  
+
   return 0;
 }
+
 
 
