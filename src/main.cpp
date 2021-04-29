@@ -20,13 +20,11 @@ namespace std
     }
   }; 
 }
-/*----------------------------------------------------------------------------*/
 
-/*-- Global variables --*/
+/*------ Global -------*/
 double PI = 4.*atan(1.0);
 std::random_device RD;
 std::mt19937 MT(RD());
-/*----------------------*/
 
 /*---------------------------- Main Function ---------------------------------*/
 int main(int argc, char* argv[])
@@ -52,9 +50,8 @@ int main(int argc, char* argv[])
   strcat(input_field_filename , "hfield_eq_");
   strcat(input_field_filename , srank);    
   strcat(input_field_filename , ".h5");
-  /*--------------------------------------------------------------------------*/
-
-  /*------------------ Input variables declaration --------------*/
+  
+  /*----------------- Input variables declaration --------------*/
   // These are read from an input file.
   int is_sim;         // Check if we start from earlier simulation
   int sample_every;   // Sample every these accepted moves
@@ -66,8 +63,7 @@ int main(int argc, char* argv[])
   double max_change;  // Max fraction of lattice size change
   double pin_ratio;   // Ratio of the total DoFs to be pinned
   double Eactive;     // Membrane activity (k_BT)
-  /*-------------------------------------------------------------*/
-
+  
   //why not read these from a file too and the Output to txt is done in Python?
   /*-------------------------- Variable definition --------------------------*/
   int N = Input_DoFs(argc,argv);   // Degrees of freedom (DoFs) per dimension
@@ -79,14 +75,13 @@ int main(int argc, char* argv[])
   double pot_strength = 14000.;    // Strength of the pinning potential
   double h0 = 0.;                  // Equilibrium position of pinned sites
   double alpha = 1.0;              // Lattice spacing (distance between 2 DoFs)
-  /*-------------------------------------------------------------------------*/
-
+ 
   /* Read the input files. */ 
   
   ReadInput(input_filename, is_sim, sample_every, maxiter, sig, tau, epsilon,
 	    min_change, max_change, pin_ratio, Eactive);
   
-  PrintOut(1,rank);
+  PrintOut(1,rank); // Input file is read
 
   /* Make txt files with the parameters of the run. */
   
@@ -119,7 +114,6 @@ int main(int argc, char* argv[])
   bool where = 0;                // Indicator of boundary or bulk point
   bool pin = 0;                  // Indicator of pinned point
   
-  /*--------------------------------------*/
   /* Different number of neighbors are
      needed for the calculation
      of the change in a local quantity. 
@@ -132,13 +126,11 @@ int main(int argc, char* argv[])
   Site neighbors_corr[len_corr];
   Site neighbors_ener[len_ener];
   std::unordered_set<Site> pinned_sites={};
-  /*--------------------------------------*/
-
+ 
   /*------------- Block-pinning ---------------*/
   int block_radius = 0;
   int block_length = pow( (2*block_radius+1) ,2);
   Site neighbors[block_length];
-  /*-------------------------------------------*/
   
   /*-- Set up spectrum computations --*/
   int spec_steps = 0;
@@ -149,18 +141,17 @@ int main(int argc, char* argv[])
   double* S1d = new double[qdiag_max]();
   fftw_complex* hq = (fftw_complex*) hx;
   fft_setup2d(N,hx,hq);
-  /*----------------------------------*/
   
   /*-------- Random number generators and activity addition ------------*/
   std::uniform_int_distribution<int> RandInt(0 , N-1);  
   std::uniform_real_distribution<double>  RandDouble(-epsilon,epsilon);
   AddShift(Eactive); // Shifts energy in metropolis
-  /*--------------------------------------------------------------------*/
 
-  // START OF ALGORITHM
+  /*------------------------ START OF ALGORITHM --------------------------*/
   
   /*------- (1) Initialize pinning and the height field hfield(i,j) ------*/
   RectMesh hfield(N,N,Nghost);
+
   if (is_sim == 0 and pin_ratio == 0)
     InitSurface(hfield,pinned_sites,-0.1,+0.1);
   
@@ -176,7 +167,7 @@ int main(int argc, char* argv[])
     ReadPinnedSites(pinset_filename, pinned_sites);
     hfield.readH5(input_field_filename);}
 
-  PrintOut(2,rank);
+  PrintOut(2,rank); // Height field and pinning ok
 
   /*----------------------------------------------------------------------*/
   
@@ -189,7 +180,7 @@ int main(int argc, char* argv[])
 	    cor_energy, pin_energy, tot_area, prj_area, alpha, DoFs);
   /*----------------------------------------------------------------------*/
 
-  PrintOut(3,rank);
+  PrintOut(3,rank); // MC-Loop initialized
   
   /*----------------------------------MC Loop---------------------------------*/
   
@@ -272,9 +263,9 @@ int main(int argc, char* argv[])
        
     }// end of MC-loop
 
-  // END OF ALGORITHM
+  /*------------------------ END OF ALGORITHM -----------------------------*/
   
-  PrintOut(4,rank);
+  PrintOut(4,rank); // MC-Loop finished successfully
 
   /* Average power spectrum and write it to a file */
 
@@ -282,13 +273,12 @@ int main(int argc, char* argv[])
 
    /* Write acceptance ratios and number of spectrum calculations. */
 
-  WStats(maxiter,height_changes,lattice_attempts,
-	 lattice_changes,spec_steps,rank);
+  WStats(maxiter, height_changes, lattice_attempts,
+	 lattice_changes, spec_steps, rank);
 
   MPI_Finalize();
   
-  PrintOut(5,rank);  
-
+  PrintOut(5,rank); //Program terminated successfully
   return 0;
 }
 
