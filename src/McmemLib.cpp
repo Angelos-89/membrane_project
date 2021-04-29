@@ -1330,38 +1330,39 @@ void WriteSpectrum(std::string hspec_filename, double* S1d, int spec_steps,
 
 void PrintOut(int choose, int rank)
 {
+  int sim=rank+1;
   std::stringstream strm;
   switch (choose)
     {
     case 1:
 
-      strm << "Simulation " + std::to_string(rank) + ": Input file is read.\n";
+      strm << "Simulation " + std::to_string(sim) + ": Input file is read.\n";
       std::cout << strm.str();
       break;
       
     case 2:
 
-      strm << "Simulation " + std::to_string(rank) + ": Height field"
+      strm << "Simulation " + std::to_string(sim) + ": Height field"
 	" initialized.\n";
       std::cout << strm.str();
       break;
       
     case 3:
       
-      strm << "Simulation " + std::to_string(rank) + ": MC-loop started.\n";
+      strm << "Simulation " + std::to_string(sim) + ": MC-loop started.\n";
       std::cout << strm.str();
       break;
       
     case 4:
       
-      strm << "Simulation " + std::to_string(rank) + ": Termination of"
+      strm << "Simulation " + std::to_string(sim) + ": Termination of"
 	" MC-loop.\n";
       std::cout << strm.str();
       break;
 
     case 5: 
 
-      strm << "Simulation " + std::to_string(rank) + ": Program finished"
+      strm << "Simulation " + std::to_string(sim) + ": Program finished"
 	" successfully.\n";
       std::cout << strm.str();
       break;

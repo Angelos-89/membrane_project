@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
   std::unordered_set<Site> pinned_sites={};
  
   /*------------- Block-pinning ---------------*/
-  int block_radius = 0;
+  int block_radius = 2;
   int block_length = pow( (2*block_radius+1) ,2);
   Site neighbors[block_length];
   
