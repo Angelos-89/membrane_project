@@ -181,6 +181,7 @@ int main(int argc, char* argv[])
   /*----------------------------------------------------------------------*/
 
   PrintOut(3,rank); // MC-Loop initialized
+  if (is_sim==0) PrintOut(4,rank); // Spectrum averaged over non-equilibrium
   
   /*----------------------------------MC Loop---------------------------------*/
   
@@ -265,7 +266,7 @@ int main(int argc, char* argv[])
 
   /*------------------------ END OF ALGORITHM -----------------------------*/
   
-  PrintOut(4,rank); // MC-Loop finished successfully
+  PrintOut(5,rank); // MC-Loop finished successfully
 
   /* Average power spectrum and write it to a file */
 
@@ -278,7 +279,7 @@ int main(int argc, char* argv[])
 
   MPI_Finalize();
   
-  PrintOut(5,rank); //Program terminated successfully
+  PrintOut(6,rank); //Program terminated successfully
   return 0;
 }
 

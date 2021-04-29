@@ -1236,6 +1236,8 @@ void ReadPinnedSites(std::string pinset_filename,
     }
 }
 
+/*---------------------------------------------------------------------*/
+
 void CopyFieldToArray(RectMesh& hfield, double* hx)
 {
   int Nx = hfield.getcols();
@@ -1246,6 +1248,8 @@ void CopyFieldToArray(RectMesh& hfield, double* hx)
   }
 }
 
+/*---------------------------------------------------------------------*/
+
 void WriteSpectrum(std::string hspec_filename, double* S1d, int spec_steps,
 		   int qdiag_max, double dk)
 {
@@ -1255,6 +1259,8 @@ void WriteSpectrum(std::string hspec_filename, double* S1d, int spec_steps,
     radSpecFile << i*dk << "\t" << 4.0*S1d[i]/(double)spec_steps << "\n";
   radSpecFile.close();
 }
+
+/*---------------------------------------------------------------------*/
 
 void PrintOut(int choose, int rank)
 {
@@ -1280,15 +1286,22 @@ void PrintOut(int choose, int rank)
       strm << "Simulation " + std::to_string(sim) + ": MC-loop started.\n";
       std::cout << strm.str();
       break;
-      
+
     case 4:
+      
+      strm << "Simulation " + std::to_string(sim) + ": WARNING:"
+	" The spectrum is averaged over non equilibrium states.\n";
+      std::cout << strm.str();
+      break;
+      
+    case 5:
       
       strm << "Simulation " + std::to_string(sim) + ": Termination of"
 	" MC-loop.\n";
       std::cout << strm.str();
       break;
 
-    case 5: 
+    case 6: 
 
       strm << "Simulation " + std::to_string(sim) + ": Program finished"
 	" successfully.\n";
@@ -1300,3 +1313,4 @@ void PrintOut(int choose, int rank)
       
     }
 }
+/*---------------------------------------------------------------------*/
