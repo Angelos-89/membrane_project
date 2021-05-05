@@ -90,8 +90,8 @@ int main(int argc, char* argv[])
   OutputParams(maxiter, N, DoFs, Nghost, rig, sig, tau, epsilon, min_change,
 	       max_change, alpha, pin_ratio, sample_every, rank, Eactive);
 
-  if (is_sim == 1)
-    {hid_t file = H5Fcreate(cextend, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);}
+  //  if (is_sim == 1)
+  hid_t file = H5Fcreate(cextend, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
       
   
   /*---------- Definition of variables needed for Monte Carlo --------------*/
@@ -268,8 +268,8 @@ int main(int argc, char* argv[])
 	  CopyFieldToArray(hfield,hx); fft();
 	  onedspec2d(S1d,N,hx,alpha,dk,qdiag_max);
 	  hfield.writeH5(cfield);
-	  if (is_sim == 1) // Only for equilibrated simulations
-	    Write_to_extendible_H5(cextend, hfield);
+	  //  if (is_sim == 1) // Only for equilibrated simulations
+	  Write_to_extendible_H5(cextend, hfield);
 	}
       
     }// end of MC-loop
@@ -277,8 +277,8 @@ int main(int argc, char* argv[])
   /*------------------------ END OF ALGORITHM -----------------------------*/
   
   /* Attach metadata to extendible HDF5 set */
-  if (is_sim == 1)
-    {
+  // if (is_sim == 1)
+  //   {
       hfield_metadata wdata[9];  
 
       wdata[0].value = spec_steps; wdata[0].field = "Samples";  
@@ -292,7 +292,7 @@ int main(int argc, char* argv[])
       wdata[8].value = Nghost;     wdata[8].field = "Ghost points";
 
       Write_metadata_to_H5_file(cextend, wdata, 9);
-    }
+      //    }
     
   PrintOut(5,rank); // MC-Loop finished successfully
   
