@@ -275,8 +275,8 @@ void RectMesh::readH5(const char filename[])
   
   if (dset_dims[1] != DIM0 or dset_dims[0] != DIM1)
     {
-      std::cout << "Dimensions do not agree. Cannot read from H5 file. Exiting."
-  		<< std::endl;
+      std::cout << "Dimensions do not agree. Cannot read hfield_eq_rank.h5 file"
+	" to start from earlier simulation. Exiting." << std::endl;
       exit(EXIT_FAILURE);
     }
 

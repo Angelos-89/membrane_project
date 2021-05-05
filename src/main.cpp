@@ -39,17 +39,19 @@ int main(int argc, char* argv[])
   std::string input_filename  = "input_"        + std::to_string(rank) + ".txt";
   std::string output_filename = "timeseries_"   + std::to_string(rank) + ".txt";
   std::string hfield_filename = "hfield_"       + std::to_string(rank) +  ".h5";
+  std::string hsnaps_filename = "snapshots_"    + std::to_string(rank) +  ".h5";
   std::string hspec_filename  = "hspec_"        + std::to_string(rank) + ".txt";
   std::string pinset_filename = "pinned_sites_" + std::to_string(rank) + ".txt";
+  const char* cextend = hsnaps_filename.c_str(); 
   const char* cfield = hfield_filename.c_str();
-  const char* cspec  =  hspec_filename.c_str();
+  const char* cspec =  hspec_filename.c_str();
   // The lines below are needed to read equilibrated height fields if is_sim==1.
   char input_field_filename[25] = {};
   char srank[5];
   sprintf(srank, "%d", rank);
-  strcat(input_field_filename , "hfield_eq_");
-  strcat(input_field_filename , srank);    
-  strcat(input_field_filename , ".h5");
+  strcat(input_field_filename, "hfield_eq_");
+  strcat(input_field_filename, srank);    
+  strcat(input_field_filename, ".h5");
   
   /*----------------- Input variables declaration --------------*/
   // These are read from an input file.
@@ -83,11 +85,15 @@ int main(int argc, char* argv[])
   
   PrintOut(1,rank); // Input file is read
 
-  /* Make txt files with the parameters of the run. */
+  /* Output the parameters of the run to txt files. */
   
   OutputParams(maxiter, N, DoFs, Nghost, rig, sig, tau, epsilon, min_change,
 	       max_change, alpha, pin_ratio, sample_every, rank, Eactive);
 
+  if (is_sim == 1)
+    {hid_t file = H5Fcreate(cextend, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);}
+      
+  
   /*---------- Definition of variables needed for Monte Carlo --------------*/
   double prj_area = 0.0;         // Projected membrane area
   double tot_area = 0.0;         // Total membrane area
@@ -206,8 +212,10 @@ int main(int argc, char* argv[])
       
       /* (5) Randomly perturbate the height of the chosen point. */
       
-      perturb = RandDouble(MT); hfield(x,y) += perturb;
-      if (where==1){GhostCopy(hfield);}
+      perturb = RandDouble(MT);
+      hfield(x,y) += perturb;
+      if (where == 1)
+	{GhostCopy(hfield);}
       
       /* (6) Calculate the new local energy and local area. */
       
@@ -260,12 +268,32 @@ int main(int argc, char* argv[])
 	  CopyFieldToArray(hfield,hx); fft();
 	  onedspec2d(S1d,N,hx,alpha,dk,qdiag_max);
 	  hfield.writeH5(cfield);
+	  if (is_sim == 1) // Only for equilibrated simulations
+	    Write_to_extendible_H5(cextend, hfield);
 	}
       
     }// end of MC-loop
-  
+
   /*------------------------ END OF ALGORITHM -----------------------------*/
   
+  /* Attach metadata to extendible HDF5 set */
+  if (is_sim == 1)
+    {
+      hfield_metadata wdata[9];  
+
+      wdata[0].value = spec_steps; wdata[0].field = "Samples";  
+      wdata[1].value = sig;        wdata[1].field = "Sigma";
+      wdata[2].value = tau;        wdata[2].field = "Tau";
+      wdata[3].value = rig;        wdata[3].field = "Rigidity";
+      wdata[4].value = pin_ratio;  wdata[4].field = "Fraction of pinning";
+      wdata[5].value = Eactive;    wdata[5].field = "Activity";
+      wdata[6].value = N;          wdata[6].field = "Rows";
+      wdata[7].value = N;          wdata[7].field = "Cols";
+      wdata[8].value = Nghost;     wdata[8].field = "Ghost points";
+
+      Write_metadata_to_H5_file(cextend, wdata, 9);
+    }
+    
   PrintOut(5,rank); // MC-Loop finished successfully
   
   /* Average power spectrum and write it to a file */

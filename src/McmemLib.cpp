@@ -13,6 +13,7 @@
 #include "McmemLib.hpp"
 using std::strtol;
 
+
 namespace std
 {
   template <>
@@ -998,7 +999,7 @@ void ReadInput(std::string filename,int& sim, int& acc_samples, double& maxiter,
 
 /*-------------------write_to_extendible_H5----------------------*/
 
-void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield)
+void Write_to_extendible_H5(const char* FILENAME, RectMesh& hfield)
 {
   hsize_t ndims = 2;
   hsize_t nrows = hfield.getrows() + 2*hfield.getnghost();
@@ -1029,7 +1030,7 @@ void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield)
   
       /* Check if there is a dataset. */
   
-      if ( !H5Lexists(file,"data",H5P_DEFAULT) )
+      if ( !H5Lexists(file,"extendibleDset",H5P_DEFAULT) )
 	{
 	  /* Dataset does not exist. Create it and
 	     write the first buffer. */
@@ -1052,7 +1053,7 @@ void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield)
 	  
 	  // Create the dataset.
 	  
-	  hid_t dset = H5Dcreate(file, "data", H5T_NATIVE_DOUBLE,
+	  hid_t dset = H5Dcreate(file, "extendibleDset", H5T_NATIVE_DOUBLE,
 				 file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
 	  
 	  /* Close resources. */
@@ -1088,7 +1089,7 @@ void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield)
 	  
 	  // Open the dataset and get the dimensions of the existing dataset.
 	  
-	  hid_t dset = H5Dopen(file,"data",H5P_DEFAULT);
+	  hid_t dset = H5Dopen(file,"extendibleDset",H5P_DEFAULT);
 	  hid_t file_space = H5Dget_space(dset);
 	  hsize_t dims[ndims];
 	  H5Sget_simple_extent_dims(file_space, dims, NULL);
@@ -1122,10 +1123,9 @@ void write_to_extendible_H5(const char* FILENAME, RectMesh& hfield)
     }    
 }
 
-
 /*-----------------------------------------------------------------------*/
 
-void write_metadata_to_H5_file(const char* FILENAME, hfield_metadata* wdata, hsize_t DIM0) 
+void Write_metadata_to_H5_file(const char* FILENAME, hfield_metadata* wdata, hsize_t DIM0) 
 {
   
   hid_t   file, filetype, memtype, strtype, space, dset;
