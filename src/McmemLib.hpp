@@ -154,8 +154,8 @@ void Sample(std::string output_filename, int& sample_every, int& iter,
 	    double& cor_energy, double& pin_energy, double& tot_area,
 	    double& prj_area, double& alpha, int& DoFs);
 
-void ReadInput(std::string filename,int& sim, int& acc_samples, double& maxiter,
-	       double& sig,double& tau,double& epsilon,
+void ReadInput(std::string filename,int& sim, int& wSnap, int& acc_samples,
+	       double& maxiter,double& sig,double& tau,double& epsilon,
 	       double& min_change,double& max_change,
 	       double& pin_ratio,double& Ea);
 

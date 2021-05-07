@@ -64,8 +64,8 @@ int main(int argc, char* argv[]){
  
   /* Read the input files. */ 
   
-  ReadInput(inputFilename, isSim, sampleEvery, maxiter, sig, tau, epsilon,
-	    minChange, maxChange, pinRatio, Eactive);
+  ReadInput(inputFilename, isSim, wSnap, sampleEvery, maxiter, sig, tau,
+	    epsilon, minChange, maxChange, pinRatio, Eactive);
   
   PrintOut(1,rank); // Input file is read
 

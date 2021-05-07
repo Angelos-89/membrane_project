@@ -930,9 +930,10 @@ void Sample(std::string output_filename, int& sample_every, int& iter,
 
 /*-------------------------------- ReadInput -----------------------------*/
 
-void ReadInput(std::string filename,int& sim, int& acc_samples, double& maxiter,
-	       double& sig,double& tau,double& epsilon,double& min_change,
-	       double& max_change,double& pin_ratio, double& Ea)
+void ReadInput(std::string filename,int& sim, int& wSnap, int& acc_samples,
+	       double& maxiter, double& sig,double& tau,double& epsilon,
+	       double& min_change, double& max_change,double& pin_ratio,
+	       double& Ea)
 {
   std::ifstream infile;
   infile.open(filename);
@@ -942,7 +943,7 @@ void ReadInput(std::string filename,int& sim, int& acc_samples, double& maxiter,
       exit(EXIT_FAILURE);
     }
   while(!infile.eof())
-    infile >> sim >> acc_samples >> maxiter >> sig >> tau >> epsilon >> min_change
+    infile >> sim >> wSnap >> acc_samples >> maxiter >> sig >> tau >> epsilon >> min_change
 	   >> max_change >> pin_ratio >> Ea;
 
   infile.close();
