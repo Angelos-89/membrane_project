@@ -30,25 +30,25 @@ def gen_param(nproc=1):
         # New simulation (0) or start from earlier (1) 
         param[0,iproc] = 0
         # If we write snapshots of the membrane (1)
-        param[2,iproc] = 0
+        param[1,iproc] = 0
         # How often we sample
-        param[3,iproc] = 500 
+        param[2,iproc] = 500 
         # No. of iterations
-        param[4,iproc] = 1e7
+        param[3,iproc] = 1e7
         # Surface tension (sigma)
-        param[5,iproc] = sigma[iproc] 
+        param[4,iproc] = sigma[iproc] 
         # Frame tansion (tau)
-        param[6,iproc] = tau[iproc] 
+        param[5,iproc] = tau[iproc] 
         # Maximum height perturbation
-        param[7,iproc] = 0.2
+        param[6,iproc] = 0.2
         # Minimum lattice perturbation
-        param[8,iproc] = 0.98 
+        param[7,iproc] = 0.98 
         # Maximum lattice perturbation
-        param[9,iproc] = 1.02 
+        param[8,iproc] = 1.02 
         # Fraction of pinning
-        param[10,iproc] = 0.
+        param[9,iproc] = 0.
         # Activity energy
-        param[11,iproc] = 0.
+        param[10,iproc] = 0.
     return param
 
 def pparam(nproc,param):
