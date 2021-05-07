@@ -90,7 +90,6 @@ int main(int argc, char* argv[])
   OutputParams(maxiter, N, DoFs, Nghost, rig, sig, tau, epsilon, min_change,
 	       max_change, alpha, pin_ratio, sample_every, rank, Eactive);
 
-  //  if (is_sim == 1)
   hid_t file = H5Fcreate(cextend, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
       
   
@@ -277,22 +276,19 @@ int main(int argc, char* argv[])
   /*------------------------ END OF ALGORITHM -----------------------------*/
   
   /* Attach metadata to extendible HDF5 set */
-  // if (is_sim == 1)
-  //   {
-      hfield_metadata wdata[9];  
+  hfield_metadata wdata[9];  
 
-      wdata[0].value = spec_steps; wdata[0].field = "Samples";  
-      wdata[1].value = sig;        wdata[1].field = "Sigma";
-      wdata[2].value = tau;        wdata[2].field = "Tau";
-      wdata[3].value = rig;        wdata[3].field = "Rigidity";
-      wdata[4].value = pin_ratio;  wdata[4].field = "Fraction of pinning";
-      wdata[5].value = Eactive;    wdata[5].field = "Activity";
-      wdata[6].value = N;          wdata[6].field = "Rows";
-      wdata[7].value = N;          wdata[7].field = "Cols";
-      wdata[8].value = Nghost;     wdata[8].field = "Ghost points";
-
-      Write_metadata_to_H5_file(cextend, wdata, 9);
-      //    }
+  wdata[0].value = spec_steps; wdata[0].field = "Samples";  
+  wdata[1].value = sig;        wdata[1].field = "Sigma";
+  wdata[2].value = tau;        wdata[2].field = "Tau";
+  wdata[3].value = rig;        wdata[3].field = "Rigidity";
+  wdata[4].value = pin_ratio;  wdata[4].field = "Fraction of pinning";
+  wdata[5].value = Eactive;    wdata[5].field = "Activity";
+  wdata[6].value = N;          wdata[6].field = "Rows";
+  wdata[7].value = N;          wdata[7].field = "Cols";
+  wdata[8].value = Nghost;     wdata[8].field = "Ghost points";
+  
+  Write_metadata_to_H5_file(cextend, wdata, 9);
     
   PrintOut(5,rank); // MC-Loop finished successfully
   
