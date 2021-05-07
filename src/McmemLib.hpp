@@ -6,6 +6,14 @@
 #ifndef MCMEMLIB_HPP
 #define MCMEMLIB_HPP
 
+#ifdef MAIN
+std::random_device rd;
+std::mt19937 mt(rd());
+#else
+extern std::random_device rd;
+extern std::mt19937 mt;
+#endif
+
 /*---------------------*/
 #include <unordered_set>
 #include "Site.hpp"
@@ -13,6 +21,19 @@
 #include <vector>
 #include <string>
 /*---------------------*/
+
+namespace std
+{
+  template <>
+  struct hash<Site>
+  {
+    size_t operator()( const Site& p ) const
+    {
+      return((53 + std::hash<int>()(p.getx()))*53
+	         + std::hash<int>()(p.gety()));
+    }
+  }; 
+}
 
 /*------------------*/
 typedef struct
@@ -142,12 +163,12 @@ void AddShift(double& dE);
 
 void Spectrum(RectMesh& Input_Field,RectMesh& Output);
 
-void Write_to_extendible_H5(const char* FILENAME, RectMesh& hfield);
+void WriteToExtendibleH5(const char* FILENAME, RectMesh& hfield);
 
-void Write_metadata_to_H5_file(const char* FILENAME,
+void WriteMetadataToH5File(const char* FILENAME,
 			       hfield_metadata* wdata, hsize_t DIM0); 
 
-int Input_DoFs(int argc, char* argv[]);
+int InputDoFs(int argc, char* argv[]);
 
 void ReadPinnedSites(std::string pinset_filename,
 		     std::unordered_set<Site>& pinned_set);

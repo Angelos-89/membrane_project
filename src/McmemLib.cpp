@@ -13,23 +13,6 @@
 #include "McmemLib.hpp"
 using std::strtol;
 
-
-namespace std
-{
-  template <>
-  struct hash<Site>
-  {
-    size_t operator()( const Site& p ) const
-    {
-      return((53 + std::hash<int>()(p.getx()))*53
-	         + std::hash<int>()(p.gety()));
-    }
-  }; 
-}
-
-std::random_device rd;
-std::mt19937 mt(rd());
-
 static double ShiftInEnergy = 0.;
 
 /*------------------------- OutputParams ---------------------------*/
@@ -463,27 +446,6 @@ double SNodeCurvature(const RectMesh& h,Site site,double alpha)
   return curvature;
 }
 
-/*----------------------- TotalCurvature --------------------------*/
-
-/* This function returns a RectMesh object with the mean curvature 
-   of every point of a surface that is represented by the RectMesh 
-   object field.                                                   */
-
-// RectMesh TotalCurvature(const RectMesh& field,double& alpha)
-// {
-//   Site site;
-//   RectMesh H(field.getcols(),field.getrows(),0);
-//   for (int j=0; j<field.getrows(); j++)
-//     {
-//       for (int i=0; i<field.getcols(); i++)
-// 	{
-// 	  site.set(i,j);
-// 	  H(i,j) = SNodeCurvature(field,site,alpha);
-// 	}
-//     }
-//   return H;
-// }
-
 /*----------------------- SNodeCurvatureEnergy ------------------------*/
 
 /* This function calculates the curvature energy of a single site 
@@ -594,10 +556,6 @@ double CorrectionEnergyTotal(const RectMesh& hfield,double alpha)
 	sum += log(SNodeNormalZ(hfield,site,alpha));}
     }
   return -sum;
-
-  // RectMesh temp = NormalZ(hfield,alpha);
-  // temp.ln();
-  // return -temp.sum();
 }
 
 /*------------------------- PinningEnergyTotal --------------------------*/
@@ -684,12 +642,6 @@ bool WhereIs(Site site, int cols, int rows, int nghost)
 {
   int i = site.getx();
   int j = site.gety();
-  // if (i>=cols || i<0 || j>=rows || j<0)
-  // {
-  //   std::cout << "WhereIs: It must hold that 0<=i<cols and 0<=j<rows."
-  //     "Exiting." << std::endl;
-  //   exit(EXIT_FAILURE);
-  // }
   if (i<nghost || i>=cols-nghost || j<nghost || j>=rows-nghost)
     return 1; //boundary point
   else return 0; //bulk 
@@ -818,7 +770,6 @@ void AddShift(double& dE)
 bool Metropolis(double& dElocal)
 {
   double dE = dElocal + ShiftInEnergy;
-  //dElocal += ShiftInEnergy;
   if(dE < 0) return 1;
   else
     {
@@ -829,7 +780,7 @@ bool Metropolis(double& dElocal)
     }
 }
 
-/*------------------------- UpdateState -----------------------------*/
+/*----------------------------- UpdateState -----------------------------*/
 
 /* This function updates the total energy and total area of the membrane
    if a height trial move is accepted. Otherwise it returns the membrane
@@ -999,7 +950,7 @@ void ReadInput(std::string filename,int& sim, int& acc_samples, double& maxiter,
 
 /*-------------------write_to_extendible_H5----------------------*/
 
-void Write_to_extendible_H5(const char* FILENAME, RectMesh& hfield)
+void WriteToExtendibleH5(const char* FILENAME, RectMesh& hfield)
 {
   hsize_t ndims = 2;
   hsize_t nrows = hfield.getrows() + 2*hfield.getnghost();
@@ -1125,7 +1076,7 @@ void Write_to_extendible_H5(const char* FILENAME, RectMesh& hfield)
 
 /*-----------------------------------------------------------------------*/
 
-void Write_metadata_to_H5_file(const char* FILENAME, hfield_metadata* wdata, hsize_t DIM0) 
+void WriteMetadataToH5File(const char* FILENAME, hfield_metadata* wdata, hsize_t DIM0) 
 {
   
   hid_t   file, filetype, memtype, strtype, space, dset;
@@ -1179,7 +1130,7 @@ void Write_metadata_to_H5_file(const char* FILENAME, hfield_metadata* wdata, hsi
 
 /*---------------------------------------------------------------------*/
 
-int Input_DoFs(int argc, char* argv[])
+int InputDoFs(int argc, char* argv[])
 {  
   if (argc == 1 or argc > 2)
     {
