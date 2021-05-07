@@ -10,7 +10,7 @@
 
 import numpy as np
 iprefix = 'input_'
-nparam=10
+nparam=11
 
 def gen_param(nproc=1):
 
@@ -29,24 +29,26 @@ def gen_param(nproc=1):
     for iproc in range(nproc):
         # New simulation (0) or start from earlier (1) 
         param[0,iproc] = 0
+        # If we write snapshots of the membrane (1)
+        param[2,iproc] = 0
         # How often we sample
-        param[1,iproc] = 500 
+        param[3,iproc] = 500 
         # No. of iterations
-        param[2,iproc] = 1e7
+        param[4,iproc] = 1e7
         # Surface tension (sigma)
-        param[3,iproc] = sigma[iproc] 
+        param[5,iproc] = sigma[iproc] 
         # Frame tansion (tau)
-        param[4,iproc] = tau[iproc] 
+        param[6,iproc] = tau[iproc] 
         # Maximum height perturbation
-        param[5,iproc] = 0.2
+        param[7,iproc] = 0.2
         # Minimum lattice perturbation
-        param[6,iproc] = 0.98 
+        param[8,iproc] = 0.98 
         # Maximum lattice perturbation
-        param[7,iproc] = 1.02 
+        param[9,iproc] = 1.02 
         # Fraction of pinning
-        param[8,iproc] = 0.
+        param[10,iproc] = 0.
         # Activity energy
-        param[9,iproc] = 0.
+        param[11,iproc] = 0.
     return param
 
 def pparam(nproc,param):
@@ -58,7 +60,9 @@ def pparam(nproc,param):
         ff.write("\n")
         ff.write(str(np.int(param[1,iproc]))) # This too.
         ff.write("\n")
-        for iparam in range(2,nparam):        # These are doubles.
+        ff.write(str(np.int(param[2,iproc]))) # This too.
+        ff.write("\n")
+        for iparam in range(3,nparam):        # These are doubles.
             ff.write(str(param[iparam,iproc]))
             ff.write("\n")
         ff.close()
