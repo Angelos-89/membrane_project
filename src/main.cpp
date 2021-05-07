@@ -268,16 +268,16 @@ int main(int argc, char* argv[]){
   if (wSnap == 1)
     {
       hfield_metadata wdata[9]; 
-      wdata[0].value = specSteps; wdata[0].field = "Samples";  
+      wdata[0].value = specSteps;  wdata[0].field = "Samples";  
       wdata[1].value = sig;        wdata[1].field = "Sigma";
       wdata[2].value = tau;        wdata[2].field = "Tau";
       wdata[3].value = rig;        wdata[3].field = "Rigidity";
-      wdata[4].value = pinRatio;  wdata[4].field = "Fraction of pinning";
+      wdata[4].value = pinRatio;   wdata[4].field = "Fraction of pinning";
       wdata[5].value = Eactive;    wdata[5].field = "Activity";
       wdata[6].value = N;          wdata[6].field = "Rows";
       wdata[7].value = N;          wdata[7].field = "Cols";
       wdata[8].value = nGhost;     wdata[8].field = "Ghost points";      
-      WriteMetadataToH5File(cXtend, wdata, 9);
+      WriteMetadataToH5File(cXtend,wdata, 9);
     }
 
   PrintOut(5,rank); // MC-Loop finished successfully
