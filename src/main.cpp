@@ -50,7 +50,7 @@ int main(int argc, char* argv[]){
   double pinRatio;   // Ratio of the total DoFs to be pinned
   double Eactive;    // Membrane activity (k_BT)
   
-  /*-------------------------- Variable definition --------------------------*/
+  /*-------------------------- Variabls definition -------------------------*/
 
   int N = InputDoFs(argc,argv);   // Degrees of freedom (DoFs) per dimension
   int DoF = pow(N,2);             // Total number of DoFs
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]){
 
   /* Output the parameters of the run to txt files. */
   
-  OutputParams(maxiter, N, DoF, nGhost, rig, sig, tau, epsilon, minChange,
+  OutputParams(maxiter, N, DoF, nGhost, rig, sig, tau, epsilon, minChange,//this can be done from python gen.input
 	       maxChange, alpha, pinRatio, sampleEvery, rank, Eactive);
 
   if (wSnap ==1 )
@@ -108,6 +108,7 @@ int main(int argc, char* argv[]){
      needed for the calculation
      of the change in a local quantity. 
      See GetNeighbors in McmemLib.cpp.    */
+
   int lenArea = 5;              
   int lenCorr = 4*nGhost+1;
   int lenEner = pow( (2*nGhost+1) ,2);
@@ -162,16 +163,14 @@ int main(int argc, char* argv[]){
   
   PrintOut(2,rank); // Height field and pinning ok
   
-  /*----------------------------------------------------------------------*/
-  
   /* (2) Calculate energies and areas of the membrane and write the data. */
+
   CalculateTotal(hfield, rig, sig, tau, totEnergy, tauEnergy, crvEnergy,
 		 sigEnergy, corEnergy, pinEnergy, totArea, prjArea, alpha,
    		 pinnedSites, potStrength, h0);
   
   WriteData(outputFilename, iter, totalMoves, totEnergy, crvEnergy,
 	    corEnergy, pinEnergy, totArea, prjArea, alpha, DoF);
-  /*----------------------------------------------------------------------*/
   
   PrintOut(3,rank); // MC-Loop initialized
   if (isSim == 0) PrintOut(4,rank); // Spectrum averaged over non-equilibrium
@@ -211,18 +210,17 @@ int main(int argc, char* argv[]){
       
       localAreaAft = LocalArea(hfield, neighborsArea, alpha);
       
-      /* (7) Calculate the energy difference and check whether the 
-	 move is accepted or not. */
+      /* (7) Calculate the difference in area and energy. */
       
       dA_local = localAreaAft-localAreaPre;
       dE_local = localEnergyAft-localEnergyPre;
-      accept = Metropolis(dE_local);
       
-      /* (8) If the move is accepted, update total area and energy and sample.
-	 Otherwise, return to previous state. */
+      /* (8) Metropolis criterion for move acceptance
+	 If the move is accepted, update total area, total energy, 
+	 and sample. Otherwise, return to previous state. */
       
-      UpdateState(hfield, site, accept, where, totArea, totEnergy,
-		  dA_local, dE_local, heightChanges, perturb);
+      accept = UpdateState(hfield, site, where, totArea, totEnergy,
+			   dA_local, dE_local, heightChanges, perturb);
       
       if (accept){
 	totalMoves++;
@@ -235,7 +233,7 @@ int main(int argc, char* argv[]){
       
       if (iter % attemptLatticeChange == 0)
 	{
-	  latticeAccept = ChangeLattice(hfield,minChange,maxChange,rig,sig,tau,
+	  latticeAccept = UpdateLattice(hfield,minChange,maxChange,rig,sig,tau,
 					prjArea, totArea, totEnergy,
 					tauEnergy, crvEnergy, sigEnergy,
 					corEnergy, pinEnergy, alpha,
@@ -249,7 +247,7 @@ int main(int argc, char* argv[]){
       
       /* (10) Compute radial 1D spectrum and write the height field.*/
       
-      if (totalMoves % sampleEvery == 0)
+      if (totalMoves % sampleEvery == 0 and (accept == 1 or latticeAccept == 1))
 	{
 	  specSteps ++;
 	  CopyFieldToArray(hfield,hx);
@@ -265,6 +263,7 @@ int main(int argc, char* argv[]){
   /*------------------------ END OF ALGORITHM -----------------------------*/
   
   /* Attach metadata to extendible HDF5 set */
+
   if (wSnap == 1)
     {
       hfield_metadata wdata[9]; 
@@ -277,7 +276,7 @@ int main(int argc, char* argv[]){
       wdata[6].value = N;          wdata[6].field = "Rows";
       wdata[7].value = N;          wdata[7].field = "Cols";
       wdata[8].value = nGhost;     wdata[8].field = "Ghost points";      
-      WriteMetadataToH5File(cXtend,wdata, 9);
+      WriteMetadataToH5File(cXtend,wdata,9);
     }
 
   PrintOut(5,rank); // MC-Loop finished successfully

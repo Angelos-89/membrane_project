@@ -126,7 +126,7 @@ void PrintNeighbors(Site neighbors[],int len);
 
 bool Metropolis(double& dElocal);
 
-void UpdateState(RectMesh& hfield,Site site,bool accept,
+bool UpdateState(RectMesh& hfield,Site site,
 		     bool where,double& tot_area,double& tot_energy,
 		     double& dAlocal,double& dElocal,
 		     int& height_moves,double& perturb);
@@ -134,7 +134,7 @@ void UpdateState(RectMesh& hfield,Site site,bool accept,
 void WStats(const int maxiter, int height_moves, int lattice_moves,
 	    int lattice_changes,int spec_steps,int rank);
 
-bool ChangeLattice(const RectMesh& hfield,const double& min_change,
+bool UpdateLattice(const RectMesh& hfield,const double& min_change,
 		   const double& max_change,const double& rig,
 		   const double& sig, const double& tau,double& prj_area,
 		   double& tot_area,double& tot_energy,double& tau_energy,

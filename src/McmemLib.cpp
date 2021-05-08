@@ -28,7 +28,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
 		  int rank,double Eactive)
 {
   std::stringstream strm; 
-  strm << "Run "                              << rank+1
+  strm << "Run "                              << rank
        << " parameters: \n-----------------\n"
        << "Maxiter: "                         << maxiter                  <<"\n"
        << "Grid Size: "                       << N << "x"  << N           <<"\n"
@@ -359,13 +359,6 @@ double LocalArea(const RectMesh& hfield,Site neighbors[],double alpha)
 
 double TotalArea(const RectMesh& field,double alpha)
 {
-  // if (field.getnghost() == 0)
-  //   {
-  //     std::cout << "TotalArea: The number of ghost points per side of the"
-  // 	"RectMesh object must be at least 1! Exiting. \n"
-  // 		<< std::endl;
-  //     exit(EXIT_FAILURE);
-  //   }
   double total_area=0;
   Site site;
   for (int j=0; j<field.getrows(); j++)
@@ -786,10 +779,12 @@ bool Metropolis(double& dElocal)
    if a height trial move is accepted. Otherwise it returns the membrane
    to its previous state.                                                */
 
-void UpdateState(RectMesh& hfield,Site site,bool accept,bool where,
-		     double& tot_area,double& tot_energy,double& dAlocal,
-		     double& dElocal,int& height_changes,double& perturb)
-{  
+bool UpdateState(RectMesh& hfield,Site site,bool where,
+		 double& tot_area,double& tot_energy,double& dAlocal,
+		 double& dElocal,int& height_changes,double& perturb)
+{
+  double dE = dElocal + ShiftInEnergy;
+  bool accept = Metropolis(dE);
   if (accept == 1)
     {
       height_changes ++;
@@ -802,6 +797,7 @@ void UpdateState(RectMesh& hfield,Site site,bool accept,bool where,
       hfield(i,j) -= perturb;
       if (where == 1) GhostCopy(hfield);
     }
+  return accept;
 }
 
 /*-------------------------- Wstats ------------------------*/
@@ -817,7 +813,7 @@ void WStats(const int maxiter, int height_changes,
   double accept_ratio = (double) height_changes/maxiter;
   double lattice_moves_ratio = (double) lattice_changes/lattice_moves; 
   std::stringstream stream; 
-  stream << "Simulation " << rank+1
+  stream << "Simulation " << rank
 	 << " is finished: \n-------------------------\n"
 	 << "Height move ratio: " << accept_ratio << "\n"
 	 << "Lattice spacing move ratio: "
@@ -840,7 +836,7 @@ void WStats(const int maxiter, int height_changes,
    accepted or not. If it is, it updates everything, if not, it returns 
    the membrane to its previous state.                                  */
 
-bool ChangeLattice(const RectMesh& hfield,const double& min_change,
+bool UpdateLattice(const RectMesh& hfield,const double& min_change,
 		   const double& max_change,const double& rig,
 		   const double& sig, const double& tau,double& prj_area,
 		   double& tot_area,double& tot_energy,double& tau_energy,
@@ -865,16 +861,18 @@ bool ChangeLattice(const RectMesh& hfield,const double& min_change,
 
   double dE = tot_energy-old_energy; 
   bool accept = Metropolis(dE);
-
-  if (accept == 1){
-    lattice_changes ++;
-    return 1;}
-  else{
-    tot_energy = old_energy;
-    prj_area = old_prj_area;
-    tot_area = old_tot_area;
-    alpha = old_alpha;
-    return 0;}
+ 
+  /* Update Lattice */
+  if (accept == 1)
+      lattice_changes ++;
+  else
+    {
+      tot_energy = old_energy;
+      prj_area = old_prj_area;
+      tot_area = old_tot_area;
+      alpha = old_alpha;
+    }
+  return accept;
 }
 
 /*--------------------------- Sample -------------------------*/
@@ -1216,46 +1214,45 @@ void WriteSpectrum(std::string hspec_filename, double* S1d, int spec_steps,
 
 void PrintOut(int choose, int rank)
 {
-  int sim=rank+1;
   std::stringstream strm;
   switch (choose)
     {
     case 1:
 
-      strm << "Simulation " + std::to_string(sim) + ": Input file is read.\n";
+      strm << "Simulation " + std::to_string(rank) + ": Input file is read.\n";
       std::cout << strm.str();
       break;
       
     case 2:
 
-      strm << "Simulation " + std::to_string(sim) + ": Height field"
+      strm << "Simulation " + std::to_string(rank) + ": Height field"
 	" initialized.\n";
       std::cout << strm.str();
       break;
       
     case 3:
       
-      strm << "Simulation " + std::to_string(sim) + ": MC-loop started.\n";
+      strm << "Simulation " + std::to_string(rank) + ": MC-loop started.\n";
       std::cout << strm.str();
       break;
 
     case 4:
       
-      strm << "Simulation " + std::to_string(sim) + ": WARNING:"
-	" The spectrum is averaged over non equilibrium states.\n";
+      strm << "Simulation " + std::to_string(rank) + ": WARNING:"
+	" The spectrum is probably averaged over non equilibrium states.\n";
       std::cout << strm.str();
       break;
       
     case 5:
       
-      strm << "Simulation " + std::to_string(sim) + ": Termination of"
+      strm << "Simulation " + std::to_string(rank) + ": Termination of"
 	" MC-loop.\n";
       std::cout << strm.str();
       break;
 
     case 6: 
 
-      strm << "Simulation " + std::to_string(sim) + ": Program finished"
+      strm << "Simulation " + std::to_string(rank) + ": Program finished"
 	" successfully.\n";
       std::cout << strm.str();
       break;
