@@ -100,7 +100,7 @@ int main(int argc, char* argv[]){
   int totalMoves = 0;           // Total accepted moves
   int x,y;                      // Coordinates of selected site
   bool latticeAccept = 0;       // Indicates the acceptance of a lattice move
-  bool accept = 0;              // Indicates the acceptance of a height move
+  bool heightAccept = 0;        // Indicates the acceptance of a height move
   bool where = 0;               // Indicator of boundary or bulk point
   bool pin = 0;                 // Indicator of pinned point
   
@@ -219,11 +219,10 @@ int main(int argc, char* argv[]){
 	 If the move is accepted, update total area, total energy, 
 	 and sample. Otherwise, return to previous state. */
       
-      accept = UpdateState(hfield, site, where, totArea, totEnergy,
+      heightAccept = UpdateState(hfield, site, where, totArea, totEnergy,
 			   dA_local, dE_local, heightChanges, perturb);
       
-      if (accept){
-	totalMoves++;
+      if (heightAccept){
 	Sample(outputFilename,sampleEvery,iter,totalMoves,totEnergy,
 	       crvEnergy,corEnergy,pinEnergy,totArea,prjArea,alpha,DoF);}
       
@@ -242,12 +241,13 @@ int main(int argc, char* argv[]){
 	  if (latticeAccept){
 	    totalMoves++;
 	    Sample(outputFilename,sampleEvery,iter,totalMoves,totEnergy,
-		   crvEnergy,corEnergy,pinEnergy,totArea,prjArea,alpha,DoF);} 
+		   crvEnergy,corEnergy,pinEnergy,totArea,prjArea,alpha,DoF);}
 	}
+
       
       /* (10) Compute radial 1D spectrum and write the height field.*/
       
-      if (totalMoves % sampleEvery == 0 and (accept == 1 or latticeAccept == 1))
+      if ( totalMoves % sampleEvery == 0 )
 	{
 	  specSteps ++;
 	  CopyFieldToArray(hfield,hx);
