@@ -50,7 +50,7 @@ int main(int argc, char* argv[]){
   double pinRatio;   // Ratio of the total DoFs to be pinned
   double Eactive;    // Membrane activity (k_BT)
   
-  /*-------------------------- Variabls definition -------------------------*/
+  /*-------------------------- Variables definition -------------------------*/
 
   int N = InputDoFs(argc,argv);   // Degrees of freedom (DoFs) per dimension
   int DoF = pow(N,2);             // Total number of DoFs
