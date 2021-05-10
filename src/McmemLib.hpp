@@ -144,12 +144,12 @@ bool UpdateLattice(const RectMesh& hfield,const double& min_change,
 		   std::unordered_set<Site>& pinned_sites,
 		   const double& pot_strength,const double& h0);
 
-void WriteData(std::string filename,int& iter, int& total_moves, 
-	    double& tot_energy,double& crv_energy,
-	    double& cor_energy,double& pin_energy,
-	    double& tot_area, double& prj_area, double& alpha, int& DoF);
+// void WriteData(std::string filename,int& iter, int& total_moves, 
+// 	    double& tot_energy,double& crv_energy,
+// 	    double& cor_energy,double& pin_energy,
+// 	    double& tot_area, double& prj_area, double& alpha, int& DoF);
 
-void Sample(std::string output_filename, int& sample_every, int& iter,
+void Sample(std::string output_filename, int& iter,
 	    int& total_moves, double& tot_energy, double& crv_energy,
 	    double& cor_energy, double& pin_energy, double& tot_area,
 	    double& prj_area, double& alpha, int& DoFs);

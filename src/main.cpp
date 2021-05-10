@@ -169,7 +169,7 @@ int main(int argc, char* argv[]){
 		 sigEnergy, corEnergy, pinEnergy, totArea, prjArea, alpha,
    		 pinnedSites, potStrength, h0);
   
-  WriteData(outputFilename, iter, totalMoves, totEnergy, crvEnergy,
+  Sample(outputFilename, iter, totalMoves, totEnergy, crvEnergy,
 	    corEnergy, pinEnergy, totArea, prjArea, alpha, DoF);
   
   PrintOut(3,rank); // MC-Loop initialized
@@ -222,9 +222,25 @@ int main(int argc, char* argv[]){
       heightAccept = UpdateState(hfield, site, where, totArea, totEnergy,
 			   dA_local, dE_local, heightChanges, perturb);
       
-      if (heightAccept){
-	Sample(outputFilename,sampleEvery,iter,totalMoves,totEnergy,
-	       crvEnergy,corEnergy,pinEnergy,totArea,prjArea,alpha,DoF);}
+      if (heightAccept)
+	{
+	  totalMoves++;
+	  if (totalMoves % sampleEvery == 0)
+	    {
+	  
+	      Sample(outputFilename,iter,totalMoves,totEnergy,
+		     crvEnergy,corEnergy,pinEnergy,totArea,prjArea,alpha,DoF);
+	      
+	      specSteps ++;
+	      CopyFieldToArray(hfield,hx);
+	      fft();
+	      onedspec2d(s1D,N,hx,alpha,dk,qdiagMax);
+	      hfield.writeH5(cField);
+	      if (wSnap == 1)
+		WriteToExtendibleH5(cXtend, hfield);
+	    } 
+	}	  
+      
       
       /* (9) After "attempt_lattice_change" iterations, randomly change 
    	 alpha, compute the new projected area and update the 
@@ -238,26 +254,25 @@ int main(int argc, char* argv[]){
 					corEnergy, pinEnergy, alpha,
 					latticeAttempts, latticeChanges,
 					pinnedSites, potStrength, h0);
-	  if (latticeAccept){
-	    totalMoves++;
-	    Sample(outputFilename,sampleEvery,iter,totalMoves,totEnergy,
-		   crvEnergy,corEnergy,pinEnergy,totArea,prjArea,alpha,DoF);}
-	}
+	  if (latticeAccept)
+	    {
+	      totalMoves++;
+	      if ( totalMoves % sampleEvery == 0 )
+		{
 
-      
-      /* (10) Compute radial 1D spectrum and write the height field.*/
-      
-      if ( totalMoves % sampleEvery == 0 )
-	{
-	  specSteps ++;
-	  CopyFieldToArray(hfield,hx);
-	  fft();
-	  onedspec2d(s1D,N,hx,alpha,dk,qdiagMax);
-	  hfield.writeH5(cField);
-	  if (wSnap == 1)
-	    WriteToExtendibleH5(cXtend, hfield);
+		  Sample(outputFilename,iter,totalMoves,totEnergy,
+			 crvEnergy,corEnergy,pinEnergy,totArea,prjArea,alpha,DoF);
+
+		  specSteps ++;
+		  CopyFieldToArray(hfield,hx);
+		  fft();
+		  onedspec2d(s1D,N,hx,alpha,dk,qdiagMax);
+		  hfield.writeH5(cField);
+		  if (wSnap == 1) WriteToExtendibleH5(cXtend, hfield);
+		}
+	    }	 
 	}
-      
+  
     }// end of MC-loop
 
   /*------------------------ END OF ALGORITHM -----------------------------*/

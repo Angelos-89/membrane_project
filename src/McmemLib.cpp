@@ -880,7 +880,7 @@ bool UpdateLattice(const RectMesh& hfield,const double& min_change,
 /* Stores the data in a txt file. */
 
 int first_call = 1;
-void WriteData(std::string filename,int& iter,int& total_moves,
+void Sample(std::string filename,int& iter,int& total_moves,
 	    double& tot_energy,double& crv_energy,
 	    double& cor_energy,double& pin_energy,double& tot_area,
 	    double& prj_area,double& alpha,int& DoFs)
@@ -913,15 +913,15 @@ void WriteData(std::string filename,int& iter,int& total_moves,
   file.close();
 }
 
-void Sample(std::string output_filename, int& sample_every, int& iter,
-	    int& total_moves, double& tot_energy, double& crv_energy,
-	    double& cor_energy, double& pin_energy, double& tot_area,
-	    double& prj_area, double& alpha, int& DoFs)
-{
-  if (total_moves % sample_every == 0)  
-    WriteData(output_filename, iter, total_moves, tot_energy, crv_energy,
-	   cor_energy, pin_energy, tot_area, prj_area, alpha, DoFs);      
-}
+// void Sample(std::string output_filename, int& sample_every, int& iter,
+// 	    int& total_moves, double& tot_energy, double& crv_energy,
+// 	    double& cor_energy, double& pin_energy, double& tot_area,
+// 	    double& prj_area, double& alpha, int& DoFs)
+// {
+//   if (total_moves % sample_every == 0)  
+//     WriteData(output_filename, iter, total_moves, tot_energy, crv_energy,
+// 	   cor_energy, pin_energy, tot_area, prj_area, alpha, DoFs);      
+// }
 
 
 
