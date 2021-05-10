@@ -13,11 +13,11 @@ double PI = 4.*atan(1.0);
 
 int main(int argc, char* argv[]){
 
-  /*------ Initialize MPI. -------- */
+  /*------ Initialize MPI and seed Mersenne Twister. -------- */
 
-  int rank;
   MPI_Init(&argc,&argv);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+  std::mt19937 mt(rd()+rank);
 
   /*----------------- Define strings needed for filenames. -------------------*/
 
@@ -65,14 +65,14 @@ int main(int argc, char* argv[]){
   /* Read the input files. */ 
   
   ReadInput(inputFilename, isSim, wSnap, sampleEvery, maxiter, sig, tau,
-	    epsilon, minChange, maxChange, pinRatio, Eactive);
+  	    epsilon, minChange, maxChange, pinRatio, Eactive);
   
   PrintOut(1,rank); // Input file is read
 
   /* Output the parameters of the run to txt files. */
   
   OutputParams(maxiter, N, DoF, nGhost, rig, sig, tau, epsilon, minChange,//this can be done from python gen.input
-	       maxChange, alpha, pinRatio, sampleEvery, rank, Eactive);
+  	       maxChange, alpha, pinRatio, sampleEvery, rank, Eactive);
 
   if (wSnap ==1 )
     hid_t file = H5Fcreate(cXtend, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
@@ -166,11 +166,11 @@ int main(int argc, char* argv[]){
   /* (2) Calculate energies and areas of the membrane and write the data. */
 
   CalculateTotal(hfield, rig, sig, tau, totEnergy, tauEnergy, crvEnergy,
-		 sigEnergy, corEnergy, pinEnergy, totArea, prjArea, alpha,
+  		 sigEnergy, corEnergy, pinEnergy, totArea, prjArea, alpha,
    		 pinnedSites, potStrength, h0);
   
   Sample(outputFilename, iter, totalMoves, totEnergy, crvEnergy,
-	    corEnergy, pinEnergy, totArea, prjArea, alpha, DoF);
+  	    corEnergy, pinEnergy, totArea, prjArea, alpha, DoF);
   
   PrintOut(3,rank); // MC-Loop initialized
   if (isSim == 0) PrintOut(4,rank); // Spectrum averaged over non-equilibrium
@@ -191,8 +191,8 @@ int main(int argc, char* argv[]){
       /* (4) Calculate the local area and energy of that point. */
       
       localEnergyPre = LocalEnergy(hfield, neighborsArea, neighborsCorr,
-				   neighborsEner, alpha, rig, sig, tau,
-				   potStrength, h0, pin);
+  				   neighborsEner, alpha, rig, sig, tau,
+  				   potStrength, h0, pin);
       
       localAreaPre = LocalArea(hfield, neighborsArea, alpha);
       
@@ -205,8 +205,8 @@ int main(int argc, char* argv[]){
       /* (6) Calculate the new local energy and local area. */
       
       localEnergyAft = LocalEnergy(hfield, neighborsArea, neighborsCorr,
-				   neighborsEner, alpha, rig, sig, tau,
-				   potStrength, h0, pin);
+  				   neighborsEner, alpha, rig, sig, tau,
+  				   potStrength, h0, pin);
       
       localAreaAft = LocalArea(hfield, neighborsArea, alpha);
       
@@ -216,30 +216,30 @@ int main(int argc, char* argv[]){
       dE_local = localEnergyAft-localEnergyPre;
       
       /* (8) Metropolis criterion for move acceptance
-	 If the move is accepted, update total area, total energy, 
-	 and sample. Otherwise, return to previous state. */
+  	 If the move is accepted, update total area, total energy, 
+  	 and sample. Otherwise, return to previous state. */
       
       heightAccept = UpdateState(hfield, site, where, totArea, totEnergy,
-			   dA_local, dE_local, heightChanges, perturb);
+  			   dA_local, dE_local, heightChanges, perturb);
       
       if (heightAccept)
-	{
-	  totalMoves++;
-	  if (totalMoves % sampleEvery == 0)
-	    {
+  	{
+  	  totalMoves++;
+  	  if (totalMoves % sampleEvery == 0)
+  	    {
 	  
-	      Sample(outputFilename,iter,totalMoves,totEnergy,
-		     crvEnergy,corEnergy,pinEnergy,totArea,prjArea,alpha,DoF);
+  	      Sample(outputFilename,iter,totalMoves,totEnergy,
+  		     crvEnergy,corEnergy,pinEnergy,totArea,prjArea,alpha,DoF);
 	      
-	      specSteps ++;
-	      CopyFieldToArray(hfield,hx);
-	      fft();
-	      onedspec2d(s1D,N,hx,alpha,dk,qdiagMax);
-	      hfield.writeH5(cField);
-	      if (wSnap == 1)
-		WriteToExtendibleH5(cXtend, hfield);
-	    } 
-	}	  
+  	      specSteps ++;
+  	      CopyFieldToArray(hfield,hx);
+  	      fft();
+  	      onedspec2d(s1D,N,hx,alpha,dk,qdiagMax);
+  	      hfield.writeH5(cField);
+  	      if (wSnap == 1)
+  		WriteToExtendibleH5(cXtend, hfield);
+  	    } 
+  	}	  
       
       
       /* (9) After "attempt_lattice_change" iterations, randomly change 
@@ -247,33 +247,33 @@ int main(int argc, char* argv[]){
    	 total energy. */
       
       if (iter % attemptLatticeChange == 0)
-	{
-	  latticeAccept = UpdateLattice(hfield,minChange,maxChange,rig,sig,tau,
-					prjArea, totArea, totEnergy,
-					tauEnergy, crvEnergy, sigEnergy,
-					corEnergy, pinEnergy, alpha,
-					latticeAttempts, latticeChanges,
-					pinnedSites, potStrength, h0);
-	  if (latticeAccept)
-	    {
-	      totalMoves++;
-	      if ( totalMoves % sampleEvery == 0 )
-		{
+  	{
+  	  latticeAccept = UpdateLattice(hfield,minChange,maxChange,rig,sig,tau,
+  					prjArea, totArea, totEnergy,
+  					tauEnergy, crvEnergy, sigEnergy,
+  					corEnergy, pinEnergy, alpha,
+  					latticeAttempts, latticeChanges,
+  					pinnedSites, potStrength, h0);
+  	  if (latticeAccept)
+  	    {
+  	      totalMoves++;
+  	      if ( totalMoves % sampleEvery == 0 )
+  		{
 
-		  Sample(outputFilename,iter,totalMoves,totEnergy,
-			 crvEnergy,corEnergy,pinEnergy,totArea,prjArea,alpha,DoF);
+  		  Sample(outputFilename,iter,totalMoves,totEnergy,
+  			 crvEnergy,corEnergy,pinEnergy,totArea,prjArea,alpha,DoF);
 
-		  specSteps ++;
-		  CopyFieldToArray(hfield,hx);
-		  fft();
-		  onedspec2d(s1D,N,hx,alpha,dk,qdiagMax);
-		  hfield.writeH5(cField);
-		  if (wSnap == 1) WriteToExtendibleH5(cXtend, hfield);
-		}
-	    }	 
-	}
+  		  specSteps ++;
+  		  CopyFieldToArray(hfield,hx);
+  		  fft();
+  		  onedspec2d(s1D,N,hx,alpha,dk,qdiagMax);
+  		  hfield.writeH5(cField);
+  		  if (wSnap == 1) WriteToExtendibleH5(cXtend, hfield);
+  		}
+  	    }
+  	}
   
-    }// end of MC-loop
+    }// end of for-loop
 
   /*------------------------ END OF ALGORITHM -----------------------------*/
   
@@ -303,8 +303,8 @@ int main(int argc, char* argv[]){
   /* Write acceptance ratios and number of spectrum calculations. */
   
   WStats(maxiter, heightChanges, latticeAttempts,
-	 latticeChanges, specSteps, rank);
-  
+  	 latticeChanges, specSteps, rank);
+
   MPI_Finalize();
   PrintOut(6,rank); //Program terminated successfully
   return 0;
