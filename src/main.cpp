@@ -1,4 +1,3 @@
-#define MAIN
 #include <string.h>
 #include <mpi.h>
 #include <vector>
@@ -9,6 +8,9 @@
 #include "McmemLib.hpp"
 #include "fft.h"
 
+int rank;
+std::mt19937 mt;
+std::random_device rd;
 double PI = 4.*atan(1.0);
 
 int main(int argc, char* argv[]){

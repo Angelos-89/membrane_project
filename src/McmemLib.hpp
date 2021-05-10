@@ -6,15 +6,12 @@
 #ifndef MCMEMLIB_HPP
 #define MCMEMLIB_HPP
 
-#ifdef MAIN
-int rank;
-std::mt19937 mt;
-std::random_device rd;
-#else
+//#ifdef MAIN
+//#else
 extern int rank;
 extern std::random_device rd;
 extern std::mt19937 mt;
-#endif
+//#endif
 
 /*---------------------*/
 #include <unordered_set>
