@@ -37,10 +37,10 @@ function hyperslab = Select_Hyperslab(H5data_FILENAME , N)
     end
     
     property_list = 'H5P_DEFAULT';
-    dataset_id = H5D.open(file_id,'/data'); %check here
+    dataset_id = H5D.open(file_id,'/extendibleDset'); %check here
     
     % Check existence of dataset containing many snapshots/blocks.
-    if ~H5L.exists(group_id,'/data','H5P_DEFAULT')
+    if ~H5L.exists(group_id,'/extendibleDset','H5P_DEFAULT')
         error("Dataset containing data is not found.");
     end
     
@@ -54,11 +54,17 @@ function hyperslab = Select_Hyperslab(H5data_FILENAME , N)
         START_ = (N-1)*block_length + 1;
     end
     
-    % Select hyperslab and read it.
+    % Select hyperslab read it and remove ghost zones
     offset =[START_-1 , 0];
     block = [block_length , block_width];
     H5S.select_hyperslab(file_space_id,'H5S_SELECT_SET',offset,[],[],block);
     hyperslab = H5D.read(dataset_id,'H5ML_DEFAULT',memory_space_id,file_space_id,property_list)';
+
+    % Remove ghost zones.
+    hyperslab(: , 1:nghost)         = [];
+    hyperslab(: , end-nghost+1:end) = [];
+    hyperslab(1:nghost , :)         = [];
+    hyperslab(end-nghost+1:end , :) = [];
    
     % Close resources.
     H5D.close(dataset_id);
