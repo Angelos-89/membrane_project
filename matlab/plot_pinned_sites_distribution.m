@@ -1,6 +1,6 @@
 %-------------------------------------------------------------------------%
 TITLENAMES = ["8% pinning","16% pinning","32% pinning"];
-FILENAMES = ["pinned_set_0.txt","pinned_set_1.txt","pinned_set_2.txt"];
+FILENAMES = ["pinned_sites_0.txt","pinned_sites_1.txt","pinned_sites_2.txt","pinned_sites_3.txt"];
 gridsPerDim = 80; %read this from PARAMS.txt
 %--------------------------Data to be plotted-----------------------------%
 Zs = {};
@@ -33,7 +33,7 @@ h = 0.8 * diff( y(1:2) ) ;
 
 % - Surface 1
 axes( 'Position', [0.1, 0.58, 0.35, 0.35] ) ;
-s = surf(X,Y,Z) ;
+s = surf(X,Y,Zs{1}) ;
 s.EdgeColor = 'none';
 xlim([0,gridsPerDim-1]);
 ylim([0,gridsPerDim-1]);
@@ -43,7 +43,7 @@ title(TITLENAMES(1))
 
 % - Surface 2
 axes( 'Position', [0.55, 0.58, 0.35, 0.35] ) ;
-s = surf(X,Y,Z) ;
+s = surf(X,Y,Zs{2});
 s.EdgeColor = 'none';
 xlim([0,gridsPerDim-1]);
 ylim([0,gridsPerDim-1]);
@@ -52,7 +52,7 @@ title(TITLENAMES(2))
 
 % - Surface 3
 axes( 'Position', [0.1, 0.15, 0.35, 0.35] ) ;
-s = surf(X,Y,Z) ;
+s = surf(X,Y,Zs{3}) ;
 s.EdgeColor = 'none';
 xlim([0,gridsPerDim-1]);
 ylim([0,gridsPerDim-1]);
@@ -63,7 +63,7 @@ ylabel("y (a_0)")
 
 % - Surface 4
 axes( 'Position', [0.55, 0.15, 0.35, 0.35] ) ;
-s = surf(X,Y,Z) ;
+s = surf(X,Y,Zs{4});
 s.EdgeColor = 'none';
 xlim([0,gridsPerDim-1]);
 ylim([0,gridsPerDim-1]);
