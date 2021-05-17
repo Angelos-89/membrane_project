@@ -301,9 +301,10 @@ int main(int argc, char* argv[]){
   /* Average power spectrum and write it to a file */
   
   WriteSpectrum(hspecFilename, s1D, specSteps, qdiagMax, dk);
+  hfield.writeH5(cField);
   
   /* Write acceptance ratios and number of spectrum calculations. */
-  
+
   WStats(maxiter, heightChanges, latticeAttempts,
   	 latticeChanges, specSteps, rank);
 
