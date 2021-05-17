@@ -28,7 +28,8 @@ void OutputParams(const int maxiter,const int N,const int DoF,
 		  int rank,double Eactive)
 {
   std::stringstream strm; 
-  strm << "Run "                              << rank
+  strm << std::setprecision(8) 
+       << "Run "                              << rank
        << " parameters: \n-----------------\n"
        << "Maxiter: "                         << maxiter                  <<"\n"
        << "Grid Size: "                       << N << "x"  << N           <<"\n"
