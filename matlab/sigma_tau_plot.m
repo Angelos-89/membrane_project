@@ -40,6 +40,7 @@ sigma_normal_32 = [0.350, 0.360, 0.380, 0.420 ...
          10.2913492, 40.21079365, 100.13, 1000.02419047];
 
 %------------------ Plot -------------------%
+figure(1)
 loglog(tau_shiba,sigma_shiba,"ko--")
 hold on
 loglog(tau,sigma_unpinned,"ks-")
@@ -53,4 +54,5 @@ hold on
 grid on
 xlabel("\tau (k_BT/a_0^2)")
 ylabel("\sigma (k_BT/a_0^2)")
-legend('Shiba et al.','Unpinned','8% pinning','16% pinning','32% pinning')
+legend('Shiba et al.','Unpinned','8% pinning','16% pinning','32% pinning','location','northwest')
+saveas(figure(1),"sigma-tau-plot.jpg")
