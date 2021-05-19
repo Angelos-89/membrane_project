@@ -29,7 +29,8 @@ void FillDoSBuffer(double DoS[],double dk,int N,int qdiagMax)
 	  q1 = WrapAround(k1,N);
 	  qSquared = factor * (q1*q1 + q2*q2);
 	  qbin = floor( sqrt(qSquared)/dk );
-	  DoS[qbin] ++;
+	  if (qbin<=qdiagMax)
+	    DoS[qbin] ++;
 	}
     }
   DoS[0] = 1;          //the first grid point on its own bin

@@ -1135,7 +1135,7 @@ int InputDoFs(int argc, char* argv[])
   if (argc == 1 or argc > 2)
     {
       std::cout << "One command line argument is needed: The number of degrees" 
-	"of freedom per dimension. Exiting." << std::endl;
+	" of freedom per dimension. Exiting." << std::endl;
       exit(-1);
     }
   else
