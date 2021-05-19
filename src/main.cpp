@@ -141,181 +141,181 @@ int main(int argc, char* argv[]){
   FillDoSBuffer(DoS,dk,N,qdiagMax);
 
   
-  // /*-------- Random number generators and activity addition ------------*/
-  // std::uniform_int_distribution<int> RandInt(0,N-1);  
-  // std::uniform_real_distribution<double>  RandDouble(-epsilon,epsilon);
-  // AddShift(Eactive); // Shifts energy in metropolis for the active case
+  /*-------- Random number generators and activity addition ------------*/
+  std::uniform_int_distribution<int> RandInt(0,N-1);  
+  std::uniform_real_distribution<double>  RandDouble(-epsilon,epsilon);
+  AddShift(Eactive); // Shifts energy in metropolis for the active case
 
   
-  // /*------------------------ START OF ALGORITHM --------------------------*/
+  /*------------------------ START OF ALGORITHM --------------------------*/
 
 
-  // /*------- (1) Initialize pinning and the height field hfield(i,j) ------*/
-  // RectMesh hfield(N,N,nGhost);
+  /*------- (1) Initialize pinning and the height field hfield(i,j) ------*/
+  RectMesh hfield(N,N,nGhost);
 
-  // if (isSim == 0 and pinRatio == 0)
-  //   InitSurface(hfield,pinnedSites,-0.1,+0.1);
+  if (isSim == 0 and pinRatio == 0)
+    InitSurface(hfield,pinnedSites,-0.1,+0.1);
   
-  // if (isSim == 0 and pinRatio != 0){
-  //   pinnedSites = InitPinning(hfield, pinRatio, neighbors, blockRadius); 
-  //   WritePinnedSites(pinsetFilename, pinnedSites);
-  //   InitSurface(hfield, pinnedSites, -0.1, +0.1);}
+  if (isSim == 0 and pinRatio != 0){
+    pinnedSites = InitPinning(hfield, pinRatio, neighbors, blockRadius); 
+    WritePinnedSites(pinsetFilename, pinnedSites);
+    InitSurface(hfield, pinnedSites, -0.1, +0.1);}
   
-  // if (isSim == 1 and pinRatio == 0)
-  //   hfield.readH5(inputFieldFilename);
+  if (isSim == 1 and pinRatio == 0)
+    hfield.readH5(inputFieldFilename);
   
-  // if (isSim == 1 and pinRatio != 0){
-  //   ReadPinnedSites(pinsetFilename, pinnedSites);
-  //   hfield.readH5(inputFieldFilename);}
+  if (isSim == 1 and pinRatio != 0){
+    ReadPinnedSites(pinsetFilename, pinnedSites);
+    hfield.readH5(inputFieldFilename);}
   
-  // PrintOut(2,rank); // Height field and pinning ok
-  
-
-  // /* (2) Calculate energies and areas of the membrane and write the data. */
-
-  // CalculateTotal(hfield, rig, sig, tau, totEnergy, tauEnergy, crvEnergy,
-  // 		 sigEnergy, corEnergy, pinEnergy, totArea, prjArea, alpha,
-  //  		 pinnedSites, potStrength, h0);
-  
-  // Sample(outputFilename, iter, totalMoves, totEnergy, crvEnergy,
-  // 	    corEnergy, pinEnergy, totArea, prjArea, alpha, DoF);
-  
-  // PrintOut(3,rank); // MC-Loop initialized
-  // if (isSim == 0) PrintOut(4,rank); // Spectrum averaged over non-equilibrium
+  PrintOut(2,rank); // Height field and pinning ok
   
 
-  // /*----------------------------------MC Loop---------------------------------*/
+  /* (2) Calculate energies and areas of the membrane and write the data. */
+
+  CalculateTotal(hfield, rig, sig, tau, totEnergy, tauEnergy, crvEnergy,
+  		 sigEnergy, corEnergy, pinEnergy, totArea, prjArea, alpha,
+   		 pinnedSites, potStrength, h0);
   
-  // for (iter = 1; iter < maxiter+1; iter ++)
-  //   {
+  Sample(outputFilename, iter, totalMoves, totEnergy, crvEnergy,
+  	    corEnergy, pinEnergy, totArea, prjArea, alpha, DoF);
+  
+  PrintOut(3,rank); // MC-Loop initialized
+  if (isSim == 0) PrintOut(4,rank); // Spectrum averaged over non-equilibrium
+  
+
+  /*----------------------------------MC Loop---------------------------------*/
+  
+  for (iter = 1; iter < maxiter+1; iter ++)
+    {
       
-  //     /* (3) Randomly choose a lattice site (i,j), check whether it 
-  //  	 belongs to the boundaries or to the bulk, if it is a pinned
-  //  	 site or not, and find and store all its neighbors. */    
-  //     x = RandInt(mt); y = RandInt(mt); site.set(x,y);
-  //     GetNeighbors(hfield, site, neighborsArea, neighborsCorr, neighborsEner);
-  //     where = WhereIs(site,N,N,nGhost); pin = Ispinned(site, pinnedSites);
+      /* (3) Randomly choose a lattice site (i,j), check whether it 
+   	 belongs to the boundaries or to the bulk, if it is a pinned
+   	 site or not, and find and store all its neighbors. */    
+      x = RandInt(mt); y = RandInt(mt); site.set(x,y);
+      GetNeighbors(hfield, site, neighborsArea, neighborsCorr, neighborsEner);
+      where = WhereIs(site,N,N,nGhost); pin = Ispinned(site, pinnedSites);
       
 
-  //     /* (4) Calculate the local area and energy of that point. */
-  //     localEnergyPre = LocalEnergy(hfield, neighborsArea, neighborsCorr,
-  // 				   neighborsEner, alpha, rig, sig, tau,
-  // 				   potStrength, h0, pin);
-  //     localAreaPre = LocalArea(hfield, neighborsArea, alpha);
-
-      
-  //     /* (5) Randomly perturbate the height of the chosen point. */
-  //     perturb = RandDouble(mt);
-  //     hfield(x,y) += perturb;
-  //     if (where == 1) GhostCopy(hfield);
+      /* (4) Calculate the local area and energy of that point. */
+      localEnergyPre = LocalEnergy(hfield, neighborsArea, neighborsCorr,
+  				   neighborsEner, alpha, rig, sig, tau,
+  				   potStrength, h0, pin);
+      localAreaPre = LocalArea(hfield, neighborsArea, alpha);
 
       
-  //     /* (6) Calculate the new local energy and local area. */
-  //     localEnergyAft = LocalEnergy(hfield, neighborsArea, neighborsCorr,
-  // 				   neighborsEner, alpha, rig, sig, tau,
-  // 				   potStrength, h0, pin);      
-  //     localAreaAft = LocalArea(hfield, neighborsArea, alpha);
+      /* (5) Randomly perturbate the height of the chosen point. */
+      perturb = RandDouble(mt);
+      hfield(x,y) += perturb;
+      if (where == 1) GhostCopy(hfield);
 
       
-  //     /* (7) Calculate the difference in area and energy. */
-  //     dA_local = localAreaAft-localAreaPre;
-  //     dE_local = localEnergyAft-localEnergyPre;
+      /* (6) Calculate the new local energy and local area. */
+      localEnergyAft = LocalEnergy(hfield, neighborsArea, neighborsCorr,
+  				   neighborsEner, alpha, rig, sig, tau,
+  				   potStrength, h0, pin);      
+      localAreaAft = LocalArea(hfield, neighborsArea, alpha);
 
       
-  //     /* (8) Metropolis criterion for move acceptance
-  // 	 If the move is accepted, update total area, total energy, 
-  // 	 and sample. Otherwise, return to previous state. */
-  //     heightAccept = UpdateState(hfield, site, where, totArea, totEnergy,
-  // 				 dA_local, dE_local, heightChanges, perturb);
+      /* (7) Calculate the difference in area and energy. */
+      dA_local = localAreaAft-localAreaPre;
+      dE_local = localEnergyAft-localEnergyPre;
+
       
-  //     if (heightAccept)
-  // 	{
-  // 	  totalMoves++;
-  // 	  if (totalMoves % sampleEvery == 0)
-  // 	    {
+      /* (8) Metropolis criterion for move acceptance
+  	 If the move is accepted, update total area, total energy, 
+  	 and sample. Otherwise, return to previous state. */
+      heightAccept = UpdateState(hfield, site, where, totArea, totEnergy,
+  				 dA_local, dE_local, heightChanges, perturb);
+      
+      if (heightAccept)
+  	{
+  	  totalMoves++;
+  	  if (totalMoves % sampleEvery == 0)
+  	    {
 	  
-  // 	      Sample(outputFilename,iter,totalMoves,totEnergy,
-  // 		     crvEnergy,corEnergy,pinEnergy,totArea,prjArea,alpha,DoF);
-  // 	      /* calculate power spectrum block */
-  // 	      /*--------------------------------*/
-  // 	      specSteps ++;
-  // 	      CopyFieldToArray(hfield,Hx);
-  // 	      // fftw_execute(x2q);
-  // 	      // Rad1DSpec(S1D,DoS,Hx,alpha,dk,N,qdiagMax);
-  // 	      /*--------------------------------*/
-  // 	      hfield.writeH5(cField);
-  // 	      if (wSnap == 1)
-  // 		WriteToExtendibleH5(cXtend, hfield);
-  // 	    } 
-  // 	}	  
+  	      Sample(outputFilename,iter,totalMoves,totEnergy,
+  		     crvEnergy,corEnergy,pinEnergy,totArea,prjArea,alpha,DoF);
+  	      /* calculate power spectrum block */
+  	      /*--------------------------------*/
+  	      specSteps ++;
+  	      CopyFieldToArray(hfield,Hx);
+  	      // fftw_execute(x2q);
+  	      // Rad1DSpec(S1D,DoS,Hx,alpha,dk,N,qdiagMax);
+  	      /*--------------------------------*/
+  	      hfield.writeH5(cField);
+  	      if (wSnap == 1)
+  		WriteToExtendibleH5(cXtend, hfield);
+  	    } 
+  	}	  
       
       
-  //     /* (9) After "attempt_lattice_change" iterations, randomly change 
-  //  	 alpha, compute the new projected area and update the 
-  //  	 total energy. */
-  //     if (iter % attemptLatticeChange == 0)
-  // 	{
-  // 	  latticeAccept = UpdateLattice(hfield,minChange,maxChange,rig,sig,tau,
-  // 					prjArea, totArea, totEnergy,
-  // 					tauEnergy, crvEnergy, sigEnergy,
-  // 					corEnergy, pinEnergy, alpha,
-  // 					latticeAttempts, latticeChanges,
-  // 					pinnedSites, potStrength, h0);
-  // 	  if (latticeAccept)
-  // 	    {
-  // 	      totalMoves++;
-  // 	      if ( totalMoves % sampleEvery == 0 )
-  // 		{
-  // 		  Sample(outputFilename,iter,totalMoves,totEnergy,
-  // 			 crvEnergy,corEnergy,pinEnergy,totArea,prjArea,alpha,DoF);
-  // 		  /* calculate power spectrum block */
-  // 		  /*--------------------------------*/
-  // 		  specSteps ++;
-  // 		  CopyFieldToArray(hfield,Hx);
-  // 		  // fftw_execute(x2q);
-  // 		  // Rad1DSpec(S1D,DoS,Hx,alpha,dk,N,qdiagMax);
-  // 		  /*--------------------------------*/
-  // 		  hfield.writeH5(cField);
-  // 		  if (wSnap == 1) WriteToExtendibleH5(cXtend, hfield);
-  // 		}
-  // 	    }
-  // 	}
+      /* (9) After "attempt_lattice_change" iterations, randomly change 
+   	 alpha, compute the new projected area and update the 
+   	 total energy. */
+      if (iter % attemptLatticeChange == 0)
+  	{
+  	  latticeAccept = UpdateLattice(hfield,minChange,maxChange,rig,sig,tau,
+  					prjArea, totArea, totEnergy,
+  					tauEnergy, crvEnergy, sigEnergy,
+  					corEnergy, pinEnergy, alpha,
+  					latticeAttempts, latticeChanges,
+  					pinnedSites, potStrength, h0);
+  	  if (latticeAccept)
+  	    {
+  	      totalMoves++;
+  	      if ( totalMoves % sampleEvery == 0 )
+  		{
+  		  Sample(outputFilename,iter,totalMoves,totEnergy,
+  			 crvEnergy,corEnergy,pinEnergy,totArea,prjArea,alpha,DoF);
+  		  /* calculate power spectrum block */
+  		  /*--------------------------------*/
+  		  specSteps ++;
+  		  CopyFieldToArray(hfield,Hx);
+  		  // fftw_execute(x2q);
+  		  // Rad1DSpec(S1D,DoS,Hx,alpha,dk,N,qdiagMax);
+  		  /*--------------------------------*/
+  		  hfield.writeH5(cField);
+  		  if (wSnap == 1) WriteToExtendibleH5(cXtend, hfield);
+  		}
+  	    }
+  	}
   
-  //   }// end of MC-loop
+    }// end of MC-loop
 
 
-  // /*------------------------ END OF ALGORITHM -----------------------------*/
-
-  
-  // /* Attach metadata to extendible HDF5 set */
-  // if (wSnap == 1)
-  //   {
-  //     hfield_metadata wdata[9]; 
-  //     wdata[0].value = specSteps;  wdata[0].field = "Samples";  
-  //     wdata[1].value = sig;        wdata[1].field = "Sigma";
-  //     wdata[2].value = tau;        wdata[2].field = "Tau";
-  //     wdata[3].value = rig;        wdata[3].field = "Rigidity";
-  //     wdata[4].value = pinRatio;   wdata[4].field = "Fraction of pinning";
-  //     wdata[5].value = Eactive;    wdata[5].field = "Activity";
-  //     wdata[6].value = N;          wdata[6].field = "Rows";
-  //     wdata[7].value = N;          wdata[7].field = "Cols";
-  //     wdata[8].value = nGhost;     wdata[8].field = "Ghost points";      
-  //     WriteMetadataToH5File(cXtend,wdata,9);
-  //   }
-
-  // PrintOut(5,rank); // MC-Loop finished successfully
+  /*------------------------ END OF ALGORITHM -----------------------------*/
 
   
-  // /* Average power spectrum and write it to a file */
-  // WriteSpectrum(hspecFilename, S1D, specSteps, qdiagMax, dk);
-  // hfield.writeH5(cField);
+  /* Attach metadata to extendible HDF5 set */
+  if (wSnap == 1)
+    {
+      hfield_metadata wdata[9]; 
+      wdata[0].value = specSteps;  wdata[0].field = "Samples";  
+      wdata[1].value = sig;        wdata[1].field = "Sigma";
+      wdata[2].value = tau;        wdata[2].field = "Tau";
+      wdata[3].value = rig;        wdata[3].field = "Rigidity";
+      wdata[4].value = pinRatio;   wdata[4].field = "Fraction of pinning";
+      wdata[5].value = Eactive;    wdata[5].field = "Activity";
+      wdata[6].value = N;          wdata[6].field = "Rows";
+      wdata[7].value = N;          wdata[7].field = "Cols";
+      wdata[8].value = nGhost;     wdata[8].field = "Ghost points";      
+      WriteMetadataToH5File(cXtend,wdata,9);
+    }
+
+  PrintOut(5,rank); // MC-Loop finished successfully
 
   
-  // /* Write acceptance ratios and number of spectrum calculations. */
-  // WStats(maxiter, heightChanges, latticeAttempts,
-  // 	 latticeChanges, specSteps, rank);
+  /* Average power spectrum and write it to a file */
+  WriteSpectrum(hspecFilename, S1D, specSteps, qdiagMax, dk);
+  hfield.writeH5(cField);
 
-  // fftw_destroy_plan(x2q);
+  
+  /* Write acceptance ratios and number of spectrum calculations. */
+  WStats(maxiter, heightChanges, latticeAttempts,
+  	 latticeChanges, specSteps, rank);
+
+  fftw_destroy_plan(x2q);
   MPI_Finalize();
   PrintOut(6,rank); //Program terminated successfully
   return 0;
