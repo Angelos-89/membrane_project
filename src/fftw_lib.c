@@ -29,8 +29,7 @@ void FillDoSBuffer(double DoS[],double dk,int N,int qdiagMax)
 	  q1 = WrapAround(k1,N);
 	  qSquared = factor * (q1*q1 + q2*q2);
 	  qbin = floor( sqrt(qSquared)/dk );
-	  if (qbin<=qdiagMax)
-	    DoS[qbin] ++;
+	  DoS[qbin] ++;
 	}
     }
   DoS[0] = 1;          //the first grid point on its own bin
@@ -39,7 +38,9 @@ void FillDoSBuffer(double DoS[],double dk,int N,int qdiagMax)
 
 void Rad1DSpec(double S1D[],double DoS[],double Hq[],double dx,double dk,int N,int qdiagMax)
 {
-  double factor = pow(dk,2);
+  double LTemp = N*dx;
+  double dkTemp = 2*PI / LTemp;
+  double factor = pow(dkTemp,2);
   int q1,q2;
   int qBin;
   double HqRe,HqIm,qSquared;
@@ -47,18 +48,18 @@ void Rad1DSpec(double S1D[],double DoS[],double Hq[],double dx,double dk,int N,i
     {
       q2 = WrapAround(k2,N);
       for(int k1=0; k1<N/2+1; k1++)
-	{
-	  q1=k1;
-	  HqRe = Hq[ (N+2)*k2 + 2*k1 ] / pow(N,2);
-	  HqIm = Hq[ (N+2)*k2 + 2*k1+1 ] / pow(N,2);	  
-	  qSquared = factor * (q1*q1 + q2*q2);
-	  qBin = floor( sqrt(qSquared)/dk );
-	  if (qBin <= qdiagMax) 
-	    S1D[qBin] += pow(HqRe,2) + pow(HqIm,2);
-	}
+  	{
+  	  q1=k1;
+  	  HqRe = Hq[ (N+2)*k2 + 2*k1 ] / pow(N,2);
+  	  HqIm = Hq[ (N+2)*k2 + 2*k1+1 ] / pow(N,2);
+  	  qSquared = factor * (q1*q1 + q2*q2);
+  	  qBin = floor( sqrt(qSquared)/dk );
+  	  if (qBin < qdiagMax)
+  	    S1D[qBin] += pow(HqRe,2) + pow(HqIm,2);
+  	}
     }
   for (int i=0; i<qdiagMax; i++)
-    S1D[i] /= DoS[i];
+  S1D[i] /= DoS[i];
 }
 
 void WriteSpectrum(std::string hspec_filename, double* S1d, int spec_steps, int qdiag_max, double dk)

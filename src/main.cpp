@@ -132,7 +132,7 @@ int main(int argc, char* argv[]){
   int specSteps = 0;
   double L_mean = (double) N;
   double dk = 2.0*PI/L_mean;
-  int qdiagMax = floor( sqrt(2)*dk*N/2 ) + 1;
+  int qdiagMax = floor( sqrt(2)*N/2 ) + 1;
   double* DoS = new double[qdiagMax]{};
   double* S1D = new double[qdiagMax]{};
   double* Hx  = new double[N*(N+2)]{};
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]){
   fftw_plan x2q = fftw_plan_dft_r2c_2d(N,N,Hx,Hq,FFTW_MEASURE);
   FillDoSBuffer(DoS,dk,N,qdiagMax);
 
-  
+
   /*-------- Random number generators and activity addition ------------*/
   std::uniform_int_distribution<int> RandInt(0,N-1);  
   std::uniform_real_distribution<double>  RandDouble(-epsilon,epsilon);
@@ -240,8 +240,8 @@ int main(int argc, char* argv[]){
   	      /*--------------------------------*/
   	      specSteps ++;
   	      CopyFieldToArray(hfield,Hx);
-  	      // fftw_execute(x2q);
-  	      // Rad1DSpec(S1D,DoS,Hx,alpha,dk,N,qdiagMax);
+  	      fftw_execute(x2q);
+  	      Rad1DSpec(S1D,DoS,Hx,alpha,dk,N,qdiagMax);
   	      /*--------------------------------*/
   	      hfield.writeH5(cField);
   	      if (wSnap == 1)
@@ -272,8 +272,8 @@ int main(int argc, char* argv[]){
   		  /*--------------------------------*/
   		  specSteps ++;
   		  CopyFieldToArray(hfield,Hx);
-  		  // fftw_execute(x2q);
-  		  // Rad1DSpec(S1D,DoS,Hx,alpha,dk,N,qdiagMax);
+  		  fftw_execute(x2q);
+  		  Rad1DSpec(S1D,DoS,Hx,alpha,dk,N,qdiagMax);
   		  /*--------------------------------*/
   		  hfield.writeH5(cField);
   		  if (wSnap == 1) WriteToExtendibleH5(cXtend, hfield);
