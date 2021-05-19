@@ -32,8 +32,6 @@ void FillDoSBuffer(double DoS[],double dk,int N,int qdiagMax)
 	  DoS[qbin] ++;
 	}
     }
-  DoS[0] = 1;          //the first grid point on its own bin
-  DoS[qdiagMax-1] = 1; // the last grid point on its own bin
 }
 
 void Rad1DSpec(double S1D[],double DoS[],double Hq[],double dx,double dk,int N,int qdiagMax)
