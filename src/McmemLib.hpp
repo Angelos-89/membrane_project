@@ -178,8 +178,8 @@ void TileOfNeighbors(Site neighbors[], RectMesh& field, Site site, int radius);
 
 void CopyFieldToArray(RectMesh& hfield, double* hx);
 
-void WriteSpectrum(std::string hspec_filename, double* S1d, int spec_steps,
-		   int qdiag_max, double dk);
+// void WriteSpectrum(std::string hspec_filename, double* S1d, int spec_steps,
+// 		   int qdiag_max, double dk);
 
 void PrintOut(int choose, int rank);
 
