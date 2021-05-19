@@ -315,7 +315,6 @@ int main(int argc, char* argv[]){
   WStats(maxiter, heightChanges, latticeAttempts,
   	 latticeChanges, specSteps, rank);
 
-  fftw_destroy_plan(x2q);
   MPI_Finalize();
   PrintOut(6,rank); //Program terminated successfully
   return 0;

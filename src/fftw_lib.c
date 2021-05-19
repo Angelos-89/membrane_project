@@ -62,12 +62,12 @@ void Rad1DSpec(double S1D[],double DoS[],double Hq[],double dx,double dk,int N,i
   S1D[i] /= DoS[i];
 }
 
-void WriteSpectrum(std::string hspec_filename, double* S1d, int spec_steps, int qdiag_max, double dk)
+void WriteSpectrum(std::string hspec_filename, double* S1D, int specSteps, int qdiagMax, double dk)
 {
   std::ofstream radSpecFile;
   radSpecFile.open(hspec_filename); 
-  for (int i=0; i<qdiag_max; i++)
-    radSpecFile << i*dk << "\t" << S1d[i]/(double)spec_steps << "\n";
+  for (int i=0; i<qdiagMax; i++)
+    radSpecFile << i*dk << "\t" << S1D[i]/(double)specSteps << "\n";
   radSpecFile.close();
 }
 
