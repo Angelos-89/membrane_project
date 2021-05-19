@@ -1,5 +1,4 @@
 #include <fftw3.h>
-#include <fstream>
 #include <iostream>
 #include <cmath>
 #include <vector>
@@ -16,22 +15,30 @@ int WrapAround(int k, int N)
 
 int main(int argc, char* argv[])
 {
-  if (argc <=1) std::cout << "what is N?" << std::endl;
+
+  if (argc <= 1 or argc >= 3)
+    {
+      std::cout << "One argument is needed: Degrees of freedom per dimension. Preferably power of 2. Exiting..." << std::endl;
+      exit(-1);
+    }
+
+
+  
+  /* Generate x and y axis */
+  /* ----------------------------------------------------------- */
   int N = strtol(argv[1], nullptr, 0);
-  double Lx = 2*PI;
-  double Ly = Lx;
+  double Lx = 2*PI; //length of box
+  double Ly = Lx;   
   double dx = Lx/N;
   double dy = Ly/N;
-  double kx = 2*PI/Lx;
-  double ky = kx;
-
   std::vector<double> x,y;
   for (int i=0; i<N; i++)
     x.push_back(i*dx);
-  for (int i=0; i<N; i++)
-    y.push_back(i*dy);
+  y = x;
+  /* ----------------------------------------------------------- */
+  
 
-
+  
   /* Define data for which the power spectrum will be calculated */
   /* ----------------------------------------------------------- */
   double* field = new double[N*N]{};
@@ -40,13 +47,12 @@ int main(int argc, char* argv[])
     {
       for (int i=0; i<N; i++)
   	{
+	  /* test different cases here */
   	  //field[ i + N*j ] = 1.;
-	  //field[ i + N*j ] = 3.0 * sin(4.0*kx*x[i]);
-	  //field[ i + N*j ] = 2.0 * cos(1.0*ky*y[j]);
-	  //field[ i + N*j ] = 5.0 * sin(-kx*x[i] + 3.0*ky*y[j]) +
-	  //                   3.0 * sin(kx*x[i] + 3.0*ky*y[j]);
-	  field[ i + N*j ] = 2.0*sin(3.0*kx*x[i] + 3.0*ky*y[j]);
-	    
+	  field[ i + N*j ] = 4.0 * sin(3.0*x[i]);
+	  //field[ i + N*j ] = 4.0 * cos(1.0*y[j]);
+	  //field[ i + N*j ] = 5.0 * sin(-x[i] + 3.0*y[j]) + 3.0 * sin(x[i] + 3.0*y[j]);
+	  //field[ i + N*j ] = 2.0 * sin( 3.0*(2*PI*x[i]/Lx) + 3.0*(2*PI*y[j]/Ly) );	    
 	  std::cout << field[ i + N*j ] << "\t"; 
   	}
       std::cout << std::endl;
@@ -67,7 +73,7 @@ int main(int argc, char* argv[])
   
 
 
-  /* Fill the allocated block pointed by the pointer "in" with the H data */
+  /* Fill the allocated block pointed by the pointer "in" with the field data */
   /* ----------------------------------------------------------- */
   for (int j=0; j<N; j++){
     for(int i=0; i<N; i++)
@@ -84,27 +90,23 @@ int main(int argc, char* argv[])
 
   /* Fill a buffer with the power spectrum values */
   /* ----------------------------------------------------------- */
-  double* powSpec = new double[N*(N/2)]{};
+  double* powSpec = new double[N*(N/2+1)]{};
   double Re,Im,val,q1,q2;
   std::cout << "Power spectrum values: " << std::endl;
   for (int k2=0; k2<N; k2++){
     q2 = WrapAround(k2,N);
-    for (int k1=0; k1<N/2; k1++){
-      q1 = WrapAround(k1,N);
+    for (int k1=0; k1<N/2+1; k1++){
+      q1 = k1;
       Re = IN[ (N+2)*k2 + 2*k1 ];
       Im = IN[ (N+2)*k2 + 2*k1+1 ];
-      val = Re*Re + Im*Im;
-      powSpec[ k1 + (N/2)*k2 ] = val;
+      val = (Re*Re + Im*Im) / pow(N,4); // normalize
+      powSpec[ (N/2+1)*k2 + k1 ] = val; 
       
-      // Now print the result
+      // Now print the buffer
       if (val < 1e-16)
 	val = 0.0;
       std::cout << "(" << q1 << "," << q2 << ")\t";
-
-      if (q1 == 0)
-	std::cout << "(" << k1 << "," << k2 << ")\t" << 2*val/pow(N,4) << "\t";
-      else
-	std::cout << "(" << k1 << "," << k2 << ")\t" << 4*val/pow(N,4) << "\t";
+      std::cout << "(" << k1 << "," << k2 << ")\t" << val << "\t";
     }
     std::cout << std::endl;
   }std::cout << std::endl;
@@ -122,7 +124,7 @@ int main(int argc, char* argv[])
   std::cout << "After applying inverse FFT: " << std::endl;
   for (int k2=0; k2<N; k2++){
     for (int k1=0; k1<N; k1++){
-      std::cout << IN[ k1 + (N+2)*k2 ] << "\t";
+      std::cout << IN[ (N+2)*k2 + k1 ] << "\t";
     }
     std::cout << std::endl;
   }std::cout << std::endl;
@@ -132,30 +134,25 @@ int main(int argc, char* argv[])
 
   /* Radial averaging */
   /* ----------------------------------------------------------- */
-  double factor = (4*pow(PI,2)) / (pow(N,2)*pow(dx,2));  
-  int qdiagMax = floor( sqrt( pow(N/2,2) + pow(N/2-1,2) ) ) + 1;
-  int qdiag;
+  double dk = 2*PI/Lx;
+  double factor = pow(dk,2);  
+  int qdiagMax = floor( sqrt( pow(dk*N/2,2) + pow(dk*N/2,2) ) ) + 1;
+  int qbin;
   double qSquared;
-  double* S1D = new double[qdiagMax]{};
-  double* DoS = new double[qdiagMax]{};
+  double* S1D = new double[qdiagMax]{}; // buffer to contain 1D spectrum
+  double* DoS = new double[qdiagMax]{}; // buffer to contain the density of states
   for (int k2=0; k2<N; k2++){
-    q2 = WrapAround(k2,N);
+    q2 = WrapAround(k2,N); 
     for (int k1=0; k1<N/2; k1++){
       q1 = WrapAround(k1,N);
       qSquared = factor * (q1*q1 + q2*q2);
-      if (qSquared == 0)
-	{
-	  S1D[0] = powSpec[k1 + N/2*k2];
-	  DoS[0] = 1;
-	}
-      else
-	{
-	  qdiag = floor(sqrt(qSquared));
-	  S1D[qdiag] += powSpec[k1 + N/2*k2];
-	  DoS[qdiag] ++;
-	}
+      qbin = floor(sqrt(qSquared));
+      S1D[qbin] += powSpec[ N/2*k2 + k1 ];
+      DoS[qbin] ++;
     }
   }
+  DoS[0] = 1; //the first grid point on its own bin
+  DoS[qdiagMax-1] = 1; // the last grid point on its own bin
   for (int i=0; i<qdiagMax; i++)
     S1D[i] /= DoS[i];
   /* ----------------------------------------------------------- */
