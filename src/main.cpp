@@ -7,20 +7,20 @@
 #include <random>
 #include "McmemLib.hpp"
 #include "fft.h"
+#include <functional>
 
 int rank;
-std::mt19937 mt;
-std::random_device rd;
+std::random_device rd;  
 double PI = 4.*atan(1.0);
 
 int main(int argc, char* argv[]){
-  
+
+
   /*------ Initialize MPI and seed Mersenne Twister. -------- */
   MPI_Init(&argc,&argv);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
   std::mt19937 mt(rd()+rank);
 
-  
   /*----------------- Define strings needed for filenames. -------------------*/
   std::string inputFilename  = "input_"        + std::to_string(rank) + ".txt";
   std::string outputFilename = "timeseries_"   + std::to_string(rank) + ".txt";

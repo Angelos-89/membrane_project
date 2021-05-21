@@ -14,6 +14,8 @@
 using std::strtol;
 
 static double ShiftInEnergy = 0.;
+std::random_device RD;
+std::mt19937 MT(RD());
 
 /*------------------------- OutputParams ---------------------------*/
 
@@ -107,7 +109,7 @@ std::unordered_set<Site> InitPinning(RectMesh& hfield,double pin_ratio,
     {
       std::uniform_int_distribution<int> RandIntX(0,Nx-1);
       std::uniform_int_distribution<int> RandIntY(0,Ny-1);
-      x = RandIntX(mt); y = RandIntY(mt);
+      x = RandIntX(MT); y = RandIntY(MT);
       site_a.set(x,y); pinned_sites.insert(site_a);
 
       if (pinned_sites.find(site_a) != pinned_sites.end()) //if site_a does not already exist 
@@ -143,17 +145,8 @@ void InitSurface(RectMesh& hfield,std::unordered_set<Site>& pinned_sites,
   for (int j=0; j<hfield.getrows(); j++)
   {
     for (int i=0; i<hfield.getcols(); i++)
-      hfield(i,j) = UnifProb(mt);
+      hfield(i,j) = UnifProb(MT);
   }
-  
-  // /* Pinning */
-  // int x,y;
-  // for (auto it = pinned_sites.begin(); it != pinned_sites.end(); ++it)
-  //   {
-  //     x = (*it).getx();
-  //     y = (*it).gety();
-  //     hfield(x,y) = h0;
-  //   }
   
   GhostCopy(hfield);
 }
@@ -768,7 +761,7 @@ bool Metropolis(double& dElocal)
   else
     {
       std::uniform_real_distribution<double> UnifProb(0,1);
-      double r = UnifProb(mt);
+      double r = UnifProb(MT);
       if (r < exp(-dE)) return 1;
       else return 0;
     }
@@ -853,7 +846,7 @@ bool UpdateLattice(const RectMesh& hfield,const double& min_change,
   double old_tot_area = tot_area;
   double old_energy = tot_energy;
   double old_alpha = alpha;
-  double fraction = RandDouble(mt);
+  double fraction = RandDouble(MT); 
   alpha *= fraction;
   
   CalculateTotal(hfield, rig, sig, tau, tot_energy, tau_energy, crv_energy,
