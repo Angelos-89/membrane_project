@@ -48,7 +48,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
 		  const int nghost,const double rig,const double sig,
 		  const double tau,const double epsilon,
 		  const double min_change,const double max_change,
-		  double alpha,double pn_prcn,int sample_every,
+		  double alpha,double pn_prcn,int blockRadius, int sample_every,
 		  int rank, double Eactive);
 
 std::unordered_set<Site> InitPinning(RectMesh& hfield, double pin_ratio,

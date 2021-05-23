@@ -26,7 +26,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
 		  const int nghost,const double rig,const double sig,
 		  const double tau,const double epsilon,
 		  const double min_change,const double max_change,
-		  double alpha,double pn_prcn,int sample_every,
+		  double alpha,double pn_prcn,int blockRadius,int sample_every,
 		  int rank,double Eactive)
 {
   std::stringstream strm; 
@@ -45,6 +45,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
        << "Max change in lattice spacing: "   << max_change               <<"\n"
        << "Initial lattice spacing: "         << alpha       << " (a_0)"  <<"\n"
        << "Pinning percentage: "              << pn_prcn*100 << "%"       <<"\n"
+       << "Block pinning radius: "            << blockRadius << "DoFs"    <<"\n"
        << "Sample every: "                    << sample_every<< " moves"  <<"\n"
        << "Eactive: "                         << Eactive     << " (k_BT) " 
        << "\n------------------------------------\n\n";
@@ -52,7 +53,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
 
   /* Now write to a file */
   std::ofstream file;
-  std::string filename = "PARAMS_" + std::to_string(rank) + ".txt";
+  std::string filename = "params_" + std::to_string(rank) + ".txt";
   file.open(filename);
   file << strm.str();
   file.close();

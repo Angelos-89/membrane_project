@@ -72,8 +72,9 @@ int main(int argc, char* argv[]){
 
   
   /*----------- Output the parameters of the run to txt files --------- */
-  OutputParams(maxiter, N, DoF, nGhost, rig, sig, tau, epsilon, minChange,//this can be done from python gen.input
-  	       maxChange, alpha, pinRatio, sampleEvery, rank, Eactive);
+  OutputParams(maxiter, N, DoF, nGhost, rig, sig, tau, epsilon, minChange,
+  	       maxChange, alpha, pinRatio, blockRadius,
+	       sampleEvery, rank, Eactive);
 
   if (wSnap ==1 )
     hid_t file = H5Fcreate(cXtend, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
