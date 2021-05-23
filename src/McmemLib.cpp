@@ -45,7 +45,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
        << "Max change in lattice spacing: "   << max_change               <<"\n"
        << "Initial lattice spacing: "         << alpha       << " (a_0)"  <<"\n"
        << "Pinning percentage: "              << pn_prcn*100 << "%"       <<"\n"
-       << "Block pinning radius: "            << blockRadius << "DoFs"    <<"\n"
+       << "Block pinning radius: "            << blockRadius << " DoFs"   <<"\n"
        << "Sample every: "                    << sample_every<< " moves"  <<"\n"
        << "Eactive: "                         << Eactive     << " (k_BT) " 
        << "\n------------------------------------\n\n";
