@@ -70,12 +70,6 @@ int main(int argc, char* argv[]){
   
   PrintOut(1,rank); // Input file is read
 
-  
-  /*----------- Output the parameters of the run to txt files --------- */
-  OutputParams(maxiter, N, DoF, nGhost, rig, sig, tau, epsilon, minChange,
-  	       maxChange, alpha, pinRatio, blockRadius,
-	       sampleEvery, rank, Eactive);
-
   if (wSnap ==1 )
     hid_t file = H5Fcreate(cXtend, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
@@ -146,6 +140,12 @@ int main(int argc, char* argv[]){
   std::uniform_int_distribution<int> RandInt(0,N-1);  
   std::uniform_real_distribution<double>  RandDouble(-epsilon,epsilon);
   AddShift(Eactive); // Shifts energy in metropolis for the active case
+
+
+  /*----------- Output the parameters of the run to txt files --------- */
+  OutputParams(maxiter, N, DoF, nGhost, rig, sig, tau, epsilon, minChange,
+  	       maxChange, alpha, pinRatio, blockRadius,
+	       sampleEvery, rank, Eactive);
 
   
   /*------------------------ START OF ALGORITHM --------------------------*/
