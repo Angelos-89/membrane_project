@@ -28,6 +28,7 @@ int main(int argc, char* argv[]){
   std::string hsnapsFilename = "snapshots_"    + std::to_string(rank) +  ".h5";
   std::string hspecFilename  = "hspec_"        + std::to_string(rank) + ".txt";
   std::string pinsetFilename = "pinned_sites_" + std::to_string(rank) + ".txt";
+  std::string alphaFilename  = "last_alpha_"   + std::to_string(rank) + ".txt";
   const char* cXtend = hsnapsFilename.c_str(); 
   const char* cField = hfieldFilename.c_str();
   const char* cSpect = hspecFilename.c_str();
@@ -61,7 +62,7 @@ int main(int argc, char* argv[]){
   double rig = 10.0;              // Bending rigidity (k_BT)
   double potStrength = 14000.;    // Strength of the pinning potential
   double h0 = 0.;                 // Equilibrium position of pinned sites
-  double alpha = 1.0;             // Lattice spacing (distance between 2 DoFs)
+  double alpha = 1;               // Lattice spacing (distance between 2 DoFs)
 
   
   /*------------------------- Read the input files ------------------- */ 
@@ -144,7 +145,7 @@ int main(int argc, char* argv[]){
 
   /*----------- Output the parameters of the run to txt files --------- */
   OutputParams(maxiter, N, DoF, nGhost, rig, sig, tau, epsilon, minChange,
-  	       maxChange, alpha, pinRatio, blockRadius,
+  	       maxChange, pinRatio, blockRadius,
 	       sampleEvery, rank, Eactive);
 
   
@@ -162,25 +163,24 @@ int main(int argc, char* argv[]){
     WritePinnedSites(pinsetFilename, pinnedSites);
     InitSurface(hfield, pinnedSites, -0.1, +0.1);}
   
-  if (isSim == 1 and pinRatio == 0)
+  if (isSim == 1 and pinRatio == 0){
     hfield.readH5(inputFieldFilename);
+    ReadAlpha(alphaFilename, alpha);}
   
   if (isSim == 1 and pinRatio != 0){
     ReadPinnedSites(pinsetFilename, pinnedSites);
-    hfield.readH5(inputFieldFilename);}
+    hfield.readH5(inputFieldFilename);
+    ReadAlpha(alphaFilename, alpha);}
   
   PrintOut(2,rank); // Height field and pinning ok
   
 
-  /* (2) Calculate energies and areas of the membrane and write the data. */
+  /* (2) Calculate energies and areas of the membrane. */
 
   CalculateTotal(hfield, rig, sig, tau, totEnergy, tauEnergy, crvEnergy,
   		 sigEnergy, corEnergy, pinEnergy, totArea, prjArea, alpha,
    		 pinnedSites, potStrength, h0);
-  
-  Sample(outputFilename, iter, totalMoves, totEnergy, crvEnergy,
-  	    corEnergy, pinEnergy, totArea, prjArea, alpha, DoF);
-  
+    
   PrintOut(3,rank); // MC-Loop initialized
   if (isSim == 0) PrintOut(4,rank); // Spectrum averaged over non-equilibrium
   
@@ -245,6 +245,7 @@ int main(int argc, char* argv[]){
   	      Rad1DSpec(S1D,DoS,Hx,alpha,dk,N,qdiagMax);
   	      /*--------------------------------*/
   	      hfield.writeH5(cField);
+	      WriteAlpha(rank,alpha);
   	      if (wSnap == 1)
   		WriteToExtendibleH5(cXtend, hfield);
   	    } 
@@ -277,6 +278,7 @@ int main(int argc, char* argv[]){
   		  Rad1DSpec(S1D,DoS,Hx,alpha,dk,N,qdiagMax);
   		  /*--------------------------------*/
   		  hfield.writeH5(cField);
+		  WriteAlpha(rank,alpha);
   		  if (wSnap == 1) WriteToExtendibleH5(cXtend, hfield);
   		}
   	    }
@@ -307,10 +309,8 @@ int main(int argc, char* argv[]){
   PrintOut(5,rank); // MC-Loop finished successfully
 
   
-  /* Average power spectrum and write it to a file */
+  /* Average power spectrum and write it to a file. */
   WriteSpectrum(hspecFilename, S1D, specSteps, qdiagMax, dk);
-  hfield.writeH5(cField);
-
   
   /* Write acceptance ratios and number of spectrum calculations. */
   WriteStats(maxiter, heightChanges, latticeAttempts,

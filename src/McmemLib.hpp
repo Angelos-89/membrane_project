@@ -48,7 +48,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
 		  const int nghost,const double rig,const double sig,
 		  const double tau,const double epsilon,
 		  const double min_change,const double max_change,
-		  double alpha,double pn_prcn,int blockRadius, int sample_every,
+		  double pn_prcn,int blockRadius, int sample_every,
 		  int rank, double Eactive);
 
 std::unordered_set<Site> InitPinning(RectMesh& hfield, double pin_ratio,
@@ -178,10 +178,11 @@ void TileOfNeighbors(Site neighbors[], RectMesh& field, Site site, int radius);
 
 void CopyFieldToArray(RectMesh& hfield, double* hx);
 
-// void WriteSpectrum(std::string hspec_filename, double* S1d, int spec_steps,
-// 		   int qdiag_max, double dk);
-
 void PrintOut(int choose, int rank);
+
+void ReadAlpha(std::string filename, double& alpha);
+
+void WriteAlpha(int rank, double alpha);
 
 /*---------------------------------------------------------------------*/
 

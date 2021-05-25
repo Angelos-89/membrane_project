@@ -26,7 +26,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
 		  const int nghost,const double rig,const double sig,
 		  const double tau,const double epsilon,
 		  const double min_change,const double max_change,
-		  double alpha,double pn_prcn,int blockRadius,int sample_every,
+		  double pn_prcn,int blockRadius,int sample_every,
 		  int rank,double Eactive)
 {
   std::stringstream strm; 
@@ -43,7 +43,6 @@ void OutputParams(const int maxiter,const int N,const int DoF,
        << "Max height perturbation: "         << epsilon     << " (a_0)"  <<"\n"
        << "Min change in lattice spacing: "   << min_change               <<"\n"
        << "Max change in lattice spacing: "   << max_change               <<"\n"
-       << "Initial lattice spacing: "         << alpha       << " (a_0)"  <<"\n"
        << "Pinning percentage: "              << pn_prcn*100 << "%"       <<"\n"
        << "Block pinning radius: "            << blockRadius << " DoFs"   <<"\n"
        << "Sample every: "                    << sample_every<< " moves"  <<"\n"
@@ -56,6 +55,31 @@ void OutputParams(const int maxiter,const int N,const int DoF,
   std::string filename = "params_" + std::to_string(rank) + ".txt";
   file.open(filename);
   file << strm.str();
+  file.close();
+}
+
+/*-------------------------------- ReadAlpha -------------------------------*/
+void ReadAlpha(std::string filename, double& alpha)
+{
+  std::ifstream infile;
+  infile.open(filename);
+  if(!infile.is_open())
+    {
+      std::cout << "File "<< filename <<  " is not open. Exiting." << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  while(!infile.eof())
+    infile >> alpha;
+  infile.close();
+}
+
+/*-------------------------------- WriteAlpha ------------------------------*/
+void WriteAlpha(int rank, double alpha)
+{
+  std::ofstream file;
+  std::string filename = "last_alpha_" + std::to_string(rank) + ".txt";
+  file.open(filename);
+  file << alpha;
   file.close();
 }
 
