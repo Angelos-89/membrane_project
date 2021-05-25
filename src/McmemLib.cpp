@@ -795,13 +795,13 @@ bool UpdateState(RectMesh& hfield,Site site,bool where,
   return accept;
 }
 
-/*-------------------------- Wstats ------------------------*/
+/*-------------------------- Writestats ------------------------*/
 
 /* It prints the acceptance rations of both height and lattice size 
    trial moves, the number of times the spectrum was averaged, and 
    also writes them to file. */
 
-void WStats(const int maxiter, int height_changes,
+void WriteStats(const int maxiter, int height_changes,
 	    int lattice_moves, int lattice_changes,
 	    int spec_steps,int rank)
 {
@@ -907,19 +907,6 @@ void Sample(std::string filename,int& iter,int& total_moves,
        <<std::right<<std::setw(15)<<std::setprecision(6)<< tot_energy/DOF<< "\n";
   file.close();
 }
-
-// void Sample(std::string output_filename, int& sample_every, int& iter,
-// 	    int& total_moves, double& tot_energy, double& crv_energy,
-// 	    double& cor_energy, double& pin_energy, double& tot_area,
-// 	    double& prj_area, double& alpha, int& DoFs)
-// {
-//   if (total_moves % sample_every == 0)  
-//     WriteData(output_filename, iter, total_moves, tot_energy, crv_energy,
-// 	   cor_energy, pin_energy, tot_area, prj_area, alpha, DoFs);      
-// }
-
-
-
 
 /*-------------------------------- ReadInput -----------------------------*/
 
@@ -1192,18 +1179,6 @@ void CopyFieldToArray(RectMesh& hfield, double* hx)
       hx[ i + (Nx+2)*j ] = hfield(i,j);
   }
 }
-
-/*---------------------------------------------------------------------*/
-
-// void WriteSpectrum(std::string hspec_filename, double* S1d, int spec_steps,
-// 		   int qdiag_max, double dk)
-// {
-//   std::ofstream radSpecFile;
-//   radSpecFile.open(hspec_filename); 
-//   for (int i=0; i<qdiag_max; i++)
-//     radSpecFile << i*dk << "\t" << S1d[i]/(double)spec_steps << "\n";
-//   radSpecFile.close();
-// }
 
 /*---------------------------------------------------------------------*/
 

@@ -130,7 +130,7 @@ bool UpdateState(RectMesh& hfield,Site site,
 		     double& dAlocal,double& dElocal,
 		     int& height_moves,double& perturb);
 
-void WStats(const int maxiter, int height_moves, int lattice_moves,
+void WriteStats(const int maxiter, int height_moves, int lattice_moves,
 	    int lattice_changes,int spec_steps,int rank);
 
 bool UpdateLattice(const RectMesh& hfield,const double& min_change,

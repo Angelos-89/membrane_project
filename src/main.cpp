@@ -313,7 +313,7 @@ int main(int argc, char* argv[]){
 
   
   /* Write acceptance ratios and number of spectrum calculations. */
-  WStats(maxiter, heightChanges, latticeAttempts,
+  WriteStats(maxiter, heightChanges, latticeAttempts,
   	 latticeChanges, specSteps, rank);
 
   MPI_Finalize();
