@@ -43,6 +43,7 @@ int main(int argc, char* argv[]){
   int isSim;         // Check if we start from earlier simulation
   int wSnap;         // If set to 1, it writes snapshots in extendible HDF5 
   int sampleEvery;   // Sample every these accepted moves
+  int blockRadius;   // Radius of blocks of pinning
   double maxiter;    // Max number of iterations
   double sig;        // Internal tension (k_BT/a_0^2)
   double tau;        // Frame tension    (k_BT/a_0^2)
@@ -66,8 +67,8 @@ int main(int argc, char* argv[]){
 
   
   /*------------------------- Read the input files ------------------- */ 
-  ReadInput(inputFilename, isSim, wSnap, sampleEvery, maxiter, sig, tau,
-  	    epsilon, minChange, maxChange, pinRatio, Eactive);
+  ReadInput(inputFilename, isSim, wSnap, sampleEvery, blockRadius,
+	    maxiter, sig, tau, epsilon, minChange, maxChange, pinRatio, Eactive);
   
   PrintOut(1,rank); // Input file is read
 
@@ -119,10 +120,8 @@ int main(int argc, char* argv[]){
 
   
   /*------------- Block-pinning ---------------*/
-  int blockRadius = 0;
   int blockLength = pow( (2*blockRadius+1) ,2);
   Site neighbors[blockLength];
-
   
   /*------------- Set up spectrum computations --------------*/
   int specSteps = 0;

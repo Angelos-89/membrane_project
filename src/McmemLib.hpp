@@ -154,8 +154,8 @@ void Sample(std::string output_filename, int& iter,
 	    double& prj_area, double& alpha, int& DoFs);
 
 void ReadInput(std::string filename,int& sim, int& wSnap, int& acc_samples,
-	       double& maxiter,double& sig,double& tau,double& epsilon,
-	       double& min_change,double& max_change,
+	       int& blockRadius,double& maxiter,double& sig,double& tau,
+	       double& epsilon,double& min_change,double& max_change,
 	       double& pin_ratio,double& Ea);
 
 void AddShift(double& dE);

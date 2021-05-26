@@ -935,9 +935,9 @@ void Sample(std::string filename,int& iter,int& total_moves,
 /*-------------------------------- ReadInput -----------------------------*/
 
 void ReadInput(std::string filename,int& sim, int& wSnap, int& acc_samples,
-	       double& maxiter, double& sig,double& tau,double& epsilon,
-	       double& min_change, double& max_change,double& pin_ratio,
-	       double& Ea)
+	       int& blockRadius,double& maxiter, double& sig,double& tau,
+	       double& epsilon,double& min_change, double& max_change,
+	       double& pin_ratio,double& Ea)
 {
   std::ifstream infile;
   infile.open(filename);
@@ -947,8 +947,8 @@ void ReadInput(std::string filename,int& sim, int& wSnap, int& acc_samples,
       exit(EXIT_FAILURE);
     }
   while(!infile.eof())
-    infile >> sim >> wSnap >> acc_samples >> maxiter >> sig >> tau >> epsilon >> min_change
-	   >> max_change >> pin_ratio >> Ea;
+    infile >> sim >> wSnap >> acc_samples >> blockRadius >> maxiter >> sig
+	   >> tau >> epsilon >> min_change >> max_change >> pin_ratio >> Ea;
 
   infile.close();
 }
