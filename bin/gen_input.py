@@ -246,10 +246,10 @@ def gen_param(nproc=1):
         param[1,iproc] = 0
         # How often we sample
         param[2,iproc] = 10000 
-        # No. of iterations
-        param[3,iproc] = 1e8
         # Radius of pinned blocks 
-        param[4,iproc] = rad;
+        param[3,iproc] = rad
+        # No. of iterations
+        param[4,iproc] = 1e8
         # Surface tension (sigma)
         param[5,iproc] = sigma[iproc] 
         # Frame tansion (tau)
