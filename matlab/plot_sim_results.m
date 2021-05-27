@@ -160,7 +160,7 @@ xlabel("Samples",'interpreter','latex','FontSize',15);
 ylabel("Projected area ($a_0^2$)",'interpreter','latex','FontSize',15);
 grid on
 hold on
-yline(alpha_mean,'r')
+yline(prj_area_mean,'r')
  
 %--------------------excess area------------------------%
 exc_area = (Area-Prj_area)./Area;
