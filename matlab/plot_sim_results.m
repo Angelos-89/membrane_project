@@ -171,8 +171,7 @@ figure(11)
 plot(exc_area);
 xlabel("Samples",'interpreter','latex','FontSize',15);
 ylabel("Excess area $\frac{A-A_p}{A}$",'interpreter','latex','FontSize',15);
-% set(hh, 'FontSize', 15) 
-% set(hh,'FontWeight','bold') %bold font
+ylim([exc_area_mean-8*exc_area_std,exc_area_mean+8*exc_area_std]);
 grid on
 hold on
 yline(exc_area_mean,'r');
