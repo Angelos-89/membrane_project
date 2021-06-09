@@ -43,16 +43,45 @@ sigma_normal_32 = [0.350, 0.360, 0.380, 0.420 ...
 figure(1)
 loglog(tau_shiba,sigma_shiba,"ko--")
 hold on
-loglog(tau,sigma_unpinned,"ks-")
+loglog(tau,sigma_unpinned,"bo-")
 hold on
 loglog(tau,sigma_normal_8,"rs-")
 hold on
-loglog(tau,sigma_normal_16,"gs-")
+loglog(tau,sigma_normal_16,"g*-")
 hold on
-loglog(tau,sigma_normal_32,"bs-")
+loglog(tau,sigma_normal_32,"md-")
 hold on
 grid on
-xlabel("\tau (k_BT/a_0^2)")
-ylabel("\sigma (k_BT/a_0^2)")
-legend('Shiba et al.','Unpinned','8% pinning','16% pinning','32% pinning','location','northwest')
-saveas(figure(1),"sigma-tau-plot.jpg")
+xlabel("$\tau (k_BT/a_0^2)$",'interpreter','latex','fontsize',20)
+ylabel("$\sigma (k_BT/a_0^2)$",'interpreter','latex','fontsize',20)
+legend('Shiba et al.','0%','8%','16%','32%','location','northwest')
+
+%------------------------------Refined---------------------------%
+
+tau_small = [0.01, 0.08, 0.4, 1.0];
+unpinned = [0.501      ,0.570      ,0.890     ,1.479];
+normal_4 = [0.48492063 ,0.55451613 ,0.874     ,1.4659];
+normal_12 = [0.4503    ,0.519      ,0.8364    ,1.42913];
+normal_20 = [0.410498  ,0.480      ,0.796215  ,1.39092];
+normal_24 = [0.391599  ,0.461333   ,0.774648  ,1.37455];
+normal_28 = [0.371088  ,0.44025629 ,0.7573912 ,1.3547773];
+
+a2 = axes(figure(1));
+loglog(tau_small,normal_4,"ko-")
+hold on
+loglog(tau_small,normal_12,"bs-")
+hold on
+loglog(tau_small,normal_20,"r*-")
+hold on
+loglog(tau_small,normal_24,"gd-")
+hold on
+loglog(tau_small,normal_28,"mx-")
+hold on
+legend('4%','12%','20%','24%','28%','location','northwest')
+a2.Position = [0.55 0.20 0.33 0.24]; % xlocation, ylocation, xsize, ysize
+dim=[.13 .2 .32 .19];
+annotation('rectangle',dim,'Color','red')
+hold on
+annotation('arrow',[.52 .46],[.25 .25])
+grid on
+saveas(figure(1),"sigma-tau-plot.png")
