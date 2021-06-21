@@ -10,7 +10,7 @@
 
 import numpy as np
 iprefix = 'input_'
-nparam = 12
+nparam = 13
 
 def gen_param(nproc=1):
 
@@ -262,8 +262,10 @@ def gen_param(nproc=1):
         param[9,iproc] = delta_amax[iproc] 
         # Fraction of pinning
         param[10,iproc] = pin
+        # Strength of harmonic potential at tethered points 
+        param[11,iproc] = 14000.
         # Activity energy
-        param[11,iproc] = 0.
+        param[12,iproc] = 0.
     return param
 
 def pparam(nproc,param):

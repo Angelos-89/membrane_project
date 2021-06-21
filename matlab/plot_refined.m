@@ -199,3 +199,4 @@ xlabel(" \Deltaa = a_0-a (%)")
 ylabel("\sigma/\sigma_0")
 grid on
 legend('Unpinned','8% pinning','16% pinning','32% pinning')
+

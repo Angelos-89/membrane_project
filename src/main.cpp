@@ -40,35 +40,35 @@ int main(int argc, char* argv[]){
 
   
   /*----------------- Input variables declaration --------------*/
-  int isSim;         // Check if we start from earlier simulation
-  int wSnap;         // If set to 1, it writes snapshots in extendible HDF5 
-  int sampleEvery;   // Sample every these accepted moves
-  int blockRadius;   // Radius of blocks of pinning
-  double maxiter;    // Max number of iterations
-  double sig;        // Internal tension (k_BT/a_0^2)
-  double tau;        // Frame tension    (k_BT/a_0^2)
-  double epsilon;    // Maximum height perturbation
-  double minChange;  // Min fraction of lattice size change
-  double maxChange;  // Max fraction of lattice size change
-  double pinRatio;   // Ratio of the total DoFs to be pinned
-  double Eactive;    // Membrane activity (k_BT)
+  int isSim;          // Check if we start from earlier simulation
+  int wSnap;          // If set to 1, it writes snapshots in extendible HDF5 
+  int sampleEvery;    // Sample every these accepted moves
+  int blockRadius;    // Radius of blocks of pinning
+  double maxiter;     // Max number of iterations
+  double sig;         // Internal tension (k_BT/a_0^2)
+  double tau;         // Frame tension    (k_BT/a_0^2)
+  double epsilon;     // Maximum height perturbation
+  double minChange;   // Min fraction of lattice size change
+  double maxChange;   // Max fraction of lattice size change
+  double pinRatio;    // Ratio of the total DoFs to be pinne
+  double potStrength; // Strength of the pinning potential // 14000 was the first choice
+  double Eactive;     // Membrane activity (k_BT)
 
   
   /*-------------------------- Variables definition -------------------------*/
+  int iter = 0;                    
   int N = InputDoFs(argc,argv);   // Degrees of freedom (DoFs) per dimension
   int DoF = pow(N,2);             // Total number of DoFs
   int nGhost = 2;                 // Ghost points per boundary point
   int attemptLatticeChange = 5;   // Iterations to attempt a lattice change
-  int iter = 0;                    
   double rig = 10.0;              // Bending rigidity (k_BT)
-  double potStrength = 14000.;    // Strength of the pinning potential
   double h0 = 0.;                 // Equilibrium position of pinned sites
   double alpha = 1;               // Lattice spacing (distance between 2 DoFs)
 
   
   /*------------------------- Read the input files ------------------- */ 
   ReadInput(inputFilename, isSim, wSnap, sampleEvery, blockRadius,
-	    maxiter, sig, tau, epsilon, minChange, maxChange, pinRatio, Eactive);
+	    maxiter, sig, tau, epsilon, minChange, maxChange, pinRatio, potStrength, Eactive);
   
   PrintOut(1,rank); // Input file is read
 
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]){
 
   /*----------- Output the parameters of the run to txt files --------- */
   OutputParams(maxiter, N, DoF, nGhost, rig, sig, tau, epsilon, minChange,
-  	       maxChange, pinRatio, blockRadius,
+  	       maxChange, pinRatio, blockRadius, potStrength,
 	       sampleEvery, rank, Eactive);
 
   

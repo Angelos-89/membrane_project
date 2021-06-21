@@ -26,8 +26,8 @@ void OutputParams(const int maxiter,const int N,const int DoF,
 		  const int nghost,const double rig,const double sig,
 		  const double tau,const double epsilon,
 		  const double min_change,const double max_change,
-		  double pn_prcn,int blockRadius,int sample_every,
-		  int rank,double Eactive)
+		  double pn_prcn,int blockRadius,double potStrength,
+		  int sample_every, int rank,double Eactive)
 {
   std::stringstream strm; 
   strm << std::setprecision(8) 
@@ -45,6 +45,7 @@ void OutputParams(const int maxiter,const int N,const int DoF,
        << "Max change in lattice spacing: "   << max_change               <<"\n"
        << "Pinning percentage: "              << pn_prcn*100 << "%"       <<"\n"
        << "Block pinning radius: "            << blockRadius << " DoFs"   <<"\n"
+       << "Potential strength: "              << potStrength << " k_BT/a_0^2" << "\n"
        << "Sample every: "                    << sample_every<< " moves"  <<"\n"
        << "Eactive: "                         << Eactive     << " (k_BT) " 
        << "\n------------------------------------\n\n";
@@ -935,9 +936,9 @@ void Sample(std::string filename,int& iter,int& total_moves,
 /*-------------------------------- ReadInput -----------------------------*/
 
 void ReadInput(std::string filename,int& sim, int& wSnap, int& acc_samples,
-	       int& blockRadius,double& maxiter, double& sig,double& tau,
+	       int& blockRadius,double& maxiter, double& sig, double& tau,
 	       double& epsilon,double& min_change, double& max_change,
-	       double& pin_ratio,double& Ea)
+	       double& pin_ratio,double& potStrength, double& Ea)
 {
   std::ifstream infile;
   infile.open(filename);
@@ -948,7 +949,7 @@ void ReadInput(std::string filename,int& sim, int& wSnap, int& acc_samples,
     }
   while(!infile.eof())
     infile >> sim >> wSnap >> acc_samples >> blockRadius >> maxiter >> sig
-	   >> tau >> epsilon >> min_change >> max_change >> pin_ratio >> Ea;
+	   >> tau >> epsilon >> min_change >> max_change >> pin_ratio >> potStrength >> Ea;
 
   infile.close();
 }
@@ -1159,7 +1160,7 @@ int InputDoFs(int argc, char* argv[])
 }
 
 
-/* WritePinnedSites------------- */
+/*--------------------------- WritePinnedSites------------- */
 void WritePinnedSites(std::string pinset_filename,std::unordered_set<Site>& set)
 {
   std::ofstream pinned;
@@ -1168,8 +1169,8 @@ void WritePinnedSites(std::string pinset_filename,std::unordered_set<Site>& set)
     pinned << (*it).getx() << " " << (*it).gety() << "\n";
   pinned.close();
 }
-/*------------------------*/
 
+/*-----------------------------------------------------------*/
 void ReadPinnedSites(std::string pinset_filename,
 		      std::unordered_set<Site>& pinned_set)
 {

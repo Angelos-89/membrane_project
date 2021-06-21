@@ -48,8 +48,8 @@ void OutputParams(const int maxiter,const int N,const int DoF,
 		  const int nghost,const double rig,const double sig,
 		  const double tau,const double epsilon,
 		  const double min_change,const double max_change,
-		  double pn_prcn,int blockRadius, int sample_every,
-		  int rank, double Eactive);
+		  double pn_prcn,int blockRadius, double potStrength,
+		  int sample_every, int rank, double Eactive);
 
 std::unordered_set<Site> InitPinning(RectMesh& hfield, double pin_ratio,
 				    Site neighbors[],int radius);
@@ -143,11 +143,6 @@ bool UpdateLattice(const RectMesh& hfield,const double& min_change,
 		   std::unordered_set<Site>& pinned_sites,
 		   const double& pot_strength,const double& h0);
 
-// void WriteData(std::string filename,int& iter, int& total_moves, 
-// 	    double& tot_energy,double& crv_energy,
-// 	    double& cor_energy,double& pin_energy,
-// 	    double& tot_area, double& prj_area, double& alpha, int& DoF);
-
 void Sample(std::string output_filename, int& iter,
 	    int& total_moves, double& tot_energy, double& crv_energy,
 	    double& cor_energy, double& pin_energy, double& tot_area,
@@ -156,7 +151,7 @@ void Sample(std::string output_filename, int& iter,
 void ReadInput(std::string filename,int& sim, int& wSnap, int& acc_samples,
 	       int& blockRadius,double& maxiter,double& sig,double& tau,
 	       double& epsilon,double& min_change,double& max_change,
-	       double& pin_ratio,double& Ea);
+	       double& pin_ratio,double& potStrength, double& Ea);
 
 void AddShift(double& dE);
 
