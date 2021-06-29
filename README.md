@@ -1,14 +1,15 @@
-#-------------------------------------------------------------------#
-A Monte Carlo algorithm written in C++, to calculate the effective
+A Monte Carlo algorithm written in C/C++, to calculate the effective
 elastic coefficients of a membrane in thermal equilibrium with
-its environment.
+its environment. The mesoscopic description by Helfrich and Canham is
+employed.
 
-Three cases can be studied.
 
-a) Unpinned-free membrane.
+The following cases are studied:
 
-b) Pinned membrane with individual degrees of freedom being pinned.
+a) Untethered-free membrane.
 
-c) Block-pinned membrane with regions of desired radius being pinned.
-   In this case, interconnected pinned regions may arise.
-#-------------------------------------------------------------------#
+b) Tethered membrane. Individual degrees of freedom are tethered after
+   a random selection drawn out of a uniform probability distribution.
+
+c) Block-tethered membrane. Regions/blocks of user-defined radius are tethered.
+   In this case, interconnected tethered regions may arise.
