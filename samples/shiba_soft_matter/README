@@ -1,14 +1,6 @@
-
 To reproduce the results of Shiba et al Soft Matter paper. 
-The input file contains
-maxiter = 1e4
-sigma = 0.51
-tau = 0.5
-epsilon = 0.36
-min_change = 0.98
-max_change = 1.02
-pinning_percentage = 0.
-sample_every = 10
-Eactive = 0.
+The input file contains the parameters needed for the run.
+A description of these parameters can be found in the
+/bin/gen_input.py file or the HOWTO.run
 
 Note that it produces unphysical results if tau = sigma

@@ -1,4 +1,3 @@
-#-----------------------------------------------------------------------------------------------#
 Note, $MC corresponds to the directory where the project is located.
 For example: /home/angelos/GIT/membrane_project
 
@@ -11,8 +10,8 @@ For example: /home/angelos/GIT/membrane_project
 4) Now you are inside the /src directory.
 
 5) Now choose a configuration file from the $MC/config directory.
+   and run:
 
-6) Then run:
    ln -s $MC/config/config.<your-choice> config.local
 
 7) Then:
@@ -21,34 +20,38 @@ For example: /home/angelos/GIT/membrane_project
    mv membrane.exe ../
    cd ..
 
-8) Create the input files input_0.txt,input_1.txt etc.
+8) Create the input files input_0.txt, input_1.txt etc.
    To do so, use the gen_input.py file inside $MC/bin.
 
-   1st entry: 0 or 1. (If set to 1 then start from an existing run. Then, there must be
-   	 	     	files named hfield_eq_rank.h5 inside the directory.)
+   1st entry: 0 or 1. (If set to 1 then start from an existing run. Then, there must be files named hfield_eq_rank.h5 inside the directory.)
 
-   2nd entry: Number of accepted Monte Carlo steps to sample and calculate FFTs.  
+   2nd entry: If set to 1, snapshots of the heigth fields are appended to HDF5 file. Otherwise, set to zero. (WARNING: This might take too much space.)
 
-   3rd entry: Number of iterations in the form 1e7.
+   3rd entry: Sampling rate. Number of accepted Monte Carlo steps to sample and calculate FFTs.
+
+   4th entry: Radius of the tethered blocks. 
+
+   5th entry: Number of iterations in the form 1e7.
    
-   4th entry: Surface tension sigma
+   6th entry: Surface/internal tension sigma
 
-   4th entry: Frame tension tau
+   7th entry: Frame tension tau
    
-   6th entry: Maximum height perturbation. Start with a guess. It varies from 0.2 (small tension) 
-   	 	down to 0.05 (large tension).
+   8th entry: Maximum height perturbation. Start with a guess. It varies from 0.2 (small tension) down to 0.05 (large tension).
 		
-   7th entry: Min lattice perturbation. 0.98 (small tension) to 0.93 (large tension).
+   9th entry: Min lattice perturbation. 0.98 (small tension) to 0.93 (large tension).
    
-   8th entry: Max lattice perturbation. 1.02 (small tension) to 1.12 (large tension). 
+   10th entry: Max lattice perturbation. 1.02 (small tension) to 1.12 (large tension).
 
-   9th entry: Fraction of pinning. Goes from 0 to 1.
+   11th entry: Fraction of tethering. Goes from 0. to 1.0.
+
+   12th entry: Strenth of the tethering potential, for example 14000.
    
-   10th entry: Activity.
+   13th entry: Activity.
 
-Note: If we choose 1 in the 1st entry, the code looks for
-      an input HDF5 file with filename : hfield_eq_rank.h5
-      where rank is the process number.
+Note: If the 1st entry is 1, the program looks for
+      an input HDF5 file with filename: hfield_eq_rank.h5
+      where rank is the process number.     
 
 9a) Execute:
 
@@ -57,4 +60,3 @@ Note: If we choose 1 in the 1st entry, the code looks for
 9b) If you are running on server: nohup mpirun -n <no-of-ranks> ./membrane.exe > mem.out &
 
 9c) If running on HPC system, contact system support.
-#-----------------------------------------------------------------------------------------------#
