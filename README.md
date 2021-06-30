@@ -3,7 +3,6 @@ elastic coefficients of a membrane in thermal equilibrium with
 its environment. The mesoscopic description by Helfrich and Canham is
 employed.
 
-
 The following cases are studied:
 
 a) Untethered-free membrane.
